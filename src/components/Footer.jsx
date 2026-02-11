@@ -117,8 +117,8 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-[#FFF8E1] text-sm mb-4 md:mb-0">
-            © 2024 Nescafe Restaurant. All rights reserved.
+          <p className="text-[#FFF8E1] text-sm mb-4 md:mb-0 font-mono">
+           // Made with ❤️, ☕, and a bit of code
           </p>
           <div className="flex space-x-6 text-sm">
             <button className="text-[#FFF8E1] hover:text-[#D4AF37] transition-colors">

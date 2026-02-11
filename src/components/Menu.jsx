@@ -6,10 +6,17 @@ const Menu = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = ['All', 'Hot Coffee', 'Cold Beverages', 'Snacks', 'Desserts'];
+  const categoryMap = [
+    { label: 'All', value: 'All' },
+    { label: 'Debug Drinks', value: 'Hot Coffee' },
+    { label: 'Byte-Sized Bites', value: 'Snacks' },
+    { label: 'Tea.break()', value: 'Desserts' },
+    { label: 'Add-Ons & Extras', value: 'Extras' }
+  ];
 
   const filteredItems = menuItems.filter(item => {
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    const activeCategory = categoryMap.find(c => c.label === selectedCategory)?.value || 'All';
+    const matchesCategory = selectedCategory === 'All' || item.category === activeCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
@@ -20,25 +27,25 @@ const Menu = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
-            Our Featured Menu
+            Fuel Your Everything
           </h2>
-          <p className="text-lg text-[#5D4037] max-w-2xl mx-auto">
-            Discover our carefully curated selection of premium coffee and delicious treats
+          <p className="text-lg text-[#5D4037] max-w-2xl mx-auto font-mono">
+            while(alive) &#123; drink(coffee); &#125;
           </p>
         </div>
 
         <div className="mb-8 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {categories.map((category) => (
+          <div className="flex flex-wrap gap-2 justify-center md:pl-8">
+            {categoryMap.map((category) => (
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${selectedCategory === category
+                key={category.label}
+                onClick={() => setSelectedCategory(category.label)}
+                className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${selectedCategory === category.label
                   ? 'bg-[#3E2723] text-white'
                   : 'bg-white text-[#3E2723] hover:bg-[#8D6E63] hover:text-white'
                   }`}
               >
-                {category}
+                {category.label}
               </button>
             ))}
           </div>

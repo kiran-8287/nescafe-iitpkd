@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 const FloatingOrderButton = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -14,22 +14,22 @@ const FloatingOrderButton = () => {
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
-  const scrollToMenu = () => {
-    document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <>
       {isVisible && (
         <button
-          onClick={scrollToMenu}
+          onClick={scrollToTop}
           className="fixed bottom-8 right-8 bg-[#D4AF37] text-[#3E2723] p-4 rounded-full shadow-2xl hover:bg-[#c19d2f] transition-all duration-300 hover:scale-110 z-40 flex items-center gap-2 group"
           style={{
             animation: 'slideInRight 0.5s ease-out'
           }}
         >
-          <ShoppingCart className="h-6 w-6" />
-          <span className="hidden group-hover:inline-block font-semibold pr-2">Order Now</span>
+          <ArrowUp className="h-6 w-6" />
+          <span className="hidden group-hover:inline-block font-semibold pr-2">Back to reality</span>
         </button>
       )}
 

@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 
+const HEADLINES = [
+  "Where Semicolons Meet Espresso Shots",
+  "Compiling Dreams, One Cup at a Time",
+  "404: Sleep Not Found. Coffee Located.",
+  "The Only Breakpoint You'll Enjoy",
+  "Fueling All-Nighters Since 2015"
+];
+
 const Hero = () => {
+  const [currentHeadline, setCurrentHeadline] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false); // Start fading out
+      setTimeout(() => {
+        setCurrentHeadline((prev) => (prev + 1) % HEADLINES.length);
+        setFade(true); // Fade back in after text change
+      }, 500); // 500ms fade out duration
+    }, 3000); // Change every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const scrollToMenu = () => {
     document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -19,14 +42,15 @@ const Hero = () => {
 
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
         <div className="animate-fadeIn">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            Where Every Cup
-            <br />
-            <span className="text-[#D4AF37]">Tells a Story</span>
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight min-h-[160px] flex flex-col justify-center">
+            <span className={`transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
+              {HEADLINES[currentHeadline]}
+            </span>
           </h1>
 
           <p className="text-xl md:text-2xl text-[#FFF8E1] mb-12 max-w-2xl mx-auto">
-            Experience the finest Nescafe coffee and artisanal treats in a warm, inviting atmosphere
+            The official unofficial hub of IITPKD - <br />
+            Where ideas brew, friendships form, and deadlines are conquered,all over great coffee <br />
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -34,19 +58,24 @@ const Hero = () => {
               onClick={scrollToMenu}
               className="bg-[#D4AF37] text-[#3E2723] px-8 py-4 rounded-full font-bold text-lg hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
-              View Menu
+              Show Me the Goods
             </button>
             <button
-              onClick={scrollToMenu}
+              onClick={() => {
+                scrollToMenu();
+                // Simple logic to simulate "Surprise Me" - just finding a random item could be added later
+                // For now, just scroll
+              }}
               className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-[#3E2723] transition-all duration-300 hover:scale-105"
             >
-              Order Now
+              Surprise Me
             </button>
           </div>
         </div>
 
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <ChevronDown className="h-10 w-10 text-white cursor-pointer" onClick={scrollToMenu} />
+        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce cursor-pointer" onClick={scrollToMenu}>
+          <span className="text-[#FFF8E1] text-sm font-light tracking-widest uppercase opacity-80">Scroll for enlightenment</span>
+          <ChevronDown className="h-8 w-8 text-white" />
         </div>
       </div>
 

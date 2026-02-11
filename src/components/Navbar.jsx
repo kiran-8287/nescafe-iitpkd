@@ -49,7 +49,7 @@ const Navbar = () => {
                   : 'text-white hover:text-[#FFF8E1]'
                   }`}
               >
-                {item}
+                {item === 'contact' ? "Let's Talk" : item}
               </button>
             ))}
           </div>
@@ -58,7 +58,7 @@ const Navbar = () => {
             onClick={() => scrollToSection('menu')}
             className="bg-[#D4AF37] text-[#3E2723] px-6 py-2 rounded-full font-semibold hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105"
           >
-            Order Now
+            I'm In
           </button>
         </div>
       </div>

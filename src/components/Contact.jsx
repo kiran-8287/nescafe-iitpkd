@@ -95,6 +95,16 @@ const Contact = () => {
                   WhatsApp
                 </a>
               </div>
+              <div className="mt-4">
+                <a
+                  href={contactInfo.mapUrl} // Ideally this should be a real Google Maps link, using mapUrl for now or a generic search
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-blue-600 text-white py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors duration-300 text-center"
+                >
+                  Take Me There
+                </a>
+              </div>
             </div>
 
             <div className="bg-white rounded-2xl overflow-hidden shadow-lg h-64">
@@ -127,7 +137,7 @@ const Contact = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 rounded-lg border-2 border-[#8D6E63] focus:outline-none focus:border-[#D4AF37] transition-colors"
-                  placeholder="John Doe"
+                  placeholder="Anonymous works too"
                 />
               </div>
 
@@ -143,7 +153,7 @@ const Contact = () => {
                   onChange={handleChange}
                   required
                   className="w-full px-4 py-3 rounded-lg border-2 border-[#8D6E63] focus:outline-none focus:border-[#D4AF37] transition-colors"
-                  placeholder="john@example.com"
+                  placeholder="We don't spam. We're caffeine dealers, not email marketers"
                 />
               </div>
 
@@ -159,7 +169,7 @@ const Contact = () => {
                   required
                   rows="5"
                   className="w-full px-4 py-3 rounded-lg border-2 border-[#8D6E63] focus:outline-none focus:border-[#D4AF37] transition-colors resize-none"
-                  placeholder="Tell us what's on your mind..."
+                  placeholder="Compliments, complaints, coffee philosophy - all welcome"
                 ></textarea>
               </div>
 
@@ -167,7 +177,7 @@ const Contact = () => {
                 type="submit"
                 className="w-full bg-[#D4AF37] text-[#3E2723] py-4 rounded-full font-bold text-lg hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105"
               >
-                Send Message
+                Send It!
               </button>
             </form>
           </div>
