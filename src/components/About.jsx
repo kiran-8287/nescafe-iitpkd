@@ -35,14 +35,14 @@ const About = () => {
   const statsData = [
     {
       icon: Coffee,
-      value: 50000,
+      value: 200,
       label: 'Cups Served',
       suffix: '+',
       code: 'while(true) { cupsServed++; }'
     },
     {
       icon: Users,
-      value: 2000,
+      value: 100,
       label: 'Happy Regulars',
       suffix: '+',
       code: 'Community.size = GROWING'
@@ -57,16 +57,24 @@ const About = () => {
     },
     {
       icon: Award,
-      value: 10000,
-      label: 'Happiness Guaranteed',
-      suffix: '+',
-      code: 'Smiles.generated = 10000+'
+      isTextOnly: true,
+      textValue: 'Happiness Guaranteed',
+      label: '',
+      code: 'Smiles.generated = 100+'
     }
   ];
 
   return (
     <section id="about" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
+            System Overclocked
+          </h2>
+          <p className="text-lg text-[#5D4037] max-w-2xl mx-auto font-mono">
+            // Core Architecture & Mission Statement
+          </p>
+        </div>
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             {/* Code Block */}
@@ -122,9 +130,11 @@ const About = () => {
                         <IconComponent className="h-6 w-6 text-[#D4AF37]" />
                       </div>
                       <div>
-                        <div className="text-3xl font-bold text-[#3E2723]">
-                          {stat.isDecimal ? stat.value : <CountUp end={stat.value} suffix={stat.suffix} />}
-                          {stat.isDecimal && stat.suffix}
+                        <div className={`font-bold text-[#3E2723] ${stat.isTextOnly ? 'text-lg leading-tight' : 'text-3xl'}`}>
+                          {stat.isTextOnly ? stat.textValue : (
+                            stat.isDecimal ? stat.value : <CountUp end={stat.value} suffix={stat.suffix} />
+                          )}
+                          {!stat.isTextOnly && stat.isDecimal && stat.suffix}
                         </div>
                         <div className="text-sm font-semibold text-[#5D4037]">{stat.label}</div>
                       </div>

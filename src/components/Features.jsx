@@ -1,7 +1,4 @@
-import React from 'react';
 import {
-    Zap,
-    Wifi,
     Clock,
     Armchair,
     Coffee,
@@ -9,18 +6,6 @@ import {
 } from 'lucide-react';
 
 const features = [
-    {
-        icon: Wifi,
-        title: "100 Mbps. No, really.",
-        subtitle: "Stream without buffering",
-        description: "\"The only thing faster than our coffee service\""
-    },
-    {
-        icon: Zap,
-        title: "Charge everything",
-        subtitle: "Even your hopes",
-        description: "\"Power strips at every table. We promise.\""
-    },
     {
         icon: Clock,
         title: "We're open more than the library",

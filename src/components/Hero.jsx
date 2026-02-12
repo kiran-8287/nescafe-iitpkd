@@ -71,11 +71,11 @@ const Hero = () => {
               Surprise Me
             </button>
           </div>
-        </div>
 
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce cursor-pointer" onClick={scrollToMenu}>
-          <span className="text-[#FFF8E1] text-sm font-light tracking-widest uppercase opacity-80">Scroll for enlightenment</span>
-          <ChevronDown className="h-8 w-8 text-white" />
+          <div className="mt-12 flex flex-col items-center gap-2 animate-bounce cursor-pointer opacity-80 hover:opacity-100 transition-opacity" onClick={scrollToMenu}>
+            <span className="text-[#FFF8E1] text-sm font-light tracking-widest uppercase">Scroll for enlightenment</span>
+            <ChevronDown className="h-8 w-8 text-white" />
+          </div>
         </div>
       </div>
 

@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const testimonials = [
   {
-    rating: 5,
+    rating: 4,
     quote: "The only place where my attendance is 100%. WiFi is faster than my thought process.",
     name: "Anonymous",
     role: "3rd Year CSE"
   },
   {
-    rating: 5,
+    rating: 4,
     quote: "Survived final year project thanks to The All-Nighter. Also made 3 new friends here at 1 AM.",
     name: "Someone from Mech Dept",
     role: "Regular"
@@ -54,21 +54,47 @@ const testimonials = [
 
 const Testimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsToShow, setItemsToShow] = useState(3);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setItemsToShow(1);
+      } else if (window.innerWidth < 1024) {
+        setItemsToShow(2);
+      } else {
+        setItemsToShow(3);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex + 3 >= testimonials.length ? 0 : prevIndex + 1
+    setCurrentIndex((prev) =>
+      prev + 1 > testimonials.length - itemsToShow ? 0 : prev + 1
     );
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? Math.max(0, testimonials.length - 3) : prevIndex - 1
+    setCurrentIndex((prev) =>
+      prev - 1 < 0 ? testimonials.length - itemsToShow : prev - 1
     );
   };
 
+  // Adjust index if screen size change makes it out of bounds
+  useEffect(() => {
+    if (currentIndex > testimonials.length - itemsToShow) {
+      setCurrentIndex(Math.max(0, testimonials.length - itemsToShow));
+    }
+  }, [itemsToShow]);
+
+  const gap = itemsToShow === 1 ? 0 : itemsToShow === 2 ? 24 : 32;
+
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
@@ -79,24 +105,31 @@ const Testimonials = () => {
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative px-8 md:px-24">
           {/* Arrow Left */}
           <button
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 bg-[#3E2723] text-white p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#3E2723] text-white p-2 md:p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-xl border-2 border-[#D4AF37]/50"
+            aria-label="Previous testimonial"
           >
-            <ChevronLeft className="h-6 w-6" />
+            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
           </button>
 
           <div className="overflow-hidden py-4">
             <div
-              className="flex transition-transform duration-500 ease-in-out gap-8"
-              style={{ transform: `translateX(-${currentIndex * (100 / 3)}%)` }}
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{
+                gap: `${gap}px`,
+                transform: `translateX(calc(-${currentIndex} * (100% / ${itemsToShow} + ${gap}px / ${itemsToShow})))`
+              }}
             >
               {testimonials.map((testimonial, index) => (
                 <div
                   key={index}
-                  className="min-w-[calc(100%-2rem)] md:min-w-[calc(33.333%-1.33rem)] bg-[#FFF8E1] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-[#D4AF37]/20 flex flex-col"
+                  className="flex-shrink-0 bg-[#FFF8E1] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-[#D4AF37]/20 flex flex-col"
+                  style={{
+                    width: `calc((100% - ${(itemsToShow - 1) * gap}px) / ${itemsToShow})`
+                  }}
                 >
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -120,19 +153,20 @@ const Testimonials = () => {
           {/* Arrow Right */}
           <button
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 bg-[#3E2723] text-white p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-lg"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-[#3E2723] text-white p-2 md:p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-xl border-2 border-[#D4AF37]/50"
+            aria-label="Next testimonial"
           >
-            <ChevronRight className="h-6 w-6" />
+            <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>
         </div>
 
         {/* Dots Navigation */}
-        <div className="flex justify-center gap-2 mt-8">
-          {[...Array(testimonials.length - 2)].map((_, i) => (
+        <div className="flex justify-center gap-2 mt-12">
+          {[...Array(testimonials.length - itemsToShow + 1)].map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
-              className={`h-3 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-8 bg-[#3E2723]' : 'w-3 bg-[#D4AF37]/50 hover:bg-[#D4AF37]'
+              className={`h-2.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-8 bg-[#3E2723]' : 'w-2.5 bg-[#D4AF37]/30 hover:bg-[#D4AF37]'
                 }`}
             />
           ))}

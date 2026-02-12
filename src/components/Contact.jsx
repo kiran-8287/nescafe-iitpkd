@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { contactInfo } from '../data/mock';
-import { MapPin, Clock, Phone, Mail, MessageCircle } from 'lucide-react';
+import { MapPin, Clock, Phone, Mail } from 'lucide-react';
+import whatsappLogo from '../assets/logos/whatsapp.png';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -91,13 +92,13 @@ const Contact = () => {
                   rel="noopener noreferrer"
                   className="flex-1 bg-[#25D366] text-white py-3 rounded-full font-semibold hover:bg-[#20BA5A] transition-colors duration-300 flex items-center justify-center gap-2"
                 >
-                  <MessageCircle className="h-5 w-5" />
+                  <img src={whatsappLogo} alt="WhatsApp" className="h-6 w-6" />
                   WhatsApp
                 </a>
               </div>
               <div className="mt-4">
                 <a
-                  href={contactInfo.mapUrl} // Ideally this should be a real Google Maps link, using mapUrl for now or a generic search
+                  href={contactInfo.navigationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full bg-blue-600 text-white py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors duration-300 text-center"

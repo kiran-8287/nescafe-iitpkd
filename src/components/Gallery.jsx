@@ -58,7 +58,7 @@ const Gallery = () => {
             console.log("Campus Life");
           </h2>
           <p className="text-lg text-[#5D4037] max-w-2xl mx-auto mb-8">
-            A visual journey through our café - from artisanal coffee to cozy interiors
+            Take a picture and upload it, we will make it show in the gallery.
           </p>
         </div>
 

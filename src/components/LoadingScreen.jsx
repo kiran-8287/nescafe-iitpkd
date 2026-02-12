@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import nescafeLogo from '../assets/logos/nescafe-logo.png';
+import iitPkdLogo from '../assets/logos/IIT_PKD_long logo_RGB.jpg';
 
 const LoadingScreen = ({ onComplete }) => {
     const [progress, setProgress] = useState(0);
@@ -40,6 +42,15 @@ const LoadingScreen = ({ onComplete }) => {
     return (
         <div className="fixed inset-0 bg-[#2b1d1a] z-[100] flex flex-col items-center justify-center text-[#faebd7]">
             <div className="w-full max-w-md px-6">
+                <div className="flex items-center justify-center gap-8 mb-12">
+                    <div className="h-24 w-24 bg-white rounded-full p-2 border-2 border-[#D4AF37] shadow-xl overflow-hidden shrink-0">
+                        <img src={nescafeLogo} alt="Nescafe" className="h-full w-full object-contain" />
+                    </div>
+                    <div className="h-24 w-48 bg-white rounded-xl p-2 border-2 border-[#D4AF37] shadow-xl overflow-hidden shrink-0">
+                        <img src={iitPkdLogo} alt="IIT Palakkad" className="h-full w-full object-contain" />
+                    </div>
+                </div>
+
                 <div className="mb-2 font-mono text-[#D4AF37] text-lg h-8">
                     &gt; {messages[currentMessage]}
                 </div>

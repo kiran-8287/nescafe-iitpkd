@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { socialLinks } from '../data/mock';
-import { Coffee, Instagram, Facebook, Twitter, Mail, MapPin, Phone } from 'lucide-react';
+import nescafeLogo from '../assets/logos/nescafe-logo.png';
+import whatsappLogo from '../assets/logos/whatsapp.png';
+import { socialLinks, contactInfo } from '../data/mock';
+import { Instagram, Facebook, Twitter, Mail, MapPin, Phone } from 'lucide-react';
 
 const Footer = () => {
   const [email, setEmail] = useState('');
@@ -23,9 +25,15 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Coffee className="h-8 w-8 text-[#D4AF37]" />
-              <span className="text-2xl font-bold">Nescafe Restaurant</span>
+            <div className="flex items-center space-x-3">
+              <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5">
+                <img
+                  src={nescafeLogo}
+                  alt="Nescafe Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              <span className="text-2xl font-bold tracking-tight">Nescafe<span className="text-[#D4AF37]">IITPKD</span></span>
             </div>
             <p className="text-[#FFF8E1]">
               Serving premium coffee and creating memorable moments since 2012.
@@ -54,6 +62,14 @@ const Footer = () => {
                 className="bg-white/10 p-2 rounded-full hover:bg-[#D4AF37] transition-colors duration-300"
               >
                 <Twitter className="h-5 w-5" />
+              </a>
+              <a
+                href={`https://wa.me/${contactInfo.whatsapp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white/10 p-1 rounded-full hover:bg-[#25D366] transition-colors duration-300 flex items-center justify-center overflow-hidden"
+              >
+                <img src={whatsappLogo} alt="WhatsApp" className="h-7 w-7 object-contain" />
               </a>
             </div>
           </div>

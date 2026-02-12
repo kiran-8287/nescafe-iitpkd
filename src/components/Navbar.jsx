@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Coffee } from 'lucide-react';
+import nescafeLogo from '../assets/logos/nescafe-logo.png';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -30,12 +30,18 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div
-            className="flex items-center space-x-2 cursor-pointer"
+            className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <Coffee className={`h-8 w-8 ${scrolled ? 'text-[#3E2723]' : 'text-white'}`} />
-            <span className={`text-2xl font-bold ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}>
-              Nescafe Restaurant
+            <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-1 shadow-lg">
+              <img
+                src={nescafeLogo}
+                alt="Nescafe Logo"
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <span className={`text-2xl font-bold tracking-tight ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}>
+              Nescafe<span className="text-[#D4AF37]">IITPKD</span>
             </span>
           </div>
 

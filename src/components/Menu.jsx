@@ -3,7 +3,7 @@ import { menuItems } from '../data/mock';
 import { Search } from 'lucide-react';
 
 const Menu = () => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('Debug Drinks');
   const [searchTerm, setSearchTerm] = useState('');
 
   const categoryMap = [
@@ -89,9 +89,6 @@ const Menu = () => {
                   <span className="text-2xl font-bold text-[#D4AF37]">${item.price}</span>
                 </div>
                 <p className="text-[#8D6E63] text-sm mb-4">{item.category}</p>
-                <button className="w-full bg-[#D4AF37] text-[#3E2723] py-2 rounded-full font-semibold hover:bg-[#c19d2f] transition-colors duration-300">
-                  Add to Order
-                </button>
               </div>
             </div>
           ))}
