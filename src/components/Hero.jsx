@@ -42,21 +42,21 @@ const Hero = () => {
 
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
         <div className="animate-fadeIn">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight min-h-[160px] flex flex-col justify-center">
+          <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight min-h-[120px] md:min-h-[160px] flex flex-col justify-center">
             <span className={`transition-opacity duration-500 ${fade ? 'opacity-100' : 'opacity-0'}`}>
               {HEADLINES[currentHeadline]}
             </span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-[#FFF8E1] mb-12 max-w-2xl mx-auto">
-            The official unofficial hub of IITPKD - <br />
-            Where ideas brew, friendships form, and deadlines are conquered,all over great coffee <br />
+          <p className="text-lg md:text-2xl text-[#FFF8E1] mb-8 md:mb-12 max-w-2xl mx-auto px-4">
+            The official unofficial hub of IITPKD - <br className="hidden md:block" />
+            Where ideas brew, friendships form, and deadlines are conquered,all over great coffee <br className="hidden md:block" />
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full sm:w-auto px-6 sm:px-0">
             <button
               onClick={scrollToMenu}
-              className="bg-[#D4AF37] text-[#3E2723] px-8 py-4 rounded-full font-bold text-lg hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="bg-[#D4AF37] text-[#3E2723] px-6 py-3 md:px-8 md:py-4 w-full sm:w-auto rounded-full font-bold text-base md:text-lg hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
               Show Me the Goods
             </button>
@@ -66,7 +66,7 @@ const Hero = () => {
                 // Simple logic to simulate "Surprise Me" - just finding a random item could be added later
                 // For now, just scroll
               }}
-              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-[#3E2723] transition-all duration-300 hover:scale-105"
+              className="bg-transparent border-2 border-white text-white px-6 py-3 md:px-8 md:py-4 w-full sm:w-auto rounded-full font-bold text-base md:text-lg hover:bg-white hover:text-[#3E2723] transition-all duration-300 hover:scale-105"
             >
               Surprise Me
             </button>

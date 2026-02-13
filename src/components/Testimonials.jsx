@@ -94,28 +94,28 @@ const Testimonials = () => {
   const gap = itemsToShow === 1 ? 0 : itemsToShow === 2 ? 24 : 32;
 
   return (
-    <section className="py-20 bg-white overflow-hidden">
+    <section className="py-12 md:py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
+        <div className="text-center mb-10 md:mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-[#3E2723] mb-4">
             Real Reviews from Real People
           </h2>
-          <p className="text-lg text-[#5D4037]">
+          <p className="text-base md:text-lg text-[#5D4037]">
             What They Say
           </p>
         </div>
 
-        <div className="relative px-8 md:px-24">
+        <div className="relative px-0 md:px-24">
           {/* Arrow Left */}
           <button
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#3E2723] text-white p-2 md:p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-xl border-2 border-[#D4AF37]/50"
+            className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-30 bg-[#3E2723] text-white p-2 md:p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-xl border-2 border-[#D4AF37]/50"
             aria-label="Previous testimonial"
           >
             <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
           </button>
 
-          <div className="overflow-hidden py-4">
+          <div className="overflow-hidden py-4 px-1">
             <div
               className="flex transition-transform duration-500 ease-in-out"
               style={{
@@ -126,24 +126,24 @@ const Testimonials = () => {
               {testimonials.map((testimonial, index) => (
                 <div
                   key={index}
-                  className="flex-shrink-0 bg-[#FFF8E1] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-[#D4AF37]/20 flex flex-col"
+                  className="flex-shrink-0 bg-[#FFF8E1] rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-[#D4AF37]/20 flex flex-col"
                   style={{
                     width: `calc((100% - ${(itemsToShow - 1) * gap}px) / ${itemsToShow})`
                   }}
                 >
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-[#D4AF37] text-[#D4AF37]" />
+                      <Star key={i} className="h-4 w-4 md:h-5 md:w-5 fill-[#D4AF37] text-[#D4AF37]" />
                     ))}
                   </div>
 
-                  <p className="text-[#3E2723] text-lg mb-6 leading-relaxed flex-grow italic">
+                  <p className="text-[#3E2723] text-base md:text-lg mb-6 leading-relaxed flex-grow italic">
                     "{testimonial.quote}"
                   </p>
 
                   <div className="mt-auto border-t border-[#D4AF37]/20 pt-4">
-                    <h4 className="font-bold text-[#3E2723]">{testimonial.name}</h4>
-                    <p className="text-sm text-[#8D6E63] font-mono">{testimonial.role}</p>
+                    <h4 className="font-bold text-[#3E2723] text-sm md:text-base">{testimonial.name}</h4>
+                    <p className="text-xs md:text-sm text-[#8D6E63] font-mono">{testimonial.role}</p>
                   </div>
                 </div>
               ))}
@@ -153,11 +153,29 @@ const Testimonials = () => {
           {/* Arrow Right */}
           <button
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-[#3E2723] text-white p-2 md:p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-xl border-2 border-[#D4AF37]/50"
+            className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-[#3E2723] text-white p-2 md:p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-xl border-2 border-[#D4AF37]/50"
             aria-label="Next testimonial"
           >
             <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>
+
+          {/* Mobile Navigation Arrows (Below Cards) */}
+          <div className="md:hidden flex justify-center gap-6 mt-6">
+            <button
+              onClick={prevSlide}
+              className="bg-[#3E2723] text-white p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-lg"
+              aria-label="Previous testimonial"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="bg-[#3E2723] text-white p-3 rounded-full hover:bg-[#D4AF37] transition-all duration-300 shadow-lg"
+              aria-label="Next testimonial"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Dots Navigation */}

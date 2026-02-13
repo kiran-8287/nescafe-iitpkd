@@ -23,10 +23,10 @@ const Menu = () => {
   });
 
   return (
-    <section id="menu" className="py-20 bg-[#FFF8E1]">
+    <section id="menu" className="py-12 md:py-20 bg-[#FFF8E1]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-5xl font-bold text-[#3E2723] mb-4">
             Fuel Your Everything
           </h2>
           <p className="text-lg text-[#5D4037] max-w-2xl mx-auto font-mono">

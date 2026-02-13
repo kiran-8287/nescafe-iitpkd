@@ -60,30 +60,30 @@ const About = () => {
       isTextOnly: true,
       textValue: 'Happiness Guaranteed',
       label: '',
-      code: 'Smiles.generated = 100+'
+      code: 'Smiles.generated = ∞'
     }
   ];
 
   return (
-    <section id="about" className="py-20 bg-white">
+    <section id="about" className="py-12 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
+        <div className="text-center mb-10 md:mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-[#3E2723] mb-4">
             System Overclocked
           </h2>
-          <p className="text-lg text-[#5D4037] max-w-2xl mx-auto font-mono">
+          <p className="text-base md:text-lg text-[#5D4037] max-w-2xl mx-auto font-mono">
             // Core Architecture & Mission Statement
           </p>
         </div>
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="space-y-6 md:space-y-8">
             {/* Code Block */}
-            <div className="bg-[#1e1e1e] rounded-lg p-6 shadow-xl border border-gray-700 font-mono text-sm md:text-base overflow-x-auto">
+            <div className="bg-[#1e1e1e] rounded-lg p-4 md:p-6 shadow-xl border border-gray-700 font-mono text-xs md:text-base overflow-x-auto">
               <pre className="text-gray-300">
                 <code>
                   <span className="text-gray-500">/* </span>{'\n'}
-                  <span className="text-gray-500"> * Welcome to Nescafe Engineering Campus</span>{'\n'}
-                  <span className="text-gray-500"> * Established: 2015</span>{'\n'}
+                  <span className="text-gray-500"> * Welcome to Nescafe-Bangaram</span>{'\n'}
+                  <span className="text-gray-500"> * Established: 2025</span>{'\n'}
                   <span className="text-gray-500"> * Mission: Keep the campus awake, inspired, and connected</span>{'\n'}
                   <span className="text-gray-500"> * </span>{'\n'}
                   <span className="text-[#569cd6]">function</span> <span className="text-[#dcdcaa]">cafeMagic</span>() {'{'}{'\n'}

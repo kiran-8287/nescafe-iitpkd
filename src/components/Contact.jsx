@@ -10,10 +10,33 @@ const Contact = () => {
     message: ''
   });
 
-  const handleSubmit = (e) => {
+  const [status, setStatus] = useState('idle'); // idle, sending, success, error
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', message: '' });
+    setStatus('sending');
+
+    try {
+      // Note: User needs to replace this with their actual Formspree endpoint
+      const response = await fetch('https://formspree.io/f/xvzbkolo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+        setTimeout(() => setStatus('idle'), 5000);
+      } else {
+        setStatus('error');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      setStatus('error');
+    }
   };
 
   const handleChange = (e) => {
@@ -24,18 +47,18 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-[#FFF8E1]">
+    <section id="contact" className="py-12 md:py-20 bg-[#FFF8E1]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#3E2723] mb-4">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-5xl font-bold text-[#3E2723] mb-4">
             Visit Us Today
           </h2>
-          <p className="text-lg text-[#5D4037]">
+          <p className="text-base md:text-lg text-[#5D4037]">
             We'd love to serve you a perfect cup of coffee
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           <div className="space-y-8">
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h3 className="text-2xl font-bold text-[#3E2723] mb-6">Contact Information</h3>
@@ -176,10 +199,31 @@ const Contact = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#D4AF37] text-[#3E2723] py-4 rounded-full font-bold text-lg hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105"
+                disabled={status === 'sending'}
+                className={`w-full py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 ${status === 'sending'
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-[#D4AF37] text-[#3E2723] hover:bg-[#c19d2f]'
+                  }`}
               >
-                Send It!
+                {status === 'sending' ? (
+                  <>
+                    <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+                    Sending...
+                  </>
+                ) : 'Send It!'}
               </button>
+
+              {status === 'success' && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative animate-fade-in">
+                  <span className="block sm:inline">Message sent successfully! We'll get back to you soon. ✨</span>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                  <span className="block sm:inline">Something went wrong. Please try again or call us! ☕</span>
+                </div>
+              )}
             </form>
           </div>
         </div>
