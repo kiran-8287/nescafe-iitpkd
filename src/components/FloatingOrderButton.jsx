@@ -23,13 +23,13 @@ const FloatingOrderButton = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 bg-[#D4AF37] text-[#3E2723] p-4 rounded-full shadow-2xl hover:bg-[#c19d2f] transition-all duration-300 hover:scale-110 z-40 flex items-center gap-2 group"
+          className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 bg-[#D4AF37] text-[#3E2723] p-3 sm:p-4 rounded-full shadow-2xl hover:bg-[#c19d2f] transition-all duration-300 hover:scale-110 z-40 flex items-center gap-2 group"
           style={{
             animation: 'slideInRight 0.5s ease-out'
           }}
         >
-          <ArrowUp className="h-6 w-6" />
-          <span className="hidden group-hover:inline-block font-semibold pr-2">Back to reality</span>
+          <ArrowUp className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="hidden sm:group-hover:inline-block font-semibold pr-2">Back to reality</span>
         </button>
       )}
 

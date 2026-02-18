@@ -34,14 +34,14 @@ const features = [
 
 const Features = () => {
     return (
-        <section className="py-20 bg-[#3E2723] text-[#FFF8E1]">
+        <section className="py-12 md:py-20 bg-[#3E2723] text-[#FFF8E1]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                <div className="text-center mb-8 sm:mb-12 md:mb-16">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">
                         Campus Essentials
                         <span className="text-[#D4AF37]">.init()</span>
                     </h2>
-                    <p className="text-xl opacity-90 max-w-2xl mx-auto font-mono">
+                    <p className="text-sm sm:text-base md:text-xl opacity-90 max-w-2xl mx-auto font-mono">
             // Everything you need to survive the semester
                     </p>
                 </div>
@@ -52,15 +52,15 @@ const Features = () => {
                         return (
                             <div
                                 key={index}
-                                className="bg-[#4E342E] p-6 rounded-xl hover:bg-[#5D4037] transition-all duration-300 hover:-translate-y-1 group border border-[#5D4037] hover:border-[#D4AF37]"
+                                className="bg-[#4E342E] p-4 sm:p-5 md:p-6 rounded-xl hover:bg-[#5D4037] transition-all duration-300 hover:-translate-y-1 group border border-[#5D4037] hover:border-[#D4AF37]"
                             >
-                                <div className="mb-4 inline-block p-3 rounded-lg bg-[#3E2723] group-hover:bg-[#D4AF37] transition-colors duration-300">
-                                    <Icon className="h-6 w-6 text-[#D4AF37] group-hover:text-[#3E2723]" />
+                                <div className="mb-3 sm:mb-4 inline-block p-2 sm:p-3 rounded-lg bg-[#3E2723] group-hover:bg-[#D4AF37] transition-colors duration-300">
+                                    <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-[#D4AF37] group-hover:text-[#3E2723]" />
                                 </div>
 
-                                <h3 className="text-xl font-bold mb-1">{feature.title}</h3>
-                                <p className="text-[#D4AF37] text-sm font-semibold mb-3">{feature.subtitle}</p>
-                                <p className="text-gray-300 italic text-sm border-l-2 border-[#8D6E63] pl-3">
+                                <h3 className="text-base sm:text-lg md:text-xl font-bold mb-1">{feature.title}</h3>
+                                <p className="text-[#D4AF37] text-xs sm:text-sm font-semibold mb-2 sm:mb-3">{feature.subtitle}</p>
+                                <p className="text-gray-300 italic text-xs sm:text-sm border-l-2 border-[#8D6E63] pl-3">
                                     {feature.description}
                                 </p>
                             </div>

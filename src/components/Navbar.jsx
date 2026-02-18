@@ -1,116 +1,177 @@
 import React, { useState, useEffect } from 'react';
 import nescafeLogo from '../assets/logos/nescafe-logo.png';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ShoppingBag } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
+  const { cartCount, toggleCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 50;
-      setScrolled(prev => (prev !== isScrolled ? isScrolled : prev));
+      setScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close menu on outside click
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleOutside = (e) => {
+      if (!e.target.closest('#mobile-menu') && !e.target.closest('#hamburger-btn')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [isMobileMenuOpen]);
+
   const scrollToSection = (id) => {
     setIsMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      setTimeout(() => {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
   };
 
+  const navItems = [
+    { id: 'menu', label: 'Menu' },
+    { id: 'about', label: 'About' },
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'contact', label: "Let's Talk" },
+  ];
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || isMobileMenuOpen
-        ? 'bg-white/90 backdrop-blur-md shadow-md py-3'
-        : 'bg-transparent py-5'
-        }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          <div
-            className="flex items-center space-x-3 cursor-pointer group z-50 relative"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <div className="relative h-12 w-12 md:h-16 md:w-16 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-1 shadow-lg transition-transform duration-300 group-hover:scale-105">
-              <img
-                src={nescafeLogo}
-                alt="Nescafe Logo"
-                className="h-full w-full object-contain"
-              />
+    <>
+      {/* ── Main Navbar bar ── */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
+          }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+
+            {/* Logo + Brand */}
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center gap-2 group"
+            >
+              <div className="h-9 w-9 sm:h-11 sm:w-11 md:h-14 md:w-14 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5 shadow-md transition-transform duration-300 group-hover:scale-105">
+                <img src={nescafeLogo} alt="Nescafe Logo" className="h-full w-full object-contain" />
+              </div>
+              <span className={`text-base sm:text-lg md:text-2xl font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}>
+                Nescafe<span className="text-[#D4AF37]">IITPKD</span>
+              </span>
+            </button>
+
+            {/* Desktop nav links */}
+            <div className="hidden md:flex items-center gap-8">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`font-medium transition-colors duration-200 hover:text-[#D4AF37] ${scrolled ? 'text-[#3E2723]' : 'text-white'
+                    }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+
+              {/* Cart Button with Badge */}
+              <button
+                onClick={toggleCart}
+                className={`relative p-2 transition-all duration-300 hover:scale-110 ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}
+              >
+                <ShoppingBag size={24} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-[#3E2723] text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => scrollToSection('menu')}
+                className="bg-[#D4AF37] text-[#3E2723] px-5 py-2 rounded-full font-semibold hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              >
+                I'm In
+              </button>
             </div>
-            <span className={`text-xl md:text-2xl font-bold tracking-tight ${(scrolled || isMobileMenuOpen) ? 'text-[#3E2723]' : 'text-white'}`}>
+
+            {/* Mobile — hamburger icon (right side) */}
+            <button
+              id="hamburger-btn"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              aria-label="Toggle menu"
+              className={`md:hidden p-2 rounded-lg transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center ${scrolled ? 'text-[#3E2723]' : 'text-white'
+                }`}
+            >
+              {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Mobile dropdown popup ── */}
+      {/* Backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/20 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Dropdown panel — slides down from top */}
+      <div
+        id="mobile-menu"
+        className={`fixed top-0 left-0 right-0 z-40 md:hidden bg-white shadow-xl transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
+          }`}
+      >
+        {/* Top row: logo + close button */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5">
+              <img src={nescafeLogo} alt="Nescafe Logo" className="h-full w-full object-contain" />
+            </div>
+            <span className="text-base font-bold text-[#3E2723]">
               Nescafe<span className="text-[#D4AF37]">IITPKD</span>
             </span>
           </div>
-
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
-            {['menu', 'about', 'gallery', 'contact'].map((item) => (
-              <button
-                key={item}
-                onClick={() => scrollToSection(item)}
-                className={`capitalize font-medium transition-colors duration-200 ${scrolled
-                  ? 'text-[#3E2723] hover:text-[#D4AF37]'
-                  : 'text-white hover:text-[#FFF8E1]'
-                  }`}
-              >
-                {item === 'contact' ? "Let's Talk" : item}
-              </button>
-            ))}
-            <button
-              onClick={() => scrollToSection('menu')}
-              className="bg-[#D4AF37] text-[#3E2723] px-6 py-2 rounded-full font-semibold hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 hover:shadow-lg"
-            >
-              I'm In
-            </button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden z-50">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 rounded-full transition-colors ${scrolled || isMobileMenuOpen ? 'text-[#3E2723]' : 'text-white'
-                }`}
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <div
-        className={`fixed inset-0 bg-white z-40 transform transition-transform duration-300 ease-in-out md:hidden flex flex-col items-center justify-center space-y-8 ${isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'
-          }`}
-      >
-        <div className="flex flex-col items-center space-y-6 w-full px-8">
-          {['menu', 'about', 'gallery', 'contact'].map((item, index) => (
-            <button
-              key={item}
-              onClick={() => scrollToSection(item)}
-              className="capitalize text-2xl font-bold text-[#3E2723] hover:text-[#D4AF37] transition-all w-full text-center py-2 border-b border-gray-100 last:border-0"
-              style={{ transitionDelay: `${index * 50}ms` }}
-            >
-              {item === 'contact' ? "Let's Talk" : item}
-            </button>
-          ))}
           <button
-            onClick={() => scrollToSection('menu')}
-            className="bg-[#D4AF37] text-[#3E2723] px-8 py-3 rounded-full font-bold text-xl hover:bg-[#c19d2f] transition-all duration-300 w-full shadow-lg mt-4"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-[#3E2723] min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Close menu"
           >
-            I'm In
+            <X size={24} />
           </button>
         </div>
+
+        {/* Nav links */}
+        <div className="px-4 py-2">
+          {navItems.map((item, index) => (
+            <button
+              key={item.id}
+              onClick={() => scrollToSection(item.id)}
+              className="w-full text-left px-3 py-4 text-[#3E2723] font-semibold text-base border-b border-gray-100 last:border-0 hover:text-[#D4AF37] hover:bg-[#FFF8E1] rounded-lg transition-all duration-200 min-h-[52px] flex items-center"
+              style={{ animationDelay: `${index * 40}ms` }}
+            >
+              {item.label}
+            </button>
+          ))}
+
+          {/* I'm In CTA */}
+          <div className="py-4">
+            <button
+              onClick={() => scrollToSection('menu')}
+              className="w-full bg-[#D4AF37] text-[#3E2723] py-3 rounded-full font-bold text-base hover:bg-[#c19d2f] transition-all duration-300 shadow-md min-h-[48px]"
+            >
+              I'm In ☕
+            </button>
+          </div>
+        </div>
       </div>
-    </nav>
+    </>
   );
 };
 

@@ -96,11 +96,11 @@ const Testimonials = () => {
   return (
     <section className="py-12 md:py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10 md:mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-[#3E2723] mb-4">
+        <div className="text-center mb-8 sm:mb-10 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-[#3E2723] mb-3 sm:mb-4">
             Real Reviews from Real People
           </h2>
-          <p className="text-base md:text-lg text-[#5D4037]">
+          <p className="text-sm sm:text-base md:text-lg text-[#5D4037]">
             What They Say
           </p>
         </div>
@@ -126,24 +126,24 @@ const Testimonials = () => {
               {testimonials.map((testimonial, index) => (
                 <div
                   key={index}
-                  className="flex-shrink-0 bg-[#FFF8E1] rounded-2xl p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-[#D4AF37]/20 flex flex-col"
+                  className="flex-shrink-0 bg-[#FFF8E1] rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-[#D4AF37]/20 flex flex-col"
                   style={{
                     width: `calc((100% - ${(itemsToShow - 1) * gap}px) / ${itemsToShow})`
                   }}
                 >
-                  <div className="flex mb-4">
+                  <div className="flex mb-3 sm:mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 md:h-5 md:w-5 fill-[#D4AF37] text-[#D4AF37]" />
+                      <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-[#D4AF37] text-[#D4AF37]" />
                     ))}
                   </div>
 
-                  <p className="text-[#3E2723] text-base md:text-lg mb-6 leading-relaxed flex-grow italic">
+                  <p className="text-[#3E2723] text-sm sm:text-base md:text-lg mb-4 sm:mb-6 leading-relaxed flex-grow italic">
                     "{testimonial.quote}"
                   </p>
 
-                  <div className="mt-auto border-t border-[#D4AF37]/20 pt-4">
-                    <h4 className="font-bold text-[#3E2723] text-sm md:text-base">{testimonial.name}</h4>
-                    <p className="text-xs md:text-sm text-[#8D6E63] font-mono">{testimonial.role}</p>
+                  <div className="mt-auto border-t border-[#D4AF37]/20 pt-3 sm:pt-4">
+                    <h4 className="font-bold text-[#3E2723] text-sm sm:text-base">{testimonial.name}</h4>
+                    <p className="text-xs sm:text-sm text-[#8D6E63] font-mono">{testimonial.role}</p>
                   </div>
                 </div>
               ))}
