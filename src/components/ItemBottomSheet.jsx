@@ -117,7 +117,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose }) => {
                             <div className="mb-6">
                                 <div className="flex justify-between items-center mb-2">
                                     <h2 className="text-2xl font-black text-[#3E2723]">{item.name}</h2>
-                                    <span className="text-2xl font-black text-[#D4AF37]">${item.price}</span>
+                                    <span className="text-2xl font-black text-[#D4AF37]">₹{item.price}</span>
                                 </div>
                                 <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
                             </div>
@@ -134,8 +134,8 @@ const ItemBottomSheet = ({ item, isOpen, onClose }) => {
                                                 key={v}
                                                 onClick={() => setSelectedVariant(v)}
                                                 className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all border-2 ${selectedVariant === v
-                                                        ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-md'
-                                                        : 'bg-white border-gray-100 text-gray-500 hover:border-[#D4AF37]'
+                                                    ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-md'
+                                                    : 'bg-white border-gray-100 text-gray-500 hover:border-[#D4AF37]'
                                                     }`}
                                             >
                                                 {v}
@@ -157,8 +157,8 @@ const ItemBottomSheet = ({ item, isOpen, onClose }) => {
                                                 key={opt}
                                                 onClick={() => toggleCustomization(opt)}
                                                 className={`w-full flex justify-between items-center p-4 rounded-2xl transition-all border-2 ${selectedCustomizations.includes(opt)
-                                                        ? 'bg-[#FFF8E1] border-[#D4AF37] text-[#3E2723]'
-                                                        : 'bg-gray-50 border-transparent text-gray-500'
+                                                    ? 'bg-[#FFF8E1] border-[#D4AF37] text-[#3E2723]'
+                                                    : 'bg-gray-50 border-transparent text-gray-500'
                                                     }`}
                                             >
                                                 <span className="font-bold text-sm">{opt}</span>
@@ -195,7 +195,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose }) => {
                                     className="flex-1 bg-[#3E2723] text-white h-[56px] rounded-2xl font-black text-lg flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all hover:bg-[#5D4037]"
                                 >
                                     <ShoppingBag size={20} />
-                                    Add to Cart • ${calculatePrice()}
+                                    Add to Cart • ₹{calculatePrice()}
                                 </button>
                             </div>
                         </div>

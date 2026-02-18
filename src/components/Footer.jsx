@@ -107,7 +107,7 @@ const Footer = () => {
 
         <div className="border-t border-white/10 pt-6 sm:pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-[#FFF8E1] text-xs sm:text-sm font-mono text-center md:text-left">
-           // Made with ❤️, ☕, and a bit of code
+           // Made with a bit of code and a lots of ☕.
           </p>
           <div className="flex space-x-4 sm:space-x-6 text-xs sm:text-sm">
             <button className="text-[#FFF8E1] hover:text-[#D4AF37] transition-colors">

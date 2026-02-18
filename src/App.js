@@ -12,6 +12,7 @@ import FloatingOrderButton from "./components/FloatingOrderButton";
 import Features from "./components/Features";
 import LoadingScreen from "./components/LoadingScreen";
 import BottomNav from "./components/BottomNav";
+import FullMenu from "./components/FullMenu";
 import MiniCartBar from "./components/MiniCartBar";
 import CartDrawer from "./components/CartDrawer";
 import { CartProvider } from "./context/CartContext";
@@ -35,7 +36,7 @@ function App() {
     }, []);
 
     useEffect(() => {
-        const sections = ['hero', 'menu', 'about', 'gallery', 'contact'];
+        const sections = ['hero', 'features', 'menu', 'about', 'gallery', 'contact'];
         const observers = [];
 
         const observerOptions = {
@@ -64,10 +65,35 @@ function App() {
         return () => observer.disconnect();
     }, [isLoading]);
 
+    const [view, setView] = useState('home'); // 'home' or 'full-menu'
+
+    useEffect(() => {
+        if (view === 'full-menu') {
+            setActiveSection('menu');
+        }
+    }, [view]);
+
     const scrollToSection = (id) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+        setActiveSection(id); // Optimistic update for faster feedback
+
+        if (id === 'menu') {
+            setView('full-menu');
+            window.scrollTo(0, 0);
+            return;
+        }
+
+        if (view !== 'home') {
+            setView('home');
+            // Wait for re-render then scroll
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        } else {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
         }
     };
 
@@ -78,14 +104,28 @@ function App() {
 
                 <div className={`transition-opacity duration-1000 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
                     <Toaster position="top-center" reverseOrder={false} />
-                    <Navbar />
-                    <Hero />
-                    <Features />
-                    <Menu />
-                    <About />
-                    <Gallery />
-                    <Testimonials />
-                    <Contact />
+                    <Navbar activeSection={activeSection} onHome={() => setView('home')} onNavigate={scrollToSection} />
+
+                    {view === 'home' ? (
+                        <>
+                            <Hero />
+                            <Features />
+                            <Menu onViewFullMenu={() => {
+                                setView('full-menu');
+                                window.scrollTo(0, 0);
+                            }} />
+                            <About />
+                            <Gallery />
+                            <Testimonials />
+                            <Contact />
+                        </>
+                    ) : (
+                        <FullMenu onBack={() => {
+                            setView('home');
+                            window.scrollTo(0, 0);
+                        }} />
+                    )}
+
                     <Footer />
                     <FloatingOrderButton />
                     <MiniCartBar />

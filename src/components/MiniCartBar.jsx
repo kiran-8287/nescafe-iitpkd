@@ -25,7 +25,7 @@ const MiniCartBar = () => {
                             </div>
                             <div className="text-left">
                                 <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Your Cart</p>
-                                <p className="text-sm font-black">{cartCount} {cartCount === 1 ? 'Item' : 'Items'} • ${cartTotal.toFixed(2)}</p>
+                                <p className="text-sm font-black">{cartCount} {cartCount === 1 ? 'Item' : 'Items'} • ₹{cartTotal.toFixed(2)}</p>
                             </div>
                         </div>
 

@@ -2,7 +2,6 @@ const CACHE_NAME = 'nescafe-v1';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/static/js/bundle.js',
     '/favicon.ico'
 ];
 

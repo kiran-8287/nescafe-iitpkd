@@ -3,7 +3,7 @@ import nescafeLogo from '../assets/logos/nescafe-logo.png';
 import { Menu, X, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
-const Navbar = () => {
+const Navbar = ({ activeSection, onHome, onNavigate }) => {
   const { cartCount, toggleCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,9 +30,20 @@ const Navbar = () => {
 
   const scrollToSection = (id) => {
     setIsMobileMenuOpen(false);
-    setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    }, 150);
+    if (onNavigate) {
+      onNavigate(id);
+    } else {
+      setTimeout(() => {
+        if (document.getElementById(id)) {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        } else if (onHome) {
+          onHome();
+          setTimeout(() => {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
+      }, 150);
+    }
   };
 
   const navItems = [
@@ -54,7 +65,11 @@ const Navbar = () => {
 
             {/* Logo + Brand */}
             <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                if (onHome) onHome();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="flex items-center gap-2 group"
             >
               <div className="h-9 w-9 sm:h-11 sm:w-11 md:h-14 md:w-14 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5 shadow-md transition-transform duration-300 group-hover:scale-105">
@@ -71,10 +86,14 @@ const Navbar = () => {
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`font-medium transition-colors duration-200 hover:text-[#D4AF37] ${scrolled ? 'text-[#3E2723]' : 'text-white'
+                  className={`font-black uppercase text-sm tracking-widest transition-all duration-300 hover:text-[#D4AF37] relative group ${activeSection === item.id
+                      ? 'text-[#D4AF37]'
+                      : (scrolled ? 'text-[#3E2723]' : 'text-white')
                     }`}
                 >
                   {item.label}
+                  <span className={`absolute -bottom-1 left-0 w-full h-0.5 bg-[#D4AF37] transition-transform duration-300 ${activeSection === item.id ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                    }`} />
                 </button>
               ))}
 
@@ -134,7 +153,7 @@ const Navbar = () => {
             <div className="h-9 w-9 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5">
               <img src={nescafeLogo} alt="Nescafe Logo" className="h-full w-full object-contain" />
             </div>
-            <span className="text-base font-bold text-[#3E2723]">
+            <span className="text-base font-bold text-[#3E2723]" onClick={() => { if (onHome) onHome(); setIsMobileMenuOpen(false); window.scrollTo(0, 0); }}>
               Nescafe<span className="text-[#D4AF37]">IITPKD</span>
             </span>
           </div>
@@ -153,10 +172,14 @@ const Navbar = () => {
             <button
               key={item.id}
               onClick={() => scrollToSection(item.id)}
-              className="w-full text-left px-3 py-4 text-[#3E2723] font-semibold text-base border-b border-gray-100 last:border-0 hover:text-[#D4AF37] hover:bg-[#FFF8E1] rounded-lg transition-all duration-200 min-h-[52px] flex items-center"
+              className={`w-full text-left px-4 py-4 font-bold text-base border-b border-gray-50 last:border-0 transition-all duration-200 min-h-[52px] flex items-center justify-between group ${activeSection === item.id
+                  ? 'text-[#D4AF37] bg-[#FFF8E1]'
+                  : 'text-[#3E2723] hover:bg-gray-50'
+                }`}
               style={{ animationDelay: `${index * 40}ms` }}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {activeSection === item.id && <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />}
             </button>
           ))}
 

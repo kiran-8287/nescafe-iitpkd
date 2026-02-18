@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = (env, argv) => {
     const isDevelopment = argv.mode === 'development';
@@ -68,6 +69,12 @@ module.exports = (env, argv) => {
             new HtmlWebpackPlugin({
                 template: './index.html',
                 favicon: './favicon.ico'
+            }),
+            new CopyWebpackPlugin({
+                patterns: [
+                    { from: 'sw.js', to: '.' },
+                    { from: 'manifest.json', to: '.' },
+                ],
             }),
             isDevelopment && new ReactRefreshWebpackPlugin(),
         ].filter(Boolean),

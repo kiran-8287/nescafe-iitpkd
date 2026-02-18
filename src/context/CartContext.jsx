@@ -70,20 +70,54 @@ const cartReducer = (state, action) => {
 export const CartProvider = ({ children }) => {
     const [state, dispatch] = useReducer(cartReducer, initialState, getSavedState);
 
+    const [orderMode, setOrderMode] = React.useState('pickup'); // 'pickup' | 'delivery'
+    const [hostelDetails, setHostelDetails] = React.useState({ block: '', room: '' });
+    const [couponApplied, setCouponApplied] = React.useState(false);
+
     // Sync with localStorage
     useEffect(() => {
         localStorage.setItem('nescafe_cart_state', JSON.stringify(state));
     }, [state]);
 
+    // Calculations based on current cart
+    const subtotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    const deliveryFee = orderMode === 'delivery' ? 10 : 0;
+    const discount = couponApplied ? Math.floor(subtotal * 0.2) : 0;
+    const taxes = Math.floor((subtotal - discount) * 0.05);
+    const finalTotal = subtotal - discount + taxes + deliveryFee;
+
     const value = {
         cartItems: state.items,
         isCartOpen: state.isCartOpen,
-        cartTotal: state.items.reduce((total, item) => total + item.price * item.quantity, 0),
+        cartTotal: subtotal,
         cartCount: state.items.reduce((count, item) => count + item.quantity, 0),
+
+        // Advanced States
+        orderMode,
+        setOrderMode,
+        hostelDetails,
+        setHostelDetails,
+        couponApplied,
+        setCouponApplied,
+
+        // Calculated Bill Details
+        billDetails: {
+            subtotal,
+            deliveryFee,
+            discount,
+            taxes,
+            finalTotal
+        },
+
         addItem: (item) => dispatch({ type: 'ADD_ITEM', payload: item }),
         removeItem: (index) => dispatch({ type: 'REMOVE_ITEM', payload: { index } }),
         updateQuantity: (index, quantity) => dispatch({ type: 'UPDATE_QUANTITY', payload: { index, quantity } }),
-        clearCart: () => dispatch({ type: 'CLEAR_CART' }),
+        clearCart: () => {
+            dispatch({ type: 'CLEAR_CART' });
+            setCouponApplied(false);
+            setOrderMode('pickup');
+            setHostelDetails({ block: '', room: '' });
+        },
         toggleCart: () => dispatch({ type: 'TOGGLE_CART' }),
         setCartOpen: (isOpen) => dispatch({ type: 'SET_CART_OPEN', payload: isOpen }),
     };
