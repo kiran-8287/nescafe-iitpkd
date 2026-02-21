@@ -1,13 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Minus, Plus, ShoppingBag, ArrowRight, MapPin, Footprints, Bike, Building, Check, TicketPercent, ChevronRight, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Trash2, Minus, Plus, ShoppingCart, ArrowRight, MapPin, Footprints, Bike, Building, Check, TicketPercent, ChevronRight, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import OrderSuccess from './OrderSuccess';
 import toast from 'react-hot-toast';
 
 const HOSTELS = ["Block A (Boys)", "Block B (Girls)", "Block C (Mixed)", "Faculty Quarters", "Library Reading Room"];
 
 const CartDrawer = () => {
+    const navigate = useNavigate();
     const {
         isCartOpen,
         setCartOpen,
@@ -23,8 +24,6 @@ const CartDrawer = () => {
         setCouponApplied,
         billDetails
     } = useCart();
-
-    const [showSuccess, setShowSuccess] = React.useState(false);
 
     const handleApplyCoupon = () => {
         if (couponApplied) {
@@ -74,16 +73,17 @@ const CartDrawer = () => {
 
         message += `_Sent via Nescafe Ordering System_`;
 
-        window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+        // window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
 
-        // Trigger success state
+        // Navigate to Order Confirmed page
         setCartOpen(false);
-        setShowSuccess(true);
-    };
-
-    const handleCloseSuccess = () => {
-        setShowSuccess(false);
-        clearCart();
+        navigate('/order-confirmed', {
+            state: {
+                orderMode,
+                hostelDetails,
+                finalTotal: billDetails.finalTotal
+            }
+        });
     };
 
     return (
@@ -103,13 +103,13 @@ const CartDrawer = () => {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed top-0 right-0 h-full w-full max-w-md bg-[#FFF8E1] z-[110] shadow-2xl flex flex-col"
+                        className="fixed top-0 right-0 h-full w-full max-w-md bg-[#FFF8E1] z-[110] shadow-2xl flex flex-col font-sans"
                     >
                         {/* Header */}
                         <div className="p-6 bg-white border-b border-gray-100 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="bg-[#3E2723] p-2.5 rounded-2xl text-white">
-                                    <ShoppingBag size={24} />
+                                    <ShoppingCart size={24} />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-black text-[#3E2723]">My Order</h2>
@@ -297,10 +297,10 @@ const CartDrawer = () => {
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
                                     <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-inner">
-                                        <ShoppingBag size={48} className="text-gray-100" />
+                                        <ShoppingCart size={48} className="text-gray-100" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black text-[#3E2723]">Your cart is empty</h3>
+                                        <h3 className="text-xl font-black text-[#3E2723]">Your cart is as empty as my sleep schedule.</h3>
                                         <p className="text-gray-400 text-sm">Add some delicious caffeine to get started!</p>
                                     </div>
                                     <button
@@ -378,10 +378,6 @@ const CartDrawer = () => {
                     </motion.div>
                 </>
             )}
-            <OrderSuccess
-                isOpen={showSuccess}
-                onClose={handleCloseSuccess}
-            />
             {/* Scrollbar hide utility */}
             <style>
                 {`

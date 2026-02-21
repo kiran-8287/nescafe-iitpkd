@@ -22,6 +22,7 @@ const BottomNav = ({ activeSection, onNavigate }) => {
                     return (
                         <button
                             key={item.id}
+                            id={item.isCart ? "mobile-cart-icon" : undefined}
                             onClick={() => {
                                 if (item.isCart) {
                                     toggleCart();

@@ -15,7 +15,12 @@ module.exports = {
                 gold: {
                     500: '#D4AF37',
                 }
-            }
+            },
+            fontFamily: {
+                sans: ['"DM Sans"', 'sans-serif'],
+                serif: ['"Playfair Display"', 'serif'],
+                mono: ['"JetBrains Mono"', 'monospace'],
+            },
         },
     },
     plugins: [],

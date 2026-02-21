@@ -203,17 +203,78 @@ export const contactInfo = {
     phone: "+91 90000 00000",
     whatsapp: "+919000000000",
     email: "hello@nescaferestaurant.com",
-    address: "Nescafe, IIT Palakkad, Kanjikode, Kerala 678623",
+    address: "APJ Block(D3), IIT Palakkad, Kanjikode, Kerala 678623",
     hours: {
-        weekdays: "7:00 AM - 9:00 PM",
-        weekends: "8:00 AM - 10:00 PM"
+        weekdays: "9:30 AM - 11:00 PM",
     },
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d489.87750335293913!2d76.7330368924225!3d10.809777830954323!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba86f944feb0439%3A0x5f258bef4635344a!2sNESCAFE%20COFFEE%20SHOP!5e0!3m2!1sen!2sin!4v1770845004755!5m2!1sen!2sin",
-    navigationUrl: "https://maps.app.goo.gl/H9qQ2RwnxDk8hf8h8"
+    navigationUrl: "https://maps.app.goo.gl/H9qQ2RwnxDk8hf8h8",
+    menuImage: "/src/assets/logos/menu.jpeg"
 };
 
 export const socialLinks = {
-    instagram: "https://instagram.com/nescaferestaurant",
-    facebook: "https://facebook.com/nescaferestaurant",
-    twitter: "https://twitter.com/nescaferest"
+    whatsapp: `https://wa.me/${contactInfo.whatsapp}`
 };
+
+export const coffeeFacts = [
+    {
+        id: 1,
+        title: "You're drinking a bug killer",
+        content: "Caffeine is a natural pesticide produced by coffee plants to paralyze insects. Every morning you're drinking what the plant uses as a weapon."
+    },
+    {
+        id: 2,
+        title: "Java is literally named after coffee",
+        content: "The Java programming language got its name from coffee grown in Java, Indonesia. Every developer uses it. Almost none know this."
+    },
+    {
+        id: 3,
+        title: "The aroma alone does neurological work",
+        content: "Just smelling coffee — before drinking it — triggers your brain to start reducing stress hormones. The cup doesn't even need to be yours."
+    },
+    {
+        id: 4,
+        title: "Goats discovered coffee",
+        content: "A 9th-century Ethiopian goat herder named Kaldi noticed his goats wouldn't sleep after eating certain berries. He tried them. The rest is history."
+    },
+    {
+        id: 5,
+        title: "You're not getting energy — you're blocking tiredness",
+        content: "Caffeine doesn't give you energy. It blocks adenosine receptors — the chemical that signals sleepiness. It's a tiredness blocker, not an energy source."
+    },
+    {
+        id: 6,
+        title: "Beethoven counted exactly 60 beans per cup",
+        content: "Not approximately 60. Exactly 60. Every single morning. By hand."
+    },
+    {
+        id: 7,
+        title: "Coffee has 1,000+ chemical compounds",
+        content: "More than wine. Only about 300 have been properly studied. You've been drinking something scientists don't fully understand yet."
+    },
+    {
+        id: 8,
+        title: "Decaf is a lie",
+        content: "A typical decaf cup still contains 15–30mg of caffeine. \"Decaf\" just means \"less caf.\""
+    },
+    {
+        id: 9,
+        title: "NASA built a space espresso machine",
+        content: "They engineered a pressurized espresso machine specifically for the International Space Station in 2015. The project was literally called ISSpresso."
+    },
+    {
+        id: 10,
+        title: "The best time to drink coffee is NOT when you wake up",
+        content: "Neuroscience says 9:30–11:30am is optimal. Cortisol naturally handles alertness right after waking — morning coffee is largely wasted on your body."
+    },
+    {
+        id: 11,
+        title: "Coffee built modern finance",
+        content: "The London Stock Exchange, insurance industry, and Lloyd's of London all started as conversations in 17th-century coffeehouses. Finance grew out of coffee shop debates."
+    },
+    {
+        id: 12,
+        title: "2.25 billion cups. Every single day.",
+        content: "That's how many cups of coffee are consumed on earth daily. Roughly one cup for every three people alive, every 24 hours."
+    }
+];

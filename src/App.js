@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import "@/App.css";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -15,30 +16,32 @@ import BottomNav from "./components/BottomNav";
 import FullMenu from "./components/FullMenu";
 import MiniCartBar from "./components/MiniCartBar";
 import CartDrawer from "./components/CartDrawer";
+import OrderConfirmPage from "./components/OrderConfirmPage";
+import FunFacts from "./components/FunFacts";
+import SignInPage from "./components/SignInPage";
+import SignUpPage from "./components/SignUpPage";
+import Dashboard from "./components/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
 
-function App() {
-    const [isLoading, setIsLoading] = useState(true);
+// Pages where we don't want the Navbar/Footer/Cart chrome
+const AUTH_PAGES = ['/login', '/signup', '/dashboard'];
+
+// Component to handle scroll observation and internal navigation
+const AppContent = ({ isLoading, setIsLoading }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [activeSection, setActiveSection] = useState('home');
-    const [deferredPrompt, setDeferredPrompt] = useState(null);
 
+    const isAuthPage = AUTH_PAGES.includes(location.pathname);
+
+    // Scroll Observation Logic
     useEffect(() => {
-        const handleBeforeInstallPrompt = (e) => {
-            e.preventDefault();
-            setDeferredPrompt(e);
-            console.log('PWA installation prompt is ready');
-        };
+        if (isLoading || location.pathname !== '/') return;
 
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    }, []);
-
-    useEffect(() => {
         const sections = ['hero', 'features', 'menu', 'about', 'gallery', 'contact'];
-        const observers = [];
-
         const observerOptions = {
             root: null,
             rootMargin: '-20% 0px -60% 0px',
@@ -54,37 +57,25 @@ function App() {
         };
 
         const observer = new IntersectionObserver(handleIntersect, observerOptions);
-
         sections.forEach(id => {
             const element = document.getElementById(id);
-            if (element) {
-                observer.observe(element);
-            }
+            if (element) observer.observe(element);
         });
 
         return () => observer.disconnect();
-    }, [isLoading]);
-
-    const [view, setView] = useState('home'); // 'home' or 'full-menu'
-
-    useEffect(() => {
-        if (view === 'full-menu') {
-            setActiveSection('menu');
-        }
-    }, [view]);
+    }, [isLoading, location.pathname]);
 
     const scrollToSection = (id) => {
-        setActiveSection(id); // Optimistic update for faster feedback
+        setActiveSection(id);
 
-        if (id === 'menu') {
-            setView('full-menu');
+        if (id === 'menu' && location.pathname !== '/menu') {
+            navigate('/menu');
             window.scrollTo(0, 0);
             return;
         }
 
-        if (view !== 'home') {
-            setView('home');
-            // Wait for re-render then scroll
+        if (location.pathname !== '/') {
+            navigate('/');
             setTimeout(() => {
                 const element = document.getElementById(id);
                 if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -98,42 +89,67 @@ function App() {
     };
 
     return (
-        <CartProvider>
-            <div className="App">
-                {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+        <div className="App">
+            {isLoading && !isAuthPage && <LoadingScreen onComplete={() => setIsLoading(false)} />}
 
-                <div className={`transition-opacity duration-1000 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
-                    <Toaster position="top-center" reverseOrder={false} />
-                    <Navbar activeSection={activeSection} onHome={() => setView('home')} onNavigate={scrollToSection} />
+            <div className={`transition-opacity duration-1000 ${isLoading && !isAuthPage ? 'opacity-0' : 'opacity-100'}`}>
+                <Toaster position="top-center" reverseOrder={false} />
 
-                    {view === 'home' ? (
+                {!isAuthPage && location.pathname !== '/order-confirmed' && (
+                    <Navbar activeSection={activeSection} onHome={() => navigate('/')} onNavigate={scrollToSection} />
+                )}
+
+                <Routes>
+                    <Route path="/" element={
                         <>
                             <Hero />
                             <Features />
-                            <Menu onViewFullMenu={() => {
-                                setView('full-menu');
-                                window.scrollTo(0, 0);
-                            }} />
+                            <Menu />
                             <About />
                             <Gallery />
                             <Testimonials />
                             <Contact />
                         </>
-                    ) : (
-                        <FullMenu onBack={() => {
-                            setView('home');
-                            window.scrollTo(0, 0);
-                        }} />
-                    )}
+                    } />
+                    <Route path="/menu" element={<FullMenu />} />
+                    <Route path="/order-confirmed" element={<OrderConfirmPage />} />
+                    <Route path="/fun-facts" element={<FunFacts />} />
 
-                    <Footer />
-                    <FloatingOrderButton />
-                    <MiniCartBar />
-                    <CartDrawer />
-                    <BottomNav activeSection={activeSection} onNavigate={scrollToSection} />
-                </div>
+                    {/* Auth Routes */}
+                    <Route path="/login" element={<SignInPage />} />
+                    <Route path="/signup" element={<SignUpPage />} />
+                    <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                            <Dashboard />
+                        </ProtectedRoute>
+                    } />
+                </Routes>
+
+                {!isAuthPage && location.pathname !== '/order-confirmed' && (
+                    <>
+                        <Footer />
+                        <FloatingOrderButton />
+                        <MiniCartBar />
+                        <CartDrawer />
+                        <BottomNav activeSection={activeSection} onNavigate={scrollToSection} />
+                    </>
+                )}
             </div>
-        </CartProvider>
+        </div>
+    );
+};
+
+function App() {
+    const [isLoading, setIsLoading] = useState(true);
+
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <CartProvider>
+                    <AppContent isLoading={isLoading} setIsLoading={setIsLoading} />
+                </CartProvider>
+            </AuthProvider>
+        </BrowserRouter>
     );
 }
 

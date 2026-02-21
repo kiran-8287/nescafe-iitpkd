@@ -1,13 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { menuItems } from '../data/mock';
-import { Search, Plus, Minus, Info, Flame, Leaf, Star, ArrowLeft } from 'lucide-react';
+import { Search, Plus, Minus, Info, Flame, Leaf, Star, LogIn } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ItemBottomSheet from './ItemBottomSheet';
 import MenuSkeleton from './MenuSkeleton';
 
 const FullMenu = ({ onBack }) => {
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const { cartItems, addItem, updateQuantity } = useCart();
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -68,20 +72,78 @@ const FullMenu = ({ onBack }) => {
         const id = Date.now();
         const startX = e.clientX;
         const startY = e.clientY;
-        const endX = window.innerWidth / 2 + 50;
-        const endY = window.innerHeight - 40;
-        setFlyingItems(prev => [...prev, { id, x: startX, y: startY, imageUrl }]);
+
+        // Find target cart icon
+        let targetX = window.innerWidth / 2 + 50; // Default
+        let targetY = window.innerHeight - 40; // Default
+
+        const miniCart = document.getElementById('mini-cart-icon');
+        const mobileCart = document.getElementById('mobile-cart-icon');
+        const desktopCart = document.getElementById('desktop-cart-icon');
+
+        const targetEl = miniCart || mobileCart || desktopCart;
+
+        if (targetEl) {
+            const rect = targetEl.getBoundingClientRect();
+            targetX = rect.left + rect.width / 2;
+            targetY = rect.top + rect.height / 2;
+        }
+
+        setFlyingItems(prev => [...prev, { id, x: startX, y: startY, targetX, targetY, imageUrl }]);
         setTimeout(() => setFlyingItems(prev => prev.filter(item => item.id !== id)), 1000);
     };
 
     const handleUpdateQty = (e, item, newQty) => {
         e.stopPropagation();
+
+        if (!user) {
+            toast((t) => (
+                <div className="flex flex-col gap-3 p-1 font-sans">
+                    <div className="flex items-center gap-2">
+                        <LogIn size={18} className="text-[#D4AF37]" />
+                        <p className="text-sm font-bold text-[#3E2723]">Login required to order</p>
+                    </div>
+                    <p className="text-xs text-gray-500">Sign in to start building your cart!</p>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                navigate('/login');
+                            }}
+                            className="flex-1 bg-[#3E2723] text-white py-2 rounded-xl text-xs font-black shadow-md active:scale-95 transition-all"
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="px-3 py-2 text-gray-400 text-xs font-bold hover:text-gray-600 transition-colors"
+                        >
+                            Later
+                        </button>
+                    </div>
+                </div>
+            ), {
+                duration: 5000,
+                position: 'top-center',
+                style: { borderRadius: '24px', padding: '16px', border: '1px solid #F5E6D3' }
+            });
+            return;
+        }
+
         const existingIndex = cartItems.findIndex(i => i.id === item.id);
         if (newQty > getItemQuantity(item.id)) {
             if (existingIndex === -1) {
+                const isFirstItem = cartItems.length === 0;
                 addItem(item);
                 triggerFlyAnimation(e, item.image);
-                toast.success(`${item.name} added!`, { icon: '☕' });
+                if (isFirstItem) {
+                    toast.success("Great choice. Your future self approves.", {
+                        icon: '✨',
+                        style: { background: '#3E2723', color: '#fff' }
+                    });
+                } else {
+                    toast.success(`${item.name} added!`, { icon: '☕' });
+                }
             } else {
                 updateQuantity(existingIndex, newQty);
             }
@@ -105,7 +167,7 @@ const FullMenu = ({ onBack }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#FFF8E1] pt-24 pb-32 relative overflow-hidden">
+        <div className="min-h-screen bg-[#FFF8E1] pt-20 pb-32 relative overflow-hidden">
             {/* Fly-to-Cart Overlay */}
             <AnimatePresence>
                 {flyingItems.map(item => (
@@ -113,8 +175,8 @@ const FullMenu = ({ onBack }) => {
                         key={item.id}
                         initial={{ x: item.x - 20, y: item.y - 20, scale: 1, opacity: 1 }}
                         animate={{
-                            x: [item.x - 20, item.x + 50, window.innerWidth / 2 + 50],
-                            y: [item.y - 20, item.y - 100, window.innerHeight - 40],
+                            x: [item.x - 20, item.x + 50, item.targetX - 24],
+                            y: [item.y - 20, item.y - 100, item.targetY - 24],
                             scale: [1, 1.2, 0.2],
                             opacity: [1, 1, 0]
                         }}
@@ -127,23 +189,11 @@ const FullMenu = ({ onBack }) => {
             </AnimatePresence>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                    <button
-                        onClick={onBack}
-                        className="flex items-center gap-2 text-[#3E2723] font-bold hover:gap-3 transition-all group"
-                    >
-                        <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        Back to Home
-                    </button>
-                    <h1 className="text-3xl font-black text-[#3E2723] uppercase tracking-tighter">Full Menu</h1>
-                </div>
-
                 {isLoading ? (
                     <MenuSkeleton />
                 ) : (
                     <>
-                        <div className="sticky top-20 z-30 bg-[#FFF8E1]/95 backdrop-blur-md py-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                        <div className="sticky top-20 z-30 bg-[#FFF8E1]/95 backdrop-blur-md py-3 -mx-4 px-4 sm:mx-0 sm:px-0 font-sans">
                             <div className="relative mb-4">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
@@ -151,7 +201,7 @@ const FullMenu = ({ onBack }) => {
                                     placeholder="Search everything..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-white border-2 border-transparent focus:border-[#D4AF37] rounded-2xl py-3 pl-12 pr-4 shadow-md transition-all outline-none"
+                                    className="w-full bg-white border-2 border-transparent focus:border-[#D4AF37] rounded-2xl py-3 pl-12 pr-4 shadow-md transition-all outline-none font-bold"
                                 />
                             </div>
 
@@ -180,7 +230,7 @@ const FullMenu = ({ onBack }) => {
                                 return (
                                     <div key={cat} id={`full-${cat}`} className="scroll-mt-40">
                                         <div className="flex items-center gap-4 mb-6">
-                                            <h3 className="text-xl sm:text-2xl font-black text-[#3E2723] uppercase tracking-tighter">{cat}</h3>
+                                            <h3 className="text-xl sm:text-2xl font-black text-[#3E2723] uppercase tracking-tighter font-serif">{cat}</h3>
                                             <div className="h-0.5 flex-1 bg-gradient-to-r from-[#D4AF37]/30 to-transparent"></div>
                                         </div>
 
@@ -188,7 +238,7 @@ const FullMenu = ({ onBack }) => {
                                             {items.map((item) => {
                                                 const qty = getItemQuantity(item.id);
                                                 return (
-                                                    <div key={item.id} onClick={() => { setSelectedItem(item); setIsSheetOpen(true); }} className="bg-white rounded-3xl p-3 sm:p-4 flex gap-4 shadow-sm hover:shadow-xl transition-all border border-gray-50 group relative cursor-pointer active:scale-[0.98]">
+                                                    <div key={item.id} onClick={() => { setSelectedItem(item); setIsSheetOpen(true); }} className="bg-white rounded-3xl p-3 sm:p-4 flex gap-4 shadow-sm hover:shadow-xl transition-all border border-gray-50 group relative cursor-pointer active:scale-[0.98] font-sans">
                                                         <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden flex-shrink-0">
                                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                             {item.isVeg && <div className="absolute top-2 left-2 bg-white/90 p-1 rounded-md border border-green-500"><div className="w-2 h-2 rounded-full bg-green-500"></div></div>}
@@ -222,6 +272,13 @@ const FullMenu = ({ onBack }) => {
                                     </div>
                                 );
                             })}
+                            {filteredItems.length === 0 && (
+                                <div className="text-center py-20 bg-white rounded-[40px] border-2 border-dashed border-gray-100 flex flex-col items-center">
+                                    <Search size={48} className="text-gray-200 mb-4" />
+                                    <p className="text-xl font-bold text-[#3E2723]">Nothing here. Like my will to study.</p>
+                                    <p className="text-gray-400 text-sm mt-1">Try searching for something else!</p>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}

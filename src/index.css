@@ -32,16 +32,18 @@
 body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Poppins', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     overflow-x: hidden;
 }
 
-/* Hide scrollbar for horizontal scroll containers on mobile */
-.scrollbar-hide::-webkit-scrollbar {
+/* Hide scrollbar for elements */
+.scrollbar-hide::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
     display: none;
 }
 
-.scrollbar-hide {
+.scrollbar-hide,
+.no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }

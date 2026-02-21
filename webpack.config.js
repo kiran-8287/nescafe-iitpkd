@@ -51,6 +51,13 @@ module.exports = (env, argv) => {
                     ],
                 },
                 {
+                    test: /\.(mp4|webm|ogg)$/i,
+                    type: 'asset/resource',
+                    generator: {
+                        filename: 'static/media/[name].[hash:8][ext]'
+                    }
+                },
+                {
                     test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
                     type: 'asset/resource',
                     generator: {

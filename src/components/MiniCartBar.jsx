@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ChevronRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 const MiniCartBar = () => {
@@ -16,12 +16,13 @@ const MiniCartBar = () => {
                     className="fixed bottom-[76px] left-0 right-0 z-40 px-4 md:hidden"
                 >
                     <button
+                        id="mini-cart-icon"
                         onClick={toggleCart}
                         className="w-full bg-[#3E2723] text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between group active:scale-95 transition-transform"
                     >
                         <div className="flex items-center gap-3">
                             <div className="bg-[#D4AF37] p-2 rounded-xl text-[#3E2723]">
-                                <ShoppingBag size={20} />
+                                <ShoppingCart size={20} />
                             </div>
                             <div className="text-left">
                                 <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Your Cart</p>

@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import nescafeLogo from '../assets/logos/nescafe-logo.png';
-import { Menu, X, ShoppingBag } from 'lucide-react';
+import { Menu as MenuIcon, X, ShoppingCart, User, Search, MapPin, Phone, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ activeSection, onHome, onNavigate }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { cartCount, toggleCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -57,7 +61,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
     <>
       {/* ── Main Navbar bar ── */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-sans ${scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,8 +79,8 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               <div className="h-9 w-9 sm:h-11 sm:w-11 md:h-14 md:w-14 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5 shadow-md transition-transform duration-300 group-hover:scale-105">
                 <img src={nescafeLogo} alt="Nescafe Logo" className="h-full w-full object-contain" />
               </div>
-              <span className={`text-base sm:text-lg md:text-2xl font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}>
-                Nescafe<span className="text-[#D4AF37]">IITPKD</span>
+              <span className="text-base sm:text-lg md:text-2xl font-bold tracking-tight text-[#3E2723]">
+                NESCAFE<span className="text-[#D4AF37]">IITPKD</span>
               </span>
             </button>
 
@@ -87,8 +91,8 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
                   className={`font-black uppercase text-sm tracking-widest transition-all duration-300 hover:text-[#D4AF37] relative group ${activeSection === item.id
-                      ? 'text-[#D4AF37]'
-                      : (scrolled ? 'text-[#3E2723]' : 'text-white')
+                    ? 'text-[#D4AF37]'
+                    : (scrolled ? 'text-[#3E2723]' : 'text-white')
                     }`}
                 >
                   {item.label}
@@ -99,15 +103,35 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
 
               {/* Cart Button with Badge */}
               <button
+                id="desktop-cart-icon"
                 onClick={toggleCart}
                 className={`relative p-2 transition-all duration-300 hover:scale-110 ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}
               >
-                <ShoppingBag size={24} />
+                <ShoppingCart size={24} />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-[#3E2723] text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
                     {cartCount}
                   </span>
                 )}
+              </button>
+
+              {/* Profile/Login Button */}
+              <button
+                onClick={() => navigate(user ? '/dashboard' : '/login')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${scrolled
+                    ? 'border-gray-100 text-[#3E2723] hover:bg-gray-50'
+                    : 'border-white/20 text-white hover:bg-white/10'
+                  }`}
+              >
+                <div className="relative">
+                  <User size={20} className={user ? 'text-[#D4AF37]' : ''} />
+                  {user && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                  )}
+                </div>
+                <span className="text-xs font-black uppercase tracking-wider">
+                  {user ? 'Profile' : 'Login'}
+                </span>
               </button>
 
               <button
@@ -126,7 +150,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               className={`md:hidden p-2 rounded-lg transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center ${scrolled ? 'text-[#3E2723]' : 'text-white'
                 }`}
             >
-              {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+              {isMobileMenuOpen ? <X size={26} /> : <MenuIcon size={26} />}
             </button>
           </div>
         </div>
@@ -154,7 +178,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               <img src={nescafeLogo} alt="Nescafe Logo" className="h-full w-full object-contain" />
             </div>
             <span className="text-base font-bold text-[#3E2723]" onClick={() => { if (onHome) onHome(); setIsMobileMenuOpen(false); window.scrollTo(0, 0); }}>
-              Nescafe<span className="text-[#D4AF37]">IITPKD</span>
+              NESCAFE<span className="text-[#D4AF37]">IITPKD</span>
             </span>
           </div>
           <button
@@ -173,8 +197,8 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               key={item.id}
               onClick={() => scrollToSection(item.id)}
               className={`w-full text-left px-4 py-4 font-bold text-base border-b border-gray-50 last:border-0 transition-all duration-200 min-h-[52px] flex items-center justify-between group ${activeSection === item.id
-                  ? 'text-[#D4AF37] bg-[#FFF8E1]'
-                  : 'text-[#3E2723] hover:bg-gray-50'
+                ? 'text-[#D4AF37] bg-[#FFF8E1]'
+                : 'text-[#3E2723] hover:bg-gray-50'
                 }`}
               style={{ animationDelay: `${index * 40}ms` }}
             >
@@ -184,7 +208,16 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
           ))}
 
           {/* I'm In CTA */}
-          <div className="py-4">
+          <div className="py-4 space-y-3">
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                navigate(user ? '/dashboard' : '/login');
+              }}
+              className="w-full bg-[#3E2723] text-white py-3 rounded-full font-bold text-base hover:bg-[#5D4037] transition-all duration-300 shadow-md min-h-[48px] flex items-center justify-center gap-2"
+            >
+              <User size={18} /> {user ? 'My Profile' : 'Member Login'}
+            </button>
             <button
               onClick={() => scrollToSection('menu')}
               className="w-full bg-[#D4AF37] text-[#3E2723] py-3 rounded-full font-bold text-base hover:bg-[#c19d2f] transition-all duration-300 shadow-md min-h-[48px]"
