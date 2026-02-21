@@ -190,7 +190,7 @@ const Menu = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#3E2723] mb-3 uppercase tracking-tighter font-serif">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#3E2723] mb-3 tracking-tighter font-serif">
             Choose Your Vibes
           </h2>
           <p className="text-[#5D4037] font-mono text-xs sm:text-sm">
@@ -220,8 +220,8 @@ const Menu = () => {
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
                     className={`snap-center px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 border-2 ${activeCategory === cat
-                        ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-lg'
-                        : 'bg-white border-gray-100 text-[#3E2723] hover:border-[#D4AF37]'
+                      ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-lg'
+                      : 'bg-white border-gray-100 text-[#3E2723] hover:border-[#D4AF37]'
                       }`}
                   >
                     {cat}

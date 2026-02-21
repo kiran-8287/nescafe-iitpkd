@@ -4,9 +4,11 @@ import { socialLinks, contactInfo } from '../data/mock';
 import { Download, Mail, MapPin, Phone } from 'lucide-react';
 import menuDownload from '../assets/logos/menu.jpeg';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Footer = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {
@@ -73,10 +75,10 @@ const Footer = () => {
               ))}
               <li>
                 <button
-                  onClick={() => navigate('/login')}
-                  className="text-[#D4AF37] hover:text-white transition-colors font-bold text-sm sm:text-base"
+                  onClick={() => navigate(user ? '/dashboard' : '/login')}
+                  className="text-[#D4AF37] hover:text-white transition-colors font-bold text-sm sm:text-base text-left"
                 >
-                  Member Login
+                  {user ? 'My Profile' : 'Member Login'}
                 </button>
               </li>
             </ul>
