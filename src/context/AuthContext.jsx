@@ -58,7 +58,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     const signOut = async () => {
-        await supabase.auth.signOut();
+        try {
+            // Manually clear state first for immediate UI response
+            setSession(null);
+            setUser(null);
+            await supabase.auth.signOut();
+        } catch (e) {
+            console.error('Error during sign out:', e);
+            // Even if it fails, we want the app to treat the user as logged out locally
+            setSession(null);
+            setUser(null);
+        }
     };
 
     return (

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 import { Coffee, LogOut, User, BookOpen, Building2, ShoppingBag } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
     const { user, signOut } = useAuth();
@@ -25,8 +26,14 @@ const Dashboard = () => {
     }, [user]);
 
     const handleSignOut = async () => {
-        await signOut();
-        navigate('/login', { replace: true });
+        try {
+            await signOut();
+            toast.success('Signed out successfully. See you soon! ☕');
+            navigate('/login', { replace: true });
+        } catch (error) {
+            toast.error('Sign out failed, but clearing local session.');
+            navigate('/login', { replace: true });
+        }
     };
 
     const displayName = profile?.name || user?.user_metadata?.name || 'Coffee Lover';
