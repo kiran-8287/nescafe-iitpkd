@@ -25,9 +25,17 @@ const SignUpPage = () => {
             return;
         }
 
-        // Student smail validation
-        if (form.role === 'student' && !form.email.toLowerCase().endsWith('@smail.iitpkd.ac.in')) {
-            setError('Students must use their @smail.iitpkd.ac.in email to register and get discounts.');
+        const emailLower = form.email.toLowerCase();
+
+        // Institutional email validation
+        if (form.role === 'student' && !emailLower.endsWith('@smail.iitpkd.ac.in')) {
+            setError('Students must use their @smail.iitpkd.ac.in email.');
+            setLoading(false);
+            return;
+        }
+
+        if ((form.role === 'staff' || form.role === 'professor') && !emailLower.endsWith('@iitpkd.ac.in')) {
+            setError(`${form.role.charAt(0).toUpperCase() + form.role.slice(1)}s must use their @iitpkd.ac.in email.`);
             setLoading(false);
             return;
         }
@@ -86,9 +94,6 @@ const SignUpPage = () => {
                     </div>
                     <h1 className="text-3xl font-black text-[#3E2723]">Join the Brew</h1>
                     <p className="text-gray-500 text-sm mt-1">Create your Nescafe IITPKD account</p>
-                    <p className="text-[#D4AF37] text-xs font-bold mt-2 px-4 italic leading-relaxed">
-                        Students: Use your smail ID to unlock exclusive campus discounts! 🎓✨
-                    </p>
                 </div>
 
                 {/* Card */}
@@ -128,7 +133,7 @@ const SignUpPage = () => {
                                     value={form.email}
                                     onChange={handleChange}
                                     required
-                                    placeholder="you@iitpkd.ac.in"
+                                    placeholder={form.role === 'student' ? 'you@smail.iitpkd.ac.in' : 'you@iitpkd.ac.in'}
                                     className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
                                 />
                             </div>
@@ -160,7 +165,7 @@ const SignUpPage = () => {
                                     name="role"
                                     value={form.role}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all appearance-none bg-white"
+                                    className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all appearance-none bg-white font-bold"
                                 >
                                     {ROLES.map(r => (
                                         <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
@@ -179,7 +184,7 @@ const SignUpPage = () => {
                                     name="hostel"
                                     value={form.hostel}
                                     onChange={handleChange}
-                                    placeholder="e.g. Block A, Room 204"
+                                    placeholder="e.g. Block A"
                                     className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
                                 />
                             </div>
