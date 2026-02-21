@@ -25,6 +25,13 @@ const SignUpPage = () => {
             return;
         }
 
+        // Student smail validation
+        if (form.role === 'student' && !form.email.toLowerCase().endsWith('@smail.iitpkd.ac.in')) {
+            setError('Students must use their @smail.iitpkd.ac.in email to register and get discounts.');
+            setLoading(false);
+            return;
+        }
+
         const { error: signUpError } = await supabase.auth.signUp({
             email: form.email,
             password: form.password,
@@ -79,6 +86,9 @@ const SignUpPage = () => {
                     </div>
                     <h1 className="text-3xl font-black text-[#3E2723]">Join the Brew</h1>
                     <p className="text-gray-500 text-sm mt-1">Create your Nescafe IITPKD account</p>
+                    <p className="text-[#D4AF37] text-xs font-bold mt-2 px-4 italic leading-relaxed">
+                        Students: Use your smail ID to unlock exclusive campus discounts! 🎓✨
+                    </p>
                 </div>
 
                 {/* Card */}
