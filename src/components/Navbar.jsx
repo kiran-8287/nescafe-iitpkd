@@ -9,16 +9,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { cartCount, toggleCart } = useCart();
-  const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Close menu on outside click
   useEffect(() => {
@@ -61,8 +52,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
     <>
       {/* ── Main Navbar bar ── */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-sans ${scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
-          }`}
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-sans bg-white shadow-md py-2"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -92,7 +82,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
                   onClick={() => scrollToSection(item.id)}
                   className={`font-black uppercase text-sm tracking-widest transition-all duration-300 hover:text-[#D4AF37] relative group ${activeSection === item.id
                     ? 'text-[#D4AF37]'
-                    : (scrolled ? 'text-[#3E2723]' : 'text-white')
+                    : 'text-[#3E2723]'
                     }`}
                 >
                   {item.label}
@@ -105,7 +95,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               <button
                 id="desktop-cart-icon"
                 onClick={toggleCart}
-                className={`relative p-2 transition-all duration-300 hover:scale-110 ${scrolled ? 'text-[#3E2723]' : 'text-white'}`}
+                className="relative p-2 transition-all duration-300 hover:scale-110 text-[#3E2723]"
               >
                 <ShoppingCart size={24} />
                 {cartCount > 0 && (
@@ -118,10 +108,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               {/* Profile/Login Button */}
               <button
                 onClick={() => navigate(user ? '/dashboard' : '/login')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${scrolled
-                  ? 'border-gray-100 text-[#3E2723] hover:bg-gray-50'
-                  : 'border-white/20 text-white hover:bg-white/10'
-                  }`}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 border-gray-100 text-[#3E2723] hover:bg-gray-50 transition-all duration-300 hover:scale-105 shadow-sm"
               >
                 <div className="relative">
                   <User size={20} className={user ? 'text-[#D4AF37]' : ''} />
@@ -140,8 +127,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               id="hamburger-btn"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
               aria-label="Toggle menu"
-              className={`md:hidden p-2 rounded-lg transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center ${scrolled ? 'text-[#3E2723]' : 'text-white'
-                }`}
+              className="md:hidden p-2 rounded-lg transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center text-[#3E2723]"
             >
               {isMobileMenuOpen ? <X size={26} /> : <MenuIcon size={26} />}
             </button>
