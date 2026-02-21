@@ -34,11 +34,7 @@ const SignUpPage = () => {
             return;
         }
 
-        if ((form.role === 'staff' || form.role === 'professor') && !emailLower.endsWith('@iitpkd.ac.in')) {
-            setError(`${form.role.charAt(0).toUpperCase() + form.role.slice(1)}s must use their @iitpkd.ac.in email.`);
-            setLoading(false);
-            return;
-        }
+        // Removed validation for staff and professors as per user request
 
         const { error: signUpError } = await supabase.auth.signUp({
             email: form.email,
@@ -133,7 +129,7 @@ const SignUpPage = () => {
                                     value={form.email}
                                     onChange={handleChange}
                                     required
-                                    placeholder={form.role === 'student' ? 'you@smail.iitpkd.ac.in' : 'you@iitpkd.ac.in'}
+                                    placeholder={form.role === 'student' ? 'you@smail.iitpkd.ac.in' : 'you@example.com'}
                                     className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
                                 />
                             </div>
