@@ -119,8 +119,8 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               <button
                 onClick={() => navigate(user ? '/dashboard' : '/login')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${scrolled
-                    ? 'border-gray-100 text-[#3E2723] hover:bg-gray-50'
-                    : 'border-white/20 text-white hover:bg-white/10'
+                  ? 'border-gray-100 text-[#3E2723] hover:bg-gray-50'
+                  : 'border-white/20 text-white hover:bg-white/10'
                   }`}
               >
                 <div className="relative">
@@ -132,13 +132,6 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
                 <span className="text-xs font-black uppercase tracking-wider">
                   {user ? 'Profile' : 'Login'}
                 </span>
-              </button>
-
-              <button
-                onClick={() => scrollToSection('menu')}
-                className="bg-[#D4AF37] text-[#3E2723] px-5 py-2 rounded-full font-semibold hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 hover:shadow-lg"
-              >
-                I'm In
               </button>
             </div>
 
@@ -207,22 +200,16 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
             </button>
           ))}
 
-          {/* I'm In CTA */}
-          <div className="py-4 space-y-3">
+          {/* Member Profile/Login CTA */}
+          <div className="py-4">
             <button
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 navigate(user ? '/dashboard' : '/login');
               }}
-              className="w-full bg-[#3E2723] text-white py-3 rounded-full font-bold text-base hover:bg-[#5D4037] transition-all duration-300 shadow-md min-h-[48px] flex items-center justify-center gap-2"
+              className="w-full bg-[#3E2723] text-white py-4 rounded-full font-bold text-base hover:bg-[#5D4037] transition-all duration-300 shadow-md min-h-[48px] flex items-center justify-center gap-2"
             >
               <User size={18} /> {user ? 'My Profile' : 'Member Login'}
-            </button>
-            <button
-              onClick={() => scrollToSection('menu')}
-              className="w-full bg-[#D4AF37] text-[#3E2723] py-3 rounded-full font-bold text-base hover:bg-[#c19d2f] transition-all duration-300 shadow-md min-h-[48px]"
-            >
-              I'm In ☕
             </button>
           </div>
         </div>
