@@ -15,14 +15,14 @@ const Menu = () => {
   const { cartItems, addItem, updateQuantity } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Hot Coffee');
+  const [activeCategory, setActiveCategory] = useState('Tea and Coffee');
   const [selectedItem, setSelectedItem] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [flyingItems, setFlyingItems] = useState([]);
 
   const categoryContainerRef = useRef(null);
-  const categories = ['Hot Coffee', 'Cold Beverages', 'Snacks', 'Desserts'];
+  const categories = ['Tea and Coffee', 'Cold Beverages', 'Maggie', 'Sandwich'];
 
   // Debounce search
   useEffect(() => {
@@ -214,14 +214,14 @@ const Menu = () => {
                 />
               </div>
 
-              <div ref={categoryContainerRef} className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide snap-x items-center">
+              <div ref={categoryContainerRef} className="flex overflow-x-auto gap-2 mt-8 p-1.5 pb-3 scrollbar-hide snap-x items-center">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`snap-center px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 border-2 ${activeCategory === cat
+                    className={`snap-center px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 border-2 active:scale-90 ${activeCategory === cat
                       ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-lg'
-                      : 'bg-white border-gray-100 text-[#3E2723] hover:border-[#D4AF37]'
+                      : 'bg-white border-gray-100 text-[#3E2723] hover:border-[#D4AF37] active:bg-[#3E2723] active:text-white active:border-[#3E2723]'
                       }`}
                   >
                     {cat}
@@ -267,7 +267,7 @@ const Menu = () => {
                                 if (window.navigator.vibrate) window.navigator.vibrate(15);
                                 handleAddToCart(e, item);
                               }}
-                              className="bg-white border-2 border-[#D4AF37] text-[#3E2723] font-bold px-6 py-1.5 rounded-xl hover:bg-[#D4AF37] hover:text-white transition-all shadow-sm active:scale-95"
+                              className="bg-white border-2 border-[#D4AF37] text-[#3E2723] font-bold px-6 py-1.5 rounded-xl hover:bg-[#D4AF37] hover:text-white transition-all shadow-sm active:scale-90 active:bg-[#3E2723] active:text-white active:border-[#3E2723]"
                             >
                               ADD
                             </button>

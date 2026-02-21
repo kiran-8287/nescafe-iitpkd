@@ -208,7 +208,7 @@ const Contact = () => {
                     <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
                     Sending...
                   </>
-                ) : 'SUBMIT ☕'}
+                ) : 'Send it!'}
               </button>
 
               {status === 'success' && (

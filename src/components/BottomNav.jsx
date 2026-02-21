@@ -1,15 +1,18 @@
-import React from 'react';
-import { Home, UtensilsCrossed, ShoppingCart, Ghost } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, UtensilsCrossed, ShoppingCart, ClipboardList } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
-const BottomNav = ({ activeSection, onNavigate }) => {
+const BottomNav = ({ onNavigate }) => {
     const { cartCount, toggleCart } = useCart();
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState('hero');
 
     const navItems = [
         { id: 'hero', label: 'Home', icon: Home },
         { id: 'menu', label: 'Menu', icon: UtensilsCrossed },
         { id: 'cart', label: 'Cart', icon: ShoppingCart, isCart: true },
-        { id: 'contact', label: 'Contact', icon: Ghost },
+        { id: 'orders', label: 'Orders', icon: ClipboardList, isRoute: '/order-history' },
     ];
 
     return (
@@ -17,7 +20,7 @@ const BottomNav = ({ activeSection, onNavigate }) => {
             <div className="flex justify-between items-center max-w-md mx-auto">
                 {navItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = activeSection === item.id;
+                    const isActive = activeTab === item.id;
 
                     return (
                         <button
@@ -26,7 +29,11 @@ const BottomNav = ({ activeSection, onNavigate }) => {
                             onClick={() => {
                                 if (item.isCart) {
                                     toggleCart();
+                                } else if (item.isRoute) {
+                                    setActiveTab(item.id);
+                                    navigate(item.isRoute);
                                 } else {
+                                    setActiveTab(item.id);
                                     onNavigate(item.id);
                                 }
                             }}

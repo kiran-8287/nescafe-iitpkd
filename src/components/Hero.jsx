@@ -3,10 +3,12 @@ import { ChevronDown } from 'lucide-react';
 
 const HEADLINES = [
   "Where Semicolons Meet Espresso Shots",
-  "Compiling Dreams, One Cup at a Time",
-  "404: Sleep Not Found. Coffee Located.",
-  "The Only Breakpoint You'll Enjoy",
-  "Fueling All-Nighters Since 2015"
+  "Stress-Strain Curves Hit Different After Espresso",
+  "Lubricate Your Brain Before the Lab",
+  "AC/DC — Arabica Coffee / Dark Caffeine",
+  "Our Coffee Has More Pressure Than Your Deadlines",
+  "Concrete Plans Require Liquid Courage",
+  "Low Current. Steady Voltage. That's Tea."
 ];
 
 const Hero = () => {

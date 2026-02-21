@@ -160,7 +160,6 @@ const Gallery = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showFullGallery, setShowFullGallery] = useState(false);
 
-  // On mobile show only first 3; on desktop show all
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -169,11 +168,15 @@ const Gallery = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Mobile: show 3, Desktop: show 6
-  const visibleCount = isMobile ? 3 : 6;
-  const visibleImages = customImages.slice(0, visibleCount);
-  const hiddenCount = customImages.length - visibleCount;
-  const teaserImage = customImages[visibleCount]; // blurred preview
+  // Desktop: show 6 with a teaser
+  const desktopVisibleCount = 6;
+  const desktopImages = customImages.slice(0, desktopVisibleCount);
+  const desktopHiddenCount = customImages.length - desktopVisibleCount;
+  const teaserImage = customImages[desktopVisibleCount];
+
+  // Mobile: 2×2 grid (4 images), 4th cell shows "+X more" overlay
+  const mobileGridImages = customImages.slice(0, 4);
+  const mobileMoreCount = customImages.length - 4;
 
   return (
     <>
@@ -189,44 +192,91 @@ const Gallery = () => {
             </p>
           </div>
 
-          {/* Image grid */}
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-            {visibleImages.map((image, index) => (
-              <ImageCard
-                key={image.id}
-                image={image}
-                index={index}
-                onClick={setSelectedImage}
-              />
-            ))}
-          </div>
+          {/* ── MOBILE: 2×2 grid ── */}
+          <div className="md:hidden">
+            <div className="grid grid-cols-2 gap-3">
+              {mobileGridImages.map((image, index) => {
+                const isLastCell = index === 3;
+                return (
+                  <div
+                    key={image.id}
+                    className="relative overflow-hidden rounded-xl aspect-square cursor-pointer group shadow-md"
+                    onClick={() => isLastCell ? setShowFullGallery(true) : setSelectedImage(image)}
+                    style={{ animation: `galleryFadeIn 0.4s ease-out ${index * 0.06}s both` }}
+                  >
+                    <img
+                      src={image.src}
+                      alt={image.caption}
+                      loading="lazy"
+                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${isLastCell ? 'blur-[2px] scale-110' : ''}`}
+                    />
+                    {/* Caption for normal cells */}
+                    {!isLastCell && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#3E2723]/80 to-transparent flex items-end p-2">
+                        <p className="text-white text-[10px] font-semibold leading-tight line-clamp-2">{image.caption}</p>
+                      </div>
+                    )}
+                    {/* "+X more" overlay on last cell */}
+                    {isLastCell && (
+                      <div className="absolute inset-0 bg-[#3E2723]/70 flex flex-col items-center justify-center gap-1">
+                        <span className="text-white text-3xl font-black">+{mobileMoreCount}</span>
+                        <span className="text-[#D4AF37] text-xs font-bold tracking-wide uppercase">more photos</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
 
-          {/* "View More" button — always shown when there are hidden images */}
-          {hiddenCount > 0 && teaserImage && (
-            <div className="mt-8 text-center">
-              {/* Teaser: blurred peek of next image */}
-              <div className="relative mb-4 overflow-hidden rounded-xl h-20 mx-auto max-w-xs">
-                <img
-                  src={teaserImage.src}
-                  alt="More photos"
-                  className="w-full h-full object-cover blur-sm scale-110"
-                />
-                <div className="absolute inset-0 bg-[#3E2723]/60 flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    +{hiddenCount} more photos
-                  </span>
-                </div>
-              </div>
-
+            {/* View All Photos */}
+            <div className="mt-5 text-center">
               <button
                 onClick={() => setShowFullGallery(true)}
-                className="inline-flex items-center gap-2 bg-[#3E2723] text-white px-8 py-3 rounded-full font-bold text-base hover:bg-[#5D4037] transition-all duration-300 hover:scale-105 shadow-lg min-h-[48px]"
+                className="inline-flex items-center gap-2 bg-[#3E2723] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#5D4037] transition-all duration-300 hover:scale-105 shadow-lg min-h-[48px]"
               >
                 <Images className="h-5 w-5" />
                 View All Photos
               </button>
             </div>
-          )}
+          </div>
+
+          {/* ── DESKTOP: masonry ── */}
+          <div className="hidden md:block">
+            <div className="columns-2 lg:columns-3 gap-4 space-y-4">
+              {desktopImages.map((image, index) => (
+                <ImageCard
+                  key={image.id}
+                  image={image}
+                  index={index}
+                  onClick={setSelectedImage}
+                />
+              ))}
+            </div>
+
+            {desktopHiddenCount > 0 && teaserImage && (
+              <div className="mt-8 text-center">
+                <div className="relative mb-4 overflow-hidden rounded-xl h-20 mx-auto max-w-xs">
+                  <img
+                    src={teaserImage.src}
+                    alt="More photos"
+                    className="w-full h-full object-cover blur-sm scale-110"
+                  />
+                  <div className="absolute inset-0 bg-[#3E2723]/60 flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm">
+                      +{desktopHiddenCount} more photos
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowFullGallery(true)}
+                  className="inline-flex items-center gap-2 bg-[#3E2723] text-white px-8 py-3 rounded-full font-bold text-base hover:bg-[#5D4037] transition-all duration-300 hover:scale-105 shadow-lg min-h-[48px]"
+                >
+                  <Images className="h-5 w-5" />
+                  View All Photos
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Lightbox (main section) */}
@@ -242,7 +292,7 @@ const Gallery = () => {
         `}</style>
       </section>
 
-      {/* Full gallery page overlay */}
+      {/* Full gallery overlay */}
       {showFullGallery && (
         <FullGalleryPage onClose={() => setShowFullGallery(false)} />
       )}

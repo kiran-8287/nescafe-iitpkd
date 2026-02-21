@@ -4,20 +4,43 @@ import { motion } from 'framer-motion';
 import { Check, ArrowRight, MapPin, Clock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCart } from '../context/CartContext';
+import { supabase } from '../supabaseClient';
+import toast from 'react-hot-toast';
 import coffeeVideo from '../videos/coffee.mp4';
 
 const OrderConfirmPage = () => {
     const { clearCart } = useCart();
     const location = useLocation();
+    const [order, setOrder] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
 
     // Get State from navigation
-    const { orderMode, hostelDetails } = location.state || { orderMode: 'pickup', hostelDetails: null };
-
-    const orderId = `#BNC-${Math.floor(1000 + Math.random() * 9000)}`;
+    const { orderId, orderMode: initialMode, hostelDetails: initialHostel } = location.state || {};
 
     useEffect(() => {
         // Clear cart on mount
         clearCart();
+
+        if (orderId) {
+            fetchOrder();
+            // Subscribe to status changes
+            const subscription = supabase
+                .channel(`order-${orderId}`)
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'orders',
+                    filter: `id=eq.${orderId}`
+                }, (payload) => {
+                    setOrder(payload.new);
+                    toast.success(`Order Status: ${payload.new.status.toUpperCase()}!`, { icon: '☕' });
+                })
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(subscription);
+            };
+        }
 
         // Trigger Confetti
         const duration = 2000;
@@ -45,17 +68,31 @@ const OrderConfirmPage = () => {
         };
         frame();
 
-        // Haptic - use vibration if available
+        // Haptic
         if (navigator.vibrate) try { navigator.vibrate([10, 50, 10]); } catch (e) { }
 
-    }, []);
+    }, [orderId]);
+
+    const fetchOrder = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .single();
+            if (error) throw error;
+            setOrder(data);
+        } catch (e) {
+            console.error('Error fetching order:', e);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#3E2723] text-[#FAF6F1] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans">
-            {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#5D4037 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
-            {/* Video & Checkmark Container */}
             <div className="relative mb-8 z-10">
                 <motion.div
                     initial={{ scale: 0, opacity: 0 }}
@@ -99,9 +136,14 @@ const OrderConfirmPage = () => {
                 transition={{ delay: 0.5 }}
                 className="text-white/80 mb-8 max-w-xs mx-auto font-medium"
             >
-                {orderMode === 'delivery'
-                    ? "Order placed. Now go touch grass. Just kidding — finish that assignment."
-                    : "Your order is being prepared. Please collect it from the counter."}
+                {order?.status === 'ready'
+                    ? "Your order is ready! Come get it while it's hot."
+                    : order?.status === 'delivered'
+                        ? "Order delivered. Hope it helps you survive the day!"
+                        : (initialMode === 'delivery'
+                            ? "Order placed. Now go touch grass. Just kidding — finish that assignment."
+                            : "Your order is being prepared. Please collect it from the counter.")
+                }
             </motion.p>
 
             <motion.div
@@ -112,24 +154,33 @@ const OrderConfirmPage = () => {
             >
                 <div className="flex justify-between mb-4 pb-4 border-b border-white/10">
                     <span className="text-white/60 text-sm font-bold uppercase tracking-wider">Order ID</span>
-                    <span className="font-mono font-black text-[#D4AF37]">{orderId}</span>
+                    <span className="font-mono font-black text-[#D4AF37]">#{orderId?.slice(0, 8).toUpperCase() || 'N/A'}</span>
                 </div>
 
-                {/* Context Aware Info */}
+                <div className="flex justify-between mb-4 pb-4 border-b border-white/10">
+                    <span className="text-white/60 text-sm font-bold uppercase tracking-wider">Status</span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${order?.status === 'ready' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]' :
+                            order?.status === 'delivered' ? 'bg-green-500 text-white' :
+                                'bg-blue-500 text-white animate-pulse'
+                        }`}>
+                        {order?.status || 'Processing'}
+                    </span>
+                </div>
+
                 <div className="flex flex-col gap-4">
                     <div className="flex justify-between items-center">
                         <span className="text-white/60 text-sm font-bold flex items-center gap-2 uppercase tracking-wider"><Clock size={16} /> Est. Time</span>
                         <span className="font-black text-[#D4AF37]">
-                            {orderMode === 'delivery' ? '~20-30 mins' : '~10-15 mins'}
+                            {initialMode === 'delivery' ? '~20-30 mins' : '~10-15 mins'}
                         </span>
                     </div>
 
-                    {orderMode === 'delivery' && hostelDetails && (
+                    {initialMode === 'delivery' && initialHostel && (
                         <div className="flex justify-between items-start text-left">
                             <span className="text-white/60 text-sm font-bold flex items-center gap-2 shrink-0 uppercase tracking-wider"><MapPin size={16} /> Delivering To</span>
                             <span className="font-black text-white text-right text-sm">
-                                {hostelDetails.block}<br />
-                                <span className="text-white/60 font-medium">Room {hostelDetails.room}</span>
+                                {initialHostel.block}<br />
+                                <span className="text-white/60 font-medium">Room {initialHostel.room}</span>
                             </span>
                         </div>
                     )}

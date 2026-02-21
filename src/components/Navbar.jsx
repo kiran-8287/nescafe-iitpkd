@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import nescafeLogo from '../assets/logos/nescafe-logo.png';
-import { Menu as MenuIcon, X, ShoppingCart, User, Search, MapPin, Phone, Clock } from 'lucide-react';
+import { Menu as MenuIcon, X, ShoppingCart, User, ClipboardList } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -45,7 +45,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
     { id: 'menu', label: 'Menu' },
     { id: 'about', label: 'About' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'contact', label: "Let's Talk" },
+    { id: 'orders', label: 'Orders', isRoute: '/order-history', icon: ClipboardList, desktopOnly: true },
   ];
 
   return (
@@ -79,7 +79,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  onClick={() => item.isRoute ? navigate(item.isRoute) : scrollToSection(item.id)}
                   className={`font-black uppercase text-sm tracking-widest transition-all duration-300 hover:text-[#D4AF37] relative group ${activeSection === item.id
                     ? 'text-[#D4AF37]'
                     : 'text-[#3E2723]'
@@ -171,17 +171,21 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
 
         {/* Nav links */}
         <div className="px-4 py-2">
-          {navItems.map((item, index) => (
+          {navItems.filter(item => !item.desktopOnly).map((item, index) => (
             <button
               key={item.id}
-              onClick={() => scrollToSection(item.id)}
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                if (item.isRoute) navigate(item.isRoute);
+                else scrollToSection(item.id);
+              }}
               className={`w-full text-left px-4 py-4 font-bold text-base border-b border-gray-50 last:border-0 transition-all duration-200 min-h-[52px] flex items-center justify-between group ${activeSection === item.id
                 ? 'text-[#D4AF37] bg-[#FFF8E1]'
                 : 'text-[#3E2723] hover:bg-gray-50'
                 }`}
               style={{ animationDelay: `${index * 40}ms` }}
             >
-              <span>{item.label}</span>
+              <span className="flex items-center gap-2">{item.icon && <item.icon size={16} />}{item.label}</span>
               {activeSection === item.id && <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] shadow-[0_0_8px_#D4AF37]" />}
             </button>
           ))}

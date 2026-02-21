@@ -15,14 +15,14 @@ const FullMenu = ({ onBack }) => {
     const { cartItems, addItem, updateQuantity } = useCart();
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [activeCategory, setActiveCategory] = useState('Hot Coffee');
+    const [activeCategory, setActiveCategory] = useState('Tea and Coffee');
     const [selectedItem, setSelectedItem] = useState(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [flyingItems, setFlyingItems] = useState([]);
 
     const categoryContainerRef = useRef(null);
-    const categories = ['Hot Coffee', 'Cold Beverages', 'Snacks', 'Desserts'];
+    const categories = ['Tea and Coffee', 'Cold Beverages', 'Maggie', 'Sandwich'];
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 800);
@@ -193,7 +193,16 @@ const FullMenu = ({ onBack }) => {
                     <MenuSkeleton />
                 ) : (
                     <>
-                        <div className="sticky top-20 z-30 bg-[#FFF8E1]/95 backdrop-blur-md py-3 -mx-4 px-4 sm:mx-0 sm:px-0 font-sans">
+                        <div className="text-center mb-10">
+                            <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#3E2723] mb-3">
+                                The Full Experience
+                            </h2>
+                            <p className="text-[#5D4037] font-mono text-xs sm:text-sm">
+                                // every byte is handcrafted for perfection
+                            </p>
+                        </div>
+
+                        <div className="sticky top-20 z-30 bg-[#FFF8E1]/95 backdrop-blur-md py-4 -mx-4 px-4 sm:mx-0 sm:px-0 font-sans">
                             <div className="relative mb-4">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
@@ -205,15 +214,15 @@ const FullMenu = ({ onBack }) => {
                                 />
                             </div>
 
-                            <div ref={categoryContainerRef} className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide snap-x">
+                            <div ref={categoryContainerRef} className="flex overflow-x-auto gap-3 mt-8 p-1.5 pb-3 scrollbar-hide snap-x">
                                 {categories.map((cat) => (
                                     <button
                                         key={cat}
                                         id={`full-btn-${cat}`}
                                         onClick={() => scrollToCategory(cat)}
-                                        className={`snap-center px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 border-2 ${activeCategory === cat
+                                        className={`snap-center px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all duration-300 border-2 active:scale-90 ${activeCategory === cat
                                             ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-lg'
-                                            : 'bg-white border-gray-100 text-[#3E2723] hover:border-[#D4AF37]'
+                                            : 'bg-white border-gray-100 text-[#3E2723] hover:border-[#D4AF37] active:bg-[#3E2723] active:text-white active:border-[#3E2723]'
                                             }`}
                                     >
                                         {cat}
@@ -228,7 +237,7 @@ const FullMenu = ({ onBack }) => {
                                 if (items.length === 0) return null;
 
                                 return (
-                                    <div key={cat} id={`full-${cat}`} className="scroll-mt-40">
+                                    <div key={cat} id={`full-${cat}`} className="scroll-mt-52">
                                         <div className="flex items-center gap-4 mb-6">
                                             <h3 className="text-xl sm:text-2xl font-black text-[#3E2723] uppercase tracking-tighter font-serif">{cat}</h3>
                                             <div className="h-0.5 flex-1 bg-gradient-to-r from-[#D4AF37]/30 to-transparent"></div>
@@ -254,7 +263,7 @@ const FullMenu = ({ onBack }) => {
                                                             <div className="flex justify-between items-end">
                                                                 <span className="text-lg sm:text-xl font-black text-[#3E2723]">₹{item.price}</span>
                                                                 {qty === 0 ? (
-                                                                    <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(15); handleUpdateQty(e, item, 1); }} className="bg-white border-2 border-[#D4AF37] text-[#3E2723] font-bold px-6 py-1.5 rounded-xl hover:bg-[#D4AF37] transition-all shadow-sm active:scale-95">ADD</button>
+                                                                    <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(15); handleUpdateQty(e, item, 1); }} className="bg-white border-2 border-[#D4AF37] text-[#3E2723] font-bold px-6 py-1.5 rounded-xl hover:bg-[#D4AF37] transition-all shadow-sm active:scale-90 active:bg-[#3E2723] active:text-white active:border-[#3E2723]">ADD</button>
                                                                 ) : (
                                                                     <div className="flex items-center bg-[#3E2723] text-white rounded-xl p-1 shadow-md">
                                                                         <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(10); handleUpdateQty(e, item, qty - 1); }} className="p-1 hover:bg-white/10 rounded-lg transition-colors"><Minus size={18} /></button>

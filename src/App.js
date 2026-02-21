@@ -10,7 +10,7 @@ import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import FloatingOrderButton from "./components/FloatingOrderButton";
-import Features from "./components/Features";
+// import Features from "./components/Features";
 import LoadingScreen from "./components/LoadingScreen";
 import BottomNav from "./components/BottomNav";
 import FullMenu from "./components/FullMenu";
@@ -21,6 +21,7 @@ import FunFacts from "./components/FunFacts";
 import SignInPage from "./components/SignInPage";
 import SignUpPage from "./components/SignUpPage";
 import Dashboard from "./components/Dashboard";
+import OrderHistory from "./components/OrderHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -103,7 +104,7 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                     <Route path="/" element={
                         <>
                             <Hero />
-                            <Features />
+                            {/* <Features /> */}
                             <Menu />
                             <About />
                             <Gallery />
@@ -121,6 +122,11 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                     <Route path="/dashboard" element={
                         <ProtectedRoute>
                             <Dashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/order-history" element={
+                        <ProtectedRoute>
+                            <OrderHistory />
                         </ProtectedRoute>
                     } />
                 </Routes>

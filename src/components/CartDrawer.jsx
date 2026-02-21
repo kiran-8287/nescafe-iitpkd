@@ -38,7 +38,7 @@ const CartDrawer = () => {
         }
     };
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         if (cartItems.length === 0) return;
 
         if (orderMode === 'delivery' && (!hostelDetails.block || !hostelDetails.room)) {
@@ -46,44 +46,70 @@ const CartDrawer = () => {
             return;
         }
 
-        const phoneNumber = "919000000000"; // Placeholder for Cafe's WhatsApp
-        let message = `*☕ New Order from Nescafe IITPKD*%0A%0A`;
-
-        message += `*Mode:* ${orderMode === 'delivery' ? '🚀 Campus Delivery' : '🏃 Self Pickup'}%0A`;
-        if (orderMode === 'delivery') {
-            message += `*Location:* ${hostelDetails.block}, Room ${hostelDetails.room}%0A`;
+        if (!user) {
+            toast.error("Please login to place an order");
+            navigate('/login');
+            return;
         }
-        message += `%0A*--- Items ---*%0A`;
 
-        cartItems.forEach((item, index) => {
-            message += `${index + 1}. *${item.name}* x ${item.quantity}%0A`;
-            if (item.selectedVariant) message += `   Size: ${item.selectedVariant}%0A`;
-            if (Array.isArray(item.customization) && item.customization.length > 0) {
-                message += `   Extras: ${item.customization.join(', ')}%0A`;
-            }
-            message += `   Price: ₹${(item.price * item.quantity).toFixed(2)}%0A%0A`;
-        });
+        setIsSubmitting(true);
+        const loadingToast = toast.loading("Processing your caffeine...");
 
-        message += `*--- Bill Summary ---*%0A`;
-        message += `Subtotal: ₹${billDetails.subtotal.toFixed(2)}%0A`;
-        if (couponApplied) message += `Discount (20%): -₹${billDetails.discount.toFixed(2)}%0A`;
-        message += `GST (5%): ₹${billDetails.taxes.toFixed(2)}%0A`;
-        if (orderMode === 'delivery') message += `Delivery Fee: ₹${billDetails.deliveryFee.toFixed(2)}%0A`;
-        message += `*Total Amount: ₹${billDetails.finalTotal.toFixed(2)}*%0A%0A`;
+        try {
+            // 1. Create Order record
+            const { data: orderData, error: orderError } = await supabase
+                .from('orders')
+                .insert({
+                    user_id: user.id,
+                    total_amount: billDetails.finalTotal,
+                    order_mode: orderMode,
+                    hostel_block: orderMode === 'delivery' ? hostelDetails.block : null,
+                    room_number: orderMode === 'delivery' ? hostelDetails.room : null,
+                    status: 'preparing',
+                    payment_status: 'pending'
+                })
+                .select()
+                .single();
 
-        message += `_Sent via Nescafe Ordering System_`;
+            if (orderError) throw orderError;
 
-        // window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+            // 2. Create Order Items
+            const itemsToInsert = cartItems.map(item => ({
+                order_id: orderData.id,
+                item_id: item.id,
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                variant: item.selectedVariant || 'Standard',
+                customization: item.customization || []
+            }));
 
-        // Navigate to Order Confirmed page
-        setCartOpen(false);
-        navigate('/order-confirmed', {
-            state: {
-                orderMode,
-                hostelDetails,
-                finalTotal: billDetails.finalTotal
-            }
-        });
+            const { error: itemsError } = await supabase
+                .from('order_items')
+                .insert(itemsToInsert);
+
+            if (itemsError) throw itemsError;
+
+            // Success!
+            toast.success("Order received! Start your timer.", { id: loadingToast });
+
+            // Clear cart and Navigate
+            setCartOpen(false);
+            navigate('/order-confirmed', {
+                state: {
+                    orderId: orderData.id,
+                    orderMode,
+                    hostelDetails,
+                    finalTotal: billDetails.finalTotal
+                }
+            });
+
+        } catch (error) {
+            console.error('Checkout error:', error);
+            toast.error("Order failed. Like our internet.", { id: loadingToast });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (

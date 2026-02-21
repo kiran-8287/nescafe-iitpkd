@@ -4,7 +4,7 @@ export const menuItems = [
     {
         id: 1,
         name: "Classic Espresso",
-        category: "Hot Coffee",
+        category: "Tea and Coffee",
         price: 40,
         description: "Rich, bold espresso shot made from premium Nescafe beans",
         image: "https://images.unsplash.com/photo-1579992357154-faf4bde95b3d?auto=format&fit=crop&w=800&q=80",
@@ -16,7 +16,7 @@ export const menuItems = [
     {
         id: 2,
         name: "Cappuccino",
-        category: "Hot Coffee",
+        category: "Tea and Coffee",
         price: 60,
         description: "Perfect blend of espresso, steamed milk, and foam with beautiful latte art",
         image: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=800&q=80",
@@ -51,7 +51,7 @@ export const menuItems = [
     {
         id: 5,
         name: "Caramel Macchiato",
-        category: "Hot Coffee",
+        category: "Tea and Coffee",
         price: 90,
         description: "Espresso with vanilla-flavored syrup, steamed milk, and caramel drizzle",
         image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=800&q=80",
@@ -62,7 +62,7 @@ export const menuItems = [
     {
         id: 6,
         name: "Espresso Macchiato",
-        category: "Hot Coffee",
+        category: "Tea and Coffee",
         price: 50,
         description: "Espresso shot marked with a dollop of foam",
         image: "https://images.unsplash.com/photo-1583165278997-0250ea5d72e2?auto=format&fit=crop&w=800&q=80",
@@ -73,7 +73,7 @@ export const menuItems = [
     {
         id: 7,
         name: "Butter Croissant",
-        category: "Snacks",
+        category: "Maggie",
         price: 45,
         description: "Flaky, buttery French croissant baked fresh daily",
         image: "https://images.unsplash.com/photo-1623334044303-241021148842?auto=format&fit=crop&w=800&q=80",
@@ -85,7 +85,7 @@ export const menuItems = [
     {
         id: 8,
         name: "Chocolate Cake",
-        category: "Desserts",
+        category: "Sandwich",
         price: 120,
         description: "Rich chocolate cake with smooth white icing",
         image: "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?auto=format&fit=crop&w=800&q=80",
@@ -97,7 +97,7 @@ export const menuItems = [
     {
         id: 9,
         name: "Assorted Pastries",
-        category: "Desserts",
+        category: "Sandwich",
         price: 80,
         description: "Selection of fresh-baked pastries and sweet treats",
         image: "https://images.unsplash.com/photo-1534432182912-63863115e106?auto=format&fit=crop&w=800&q=80",
@@ -108,7 +108,7 @@ export const menuItems = [
     {
         id: 10,
         name: "Berry Tart",
-        category: "Desserts",
+        category: "Sandwich",
         price: 100,
         description: "Delicate tart topped with fresh seasonal berries",
         image: "https://images.unsplash.com/photo-1702742322469-36315505728f?auto=format&fit=crop&w=800&q=80",
