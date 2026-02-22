@@ -13,7 +13,10 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    return user ? children : <Navigate to="/login" replace />;
+    // If user is logged in but hasn't confirmed email, treat as not logged in (unless it's an invited user)
+    const isConfirmed = user?.email_confirmed_at || user?.last_sign_in_at;
+
+    return user && isConfirmed ? children : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

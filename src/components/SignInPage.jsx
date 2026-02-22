@@ -32,9 +32,12 @@ const SignInPage = () => {
         }
     };
 
-    // If already logged in, redirect to dashboard
+    // If already logged in and confirmed, redirect to dashboard
     useEffect(() => {
-        if (user) navigate('/', { replace: true });
+        const isConfirmed = user?.email_confirmed_at || user?.last_sign_in_at;
+        if (user && isConfirmed) {
+            navigate('/', { replace: true });
+        }
     }, [user, navigate]);
 
     // Check for returning user data
