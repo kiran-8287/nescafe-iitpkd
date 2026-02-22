@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { X, Trash2, Minus, Plus, ShoppingCart, ArrowRight, MapPin, Footprints, Bike, Building, Check, TicketPercent, ChevronRight, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 const HOSTELS = ["Block A (Boys)", "Block B (Girls)", "Block C (Mixed)", "Faculty Quarters", "Library Reading Room"];
 
@@ -24,6 +27,9 @@ const CartDrawer = () => {
         setCouponApplied,
         billDetails
     } = useCart();
+
+    const { user } = useAuth();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleApplyCoupon = () => {
         if (couponApplied) {
@@ -388,10 +394,17 @@ const CartDrawer = () => {
                                         </div>
                                         <button
                                             onClick={handleCheckout}
-                                            className="bg-[#3E2723] text-white h-14 px-8 rounded-2xl font-black text-lg shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-[#5D4037]"
+                                            disabled={isSubmitting}
+                                            className="bg-[#3E2723] text-white h-14 px-8 rounded-2xl font-black text-lg shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-[#5D4037] disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            {orderMode === 'delivery' ? 'Order Now' : 'Checkout'}
-                                            <ArrowRight size={20} />
+                                            {isSubmitting ? (
+                                                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <>
+                                                    {orderMode === 'delivery' ? 'Order Now' : 'Checkout'}
+                                                    <ArrowRight size={20} />
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
