@@ -5,14 +5,19 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Get the initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
+            if (session?.user) {
+                const profileData = await ensureUserProfile(session.user);
+                setProfile(profileData);
+            }
             setLoading(false);
         });
 
@@ -27,13 +32,11 @@ export const AuthProvider = ({ children }) => {
                 // On sign-in, ensure user profile row exists in users table and store local metadata
                 if (session?.user) {
                     console.log('User signed in, ensuring profile exists...');
-                    const profile = await ensureUserProfile(session.user);
-                    // Save minimal info for returning user view
-                    localStorage.setItem('nescafe_user_metadata', JSON.stringify({
-                        name: profile?.name || session.user.user_metadata?.name || 'User',
-                        email: session.user.email,
-                        lastLogin: Date.now()
-                    }));
+                    // Set profile but don't save to localStorage
+                    const profileData = await ensureUserProfile(session.user);
+                    setProfile(profileData);
+                } else {
+                    setProfile(null);
                 }
             }
         );
@@ -86,18 +89,19 @@ export const AuthProvider = ({ children }) => {
             // Manually clear state first for immediate UI response
             setSession(null);
             setUser(null);
-            localStorage.removeItem('nescafe_user_metadata');
+            setProfile(null);
             await supabase.auth.signOut();
         } catch (e) {
             console.error('Error during sign out:', e);
             // Even if it fails, we want the app to treat the user as logged out locally
             setSession(null);
             setUser(null);
+            setProfile(null);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signOut }}>
+        <AuthContext.Provider value={{ user, profile, session, loading, signOut }}>
             {children}
         </AuthContext.Provider>
     );

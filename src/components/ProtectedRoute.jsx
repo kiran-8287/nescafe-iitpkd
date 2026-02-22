@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-    const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, adminOnly = false }) => {
+    const { user, profile, loading } = useAuth();
 
     if (loading) {
         return (
@@ -13,10 +13,19 @@ const ProtectedRoute = ({ children }) => {
         );
     }
 
-    // If user is logged in but hasn't confirmed email, treat as not logged in (unless it's an invited user)
+    // If user is logged in but hasn't confirmed email, treat as not logged in
     const isConfirmed = user?.email_confirmed_at || user?.last_sign_in_at;
+    const isAuthenticated = user && isConfirmed;
 
-    return user && isConfirmed ? children : <Navigate to="/login" replace />;
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (adminOnly && profile?.role !== 'admin') {
+        return <Navigate to="/" replace />;
+    }
+
+    return children;
 };
 
 export default ProtectedRoute;

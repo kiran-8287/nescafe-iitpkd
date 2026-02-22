@@ -115,7 +115,7 @@ const AdminDashboard = () => {
         : orders.filter(o => o.status === filterStatus);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8 pt-24 md:pt-28 font-sans">
             <header className="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-[#3E2723]">Nescafe Command Center</h1>

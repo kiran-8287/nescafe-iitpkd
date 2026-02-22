@@ -116,7 +116,6 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                             <ProtectedRoute>
                                 <>
                                     <Hero />
-                                    {/* <Features /> */}
                                     <Menu />
                                     <About />
                                     <Gallery />
@@ -143,7 +142,7 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                             </ProtectedRoute>
                         } />
                         <Route path="/admin" element={
-                            <ProtectedRoute>
+                            <ProtectedRoute adminOnly={true}>
                                 <AdminDashboard />
                             </ProtectedRoute>
                         } />

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import nescafeLogo from '../assets/logos/nescafe-logo.png';
-import { Menu as MenuIcon, X, ShoppingCart, User, ClipboardList } from 'lucide-react';
+import { Menu as MenuIcon, X, ShoppingCart, User, ClipboardList, Shield } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ activeSection, onHome, onNavigate }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { cartCount, toggleCart } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isAdmin = profile?.role === 'admin';
 
   // Close menu on outside click
   useEffect(() => {
@@ -46,6 +48,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
     { id: 'about', label: 'About' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'orders', label: 'Orders', isRoute: '/order-history', icon: ClipboardList, desktopOnly: true },
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin', isRoute: '/admin', icon: Shield, desktopOnly: false }] : []),
   ];
 
   return (
