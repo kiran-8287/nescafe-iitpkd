@@ -108,6 +108,16 @@ const Dashboard = () => {
                 </div>
                 <h1 className="text-3xl font-black text-[#3E2723]">Your Brew Hub</h1>
                 <p className="text-gray-500 text-sm mt-1">Nescafe IITPKD — Member Dashboard</p>
+
+                {/* Admin Quick Access */}
+                {displayRole === 'admin' && (
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-[#3E2723] rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#B8962E] transition-all shadow-md active:scale-95"
+                    >
+                        <Shield size={14} /> Admin Dashboard
+                    </button>
+                )}
             </div>
 
             {/* Profile Card */}

@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
             // Check if row already exists
             const { data, error } = await supabase
                 .from('users')
-                .select('id')
+                .select('*')
                 .eq('id', user.id)
                 .single();
 
