@@ -140,6 +140,7 @@ const SignInPage = () => {
                             <button
                                 onClick={() => {
                                     localStorage.removeItem('nescafe_user_metadata');
+                                    localStorage.removeItem('sb-udzrvxwjakgwfbnatnbt-auth-token');
                                     setMetadata(null);
                                     setForm({ email: '', password: '' });
                                     setShowReturningUser(false);

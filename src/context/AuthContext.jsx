@@ -18,13 +18,15 @@ export const AuthProvider = ({ children }) => {
 
         // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (_event, session) => {
+            async (event, session) => {
+                console.log('Auth State Change Event:', event, 'Session:', session);
                 setSession(session);
                 setUser(session?.user ?? null);
                 setLoading(false);
 
                 // On sign-in, ensure user profile row exists in users table and store local metadata
                 if (session?.user) {
+                    console.log('User signed in, ensuring profile exists...');
                     const profile = await ensureUserProfile(session.user);
                     // Save minimal info for returning user view
                     localStorage.setItem('nescafe_user_metadata', JSON.stringify({
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }) => {
 
     const ensureUserProfile = async (user) => {
         try {
+            console.log('Checking for profile for user:', user.id);
             // Check if row already exists
             const { data, error } = await supabase
                 .from('users')
@@ -48,21 +51,32 @@ export const AuthProvider = ({ children }) => {
                 .eq('id', user.id)
                 .single();
 
-            if (error && error.code === 'PGRST116') {
-                // Row doesn't exist, insert from metadata set during signup
-                const meta = user.user_metadata || {};
-                const newUser = {
-                    id: user.id,
-                    name: meta.name || 'Anonymous',
-                    role: meta.role || 'student',
-                    hostel: meta.hostel || null,
-                };
-                await supabase.from('users').insert(newUser);
-                return newUser;
+            if (error) {
+                if (error.code === 'PGRST116') {
+                    console.log('Profile not found, inserting...');
+                    // Row doesn't exist, insert from metadata set during signup
+                    const meta = user.user_metadata || {};
+                    const newUser = {
+                        id: user.id,
+                        name: meta.name || 'Anonymous',
+                        role: meta.role || 'student',
+                        hostel: meta.hostel || null,
+                    };
+                    const { error: insertError } = await supabase.from('users').insert(newUser);
+                    if (insertError) {
+                        console.error('Error inserting user profile:', insertError);
+                    } else {
+                        console.log('Profile created successfully');
+                    }
+                    return newUser;
+                }
+                console.error('Error checking user profile:', error);
+                return null;
             }
+            console.log('Profile already exists');
             return data;
         } catch (e) {
-            console.error('Error ensuring user profile:', e);
+            console.error('Caught exception in ensureUserProfile:', e);
             return null;
         }
     };
@@ -72,6 +86,7 @@ export const AuthProvider = ({ children }) => {
             // Manually clear state first for immediate UI response
             setSession(null);
             setUser(null);
+            localStorage.removeItem('nescafe_user_metadata');
             await supabase.auth.signOut();
         } catch (e) {
             console.error('Error during sign out:', e);

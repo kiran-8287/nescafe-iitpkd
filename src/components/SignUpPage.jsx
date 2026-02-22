@@ -51,24 +51,33 @@ const SignUpPage = () => {
 
         // Removed validation for staff and professors as per user request
 
-        const { error: signUpError } = await supabase.auth.signUp({
-            email: form.email,
-            password: form.password,
-            options: {
-                data: {
-                    name: form.name,
-                    role: form.role,
-                    hostel: form.hostel,
+        try {
+            console.log('Attempting sign up for:', form.email);
+            const { data, error: signUpError } = await supabase.auth.signUp({
+                email: form.email,
+                password: form.password,
+                options: {
+                    data: {
+                        name: form.name,
+                        role: form.role,
+                        hostel: form.hostel,
+                    }
                 }
+            });
+
+            setLoading(false);
+
+            if (signUpError) {
+                console.error('Supabase Sign Up Error:', signUpError);
+                setError(signUpError.message);
+            } else {
+                console.log('Sign Up Success:', data);
+                setSuccess(true);
             }
-        });
-
-        setLoading(false);
-
-        if (signUpError) {
-            setError(signUpError.message);
-        } else {
-            setSuccess(true);
+        } catch (err) {
+            setLoading(false);
+            console.error('Caught Exception during Sign Up:', err);
+            setError(err.message || 'An unexpected error occurred. Please check your connection.');
         }
     };
 
