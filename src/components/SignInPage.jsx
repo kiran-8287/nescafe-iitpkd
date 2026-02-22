@@ -12,6 +12,25 @@ const SignInPage = () => {
     const [error, setError] = useState('');
     const [showReturningUser, setShowReturningUser] = useState(false);
     const [metadata, setMetadata] = useState(null);
+    const [resending, setResending] = useState(false);
+
+    const handleResend = async () => {
+        if (!form.email) {
+            toast.error('Enter your email first');
+            return;
+        }
+        setResending(true);
+        const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email: form.email,
+        });
+        setResending(false);
+        if (resendError) {
+            toast.error(resendError.message);
+        } else {
+            toast.success('Confirmation link sent!');
+        }
+    };
 
     // If already logged in, redirect to dashboard
     useEffect(() => {
@@ -83,8 +102,18 @@ const SignInPage = () => {
                 {/* Card */}
                 <div className="bg-white rounded-3xl shadow-xl p-7 space-y-5 transition-all duration-500">
                     {error && (
-                        <div className="bg-red-50 border border-red-100 text-red-600 text-sm font-medium p-3 rounded-xl">
-                            {error}
+                        <div className="bg-red-50 border border-red-100 text-red-600 text-sm font-medium p-4 rounded-xl space-y-3">
+                            <p>{error}</p>
+                            {error.includes('confirm your email first') && (
+                                <button
+                                    onClick={handleResend}
+                                    disabled={resending}
+                                    className="w-full bg-white text-red-600 border border-red-200 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                                >
+                                    {resending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                                    {resending ? 'Resending...' : 'Resend Confirmation Email'}
+                                </button>
+                            )}
                         </div>
                     )}
 

@@ -13,6 +13,21 @@ const SignUpPage = () => {
     const [success, setSuccess] = useState(false);
 
     const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const [resending, setResending] = useState(false);
+
+    const handleResend = async () => {
+        setResending(true);
+        const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email: form.email,
+        });
+        setResending(false);
+        if (resendError) {
+            toast.error(resendError.message);
+        } else {
+            toast.success('Confirmation link sent! Check your inbox (or spam).');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -69,12 +84,22 @@ const SignUpPage = () => {
                         We sent a confirmation link to <span className="font-bold text-[#3E2723]">{form.email}</span>.
                         Confirm it, then sign in.
                     </p>
-                    <Link
-                        to="/login"
-                        className="mt-6 inline-block w-full bg-[#3E2723] text-white py-3.5 rounded-2xl font-bold text-center hover:bg-[#5D4037] transition-all"
-                    >
-                        Go to Sign In
-                    </Link>
+                    <div className="space-y-3">
+                        <Link
+                            to="/login"
+                            className="inline-block w-full bg-[#3E2723] text-white py-3.5 rounded-2xl font-bold text-center hover:bg-[#5D4037] transition-all shadow-md active:scale-95"
+                        >
+                            Go to Sign In
+                        </Link>
+                        <button
+                            onClick={handleResend}
+                            disabled={resending}
+                            className="w-full bg-white text-[#3E2723] border-2 border-[#3E2723] py-3.5 rounded-2xl font-bold text-center hover:bg-[#FFF8E1] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {resending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                            {resending ? 'Resending...' : 'Resend Email'}
+                        </button>
+                    </div>
                 </div>
             </div>
         );
