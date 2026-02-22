@@ -62,7 +62,12 @@ const CartDrawer = () => {
         const loadingToast = toast.loading("Processing your caffeine...");
 
         try {
+            console.log('Starting checkout process...');
+            console.log('Current user:', user);
+            console.log('Bill details:', billDetails);
+
             // 1. Create Order record
+            console.log('Inserting order into database...');
             const { data: orderData, error: orderError } = await supabase
                 .from('orders')
                 .insert({
@@ -77,9 +82,14 @@ const CartDrawer = () => {
                 .select()
                 .single();
 
-            if (orderError) throw orderError;
+            if (orderError) {
+                console.error('Order creation error:', orderError);
+                throw orderError;
+            }
+            console.log('Order created successfully:', orderData);
 
             // 2. Create Order Items
+            console.log('Creating order items for order:', orderData.id);
             const itemsToInsert = cartItems.map(item => ({
                 order_id: orderData.id,
                 item_id: item.id,
@@ -94,12 +104,17 @@ const CartDrawer = () => {
                 .from('order_items')
                 .insert(itemsToInsert);
 
-            if (itemsError) throw itemsError;
+            if (itemsError) {
+                console.error('Order items insertion error:', itemsError);
+                throw itemsError;
+            }
+            console.log('Order items inserted successfully');
 
             // Success!
             toast.success("Order received! Start your timer.", { id: loadingToast });
 
             // Clear cart and Navigate
+            console.log('Navigating to confirmation page...');
             setCartOpen(false);
             navigate('/order-confirmed', {
                 state: {
@@ -111,8 +126,19 @@ const CartDrawer = () => {
             });
 
         } catch (error) {
-            console.error('Checkout error:', error);
-            toast.error("Order failed. Like our internet.", { id: loadingToast });
+            console.error('Final checkout error:', error);
+
+            let errorMessage = "Order failed. Check your connection.";
+            if (error.code === '42501') {
+                errorMessage = "Database Permission Denied (RLS). Please check your Supabase policies.";
+            } else if (error.message) {
+                errorMessage = `Error: ${error.message}`;
+            }
+
+            toast.error(errorMessage, {
+                id: loadingToast,
+                duration: 6000
+            });
         } finally {
             setIsSubmitting(false);
         }

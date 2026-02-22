@@ -89,10 +89,22 @@ module.exports = (env, argv) => {
             historyApiFallback: true,
             hot: true,
             open: true,
-            port: 3000,
+            port: 3005,
             static: {
                 directory: path.join(__dirname, 'static'),
                 publicPath: '/static',
+            },
+        },
+        optimization: {
+            splitChunks: {
+                chunks: 'all',
+                cacheGroups: {
+                    vendor: {
+                        test: /[\\/]node_modules[\\/]/,
+                        name: 'vendors',
+                        chunks: 'all',
+                    },
+                },
             },
         },
         devtool: isDevelopment ? 'cheap-module-source-map' : 'source-map',
