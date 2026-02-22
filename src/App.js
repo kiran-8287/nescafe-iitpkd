@@ -10,19 +10,21 @@ import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import FloatingOrderButton from "./components/FloatingOrderButton";
-// import Features from "./components/Features";
 import LoadingScreen from "./components/LoadingScreen";
 import BottomNav from "./components/BottomNav";
-import FullMenu from "./components/FullMenu";
 import MiniCartBar from "./components/MiniCartBar";
 import CartDrawer from "./components/CartDrawer";
-import OrderConfirmPage from "./components/OrderConfirmPage";
-import FunFacts from "./components/FunFacts";
-import SignInPage from "./components/SignInPage";
-import SignUpPage from "./components/SignUpPage";
-import Dashboard from "./components/Dashboard";
-import OrderHistory from "./components/OrderHistory";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+// Lazy loaded page components
+const FullMenu = React.lazy(() => import("./components/FullMenu"));
+const OrderConfirmPage = React.lazy(() => import("./components/OrderConfirmPage"));
+const FunFacts = React.lazy(() => import("./components/FunFacts"));
+const SignInPage = React.lazy(() => import("./components/SignInPage"));
+const SignUpPage = React.lazy(() => import("./components/SignUpPage"));
+const Dashboard = React.lazy(() => import("./components/Dashboard"));
+const OrderHistory = React.lazy(() => import("./components/OrderHistory"));
+const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
@@ -101,38 +103,52 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                     <Navbar activeSection={activeSection} onHome={() => navigate('/')} onNavigate={scrollToSection} />
                 )}
 
-                <Routes>
-                    <Route path="/" element={
-                        <ProtectedRoute>
-                            <>
-                                <Hero />
-                                {/* <Features /> */}
-                                <Menu />
-                                <About />
-                                <Gallery />
-                                <Testimonials />
-                                <Contact />
-                            </>
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/menu" element={<ProtectedRoute><FullMenu /></ProtectedRoute>} />
-                    <Route path="/order-confirmed" element={<ProtectedRoute><OrderConfirmPage /></ProtectedRoute>} />
-                    <Route path="/fun-facts" element={<ProtectedRoute><FunFacts /></ProtectedRoute>} />
+                <React.Suspense fallback={
+                    <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="w-12 h-12 border-4 border-[#3E2723] border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-[#3E2723] font-bold animate-pulse">Brewing your experience...</p>
+                        </div>
+                    </div>
+                }>
+                    <Routes>
+                        <Route path="/" element={
+                            <ProtectedRoute>
+                                <>
+                                    <Hero />
+                                    {/* <Features /> */}
+                                    <Menu />
+                                    <About />
+                                    <Gallery />
+                                    <Testimonials />
+                                    <Contact />
+                                </>
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/menu" element={<ProtectedRoute><FullMenu /></ProtectedRoute>} />
+                        <Route path="/order-confirmed" element={<ProtectedRoute><OrderConfirmPage /></ProtectedRoute>} />
+                        <Route path="/fun-facts" element={<ProtectedRoute><FunFacts /></ProtectedRoute>} />
 
-                    {/* Auth Routes */}
-                    <Route path="/login" element={<SignInPage />} />
-                    <Route path="/signup" element={<SignUpPage />} />
-                    <Route path="/dashboard" element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/order-history" element={
-                        <ProtectedRoute>
-                            <OrderHistory />
-                        </ProtectedRoute>
-                    } />
-                </Routes>
+                        {/* Auth Routes */}
+                        <Route path="/login" element={<SignInPage />} />
+                        <Route path="/signup" element={<SignUpPage />} />
+                        <Route path="/dashboard" element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/order-history" element={
+                            <ProtectedRoute>
+                                <OrderHistory />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/admin" element={
+                            <ProtectedRoute>
+                                <AdminDashboard />
+                            </ProtectedRoute>
+                        } />
+                    </Routes>
+                </React.Suspense>
 
                 {!isAuthPage && location.pathname !== '/order-confirmed' && (
                     <>
