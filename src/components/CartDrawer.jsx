@@ -91,7 +91,7 @@ const CartDrawer = () => {
             console.log('Creating order items for order:', orderData.id);
             const itemsToInsert = cartItems.map(item => ({
                 order_id: orderData.id,
-                item_id: item.id,
+                item_id: String(item.id),
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,

@@ -60,7 +60,7 @@ CREATE TABLE public.orders (
 CREATE TABLE public.order_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID REFERENCES public.orders(id) ON DELETE CASCADE,
-    item_id UUID REFERENCES public.items(id),
+    item_id TEXT, -- Changed from UUID to TEXT to support mock integer IDs
     name TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     price DECIMAL(10,2) NOT NULL,
