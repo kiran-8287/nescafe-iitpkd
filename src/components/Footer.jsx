@@ -34,7 +34,7 @@ const Footer = () => {
             <p className="text-[#FFF8E1] text-sm sm:text-base">
               Serving premium coffee and creating memorable moments since 2025.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-4">
               <div className="flex space-x-3 items-center">
                 <a
                   href={socialLinks.whatsapp}
@@ -52,10 +52,11 @@ const Footer = () => {
               <a
                 href={menuDownload}
                 download="Nescafe_Menu.jpeg"
-                className="flex items-center gap-2 bg-[#D4AF37] text-[#3E2723] px-4 py-2 rounded-full font-bold text-sm hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-1.5 bg-[#D4AF37] text-[#3E2723] p-2 rounded-full font-bold text-xs hover:bg-[#c19d2f] transition-all duration-300 hover:scale-105 shadow-sm"
+                title="Download Menu"
               >
                 <Download size={18} />
-                Download Menu
+                <span className="hidden sm:inline">Menu</span>
               </a>
             </div>
           </div>

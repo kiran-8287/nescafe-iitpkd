@@ -189,7 +189,7 @@ const SignUpPage = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#3E2723] text-white py-4 rounded-2xl font-black text-base hover:bg-[#5D4037] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full bg-[#3E2723] text-white py-4 rounded-2xl font-black text-base hover:bg-[#5D4037] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-90 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <><Loader2 size={20} className="animate-spin" /> Creating account...</>

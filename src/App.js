@@ -26,6 +26,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
+import { Analytics } from '@vercel/analytics/react';
 
 // Pages where we don't want the Navbar/Footer/Cart chrome
 const AUTH_PAGES = ['/login', '/signup', '/dashboard'];
@@ -90,7 +91,7 @@ const AppContent = ({ isLoading, setIsLoading }) => {
     };
 
     return (
-        <div className="App">
+        <div className="App pb-20 md:pb-0">
             {isLoading && !isAuthPage && <LoadingScreen onComplete={() => setIsLoading(false)} />}
 
             <div className={`transition-opacity duration-1000 ${isLoading && !isAuthPage ? 'opacity-0' : 'opacity-100'}`}>
@@ -102,19 +103,21 @@ const AppContent = ({ isLoading, setIsLoading }) => {
 
                 <Routes>
                     <Route path="/" element={
-                        <>
-                            <Hero />
-                            {/* <Features /> */}
-                            <Menu />
-                            <About />
-                            <Gallery />
-                            <Testimonials />
-                            <Contact />
-                        </>
+                        <ProtectedRoute>
+                            <>
+                                <Hero />
+                                {/* <Features /> */}
+                                <Menu />
+                                <About />
+                                <Gallery />
+                                <Testimonials />
+                                <Contact />
+                            </>
+                        </ProtectedRoute>
                     } />
-                    <Route path="/menu" element={<FullMenu />} />
-                    <Route path="/order-confirmed" element={<OrderConfirmPage />} />
-                    <Route path="/fun-facts" element={<FunFacts />} />
+                    <Route path="/menu" element={<ProtectedRoute><FullMenu /></ProtectedRoute>} />
+                    <Route path="/order-confirmed" element={<ProtectedRoute><OrderConfirmPage /></ProtectedRoute>} />
+                    <Route path="/fun-facts" element={<ProtectedRoute><FunFacts /></ProtectedRoute>} />
 
                     {/* Auth Routes */}
                     <Route path="/login" element={<SignInPage />} />
@@ -141,6 +144,7 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                     </>
                 )}
             </div>
+            <Analytics />
         </div>
     );
 };

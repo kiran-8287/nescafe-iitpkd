@@ -10,11 +10,34 @@ const SignInPage = () => {
     const [form, setForm] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showReturningUser, setShowReturningUser] = useState(false);
+    const [metadata, setMetadata] = useState(null);
 
     // If already logged in, redirect to dashboard
     useEffect(() => {
-        if (user) navigate('/dashboard', { replace: true });
+        if (user) navigate('/', { replace: true });
     }, [user, navigate]);
+
+    // Check for returning user data
+    useEffect(() => {
+        const stored = localStorage.getItem('nescafe_user_metadata');
+        if (stored) {
+            try {
+                const data = JSON.parse(stored);
+                const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+                const isFresh = Date.now() - data.lastLogin < SEVEN_DAYS;
+
+                setMetadata(data);
+                setForm(prev => ({ ...prev, email: data.email }));
+
+                if (isFresh) {
+                    setShowReturningUser(true);
+                }
+            } catch (e) {
+                console.error('Error parsing metadata', e);
+            }
+        }
+    }, []);
 
     const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
@@ -39,7 +62,6 @@ const SignInPage = () => {
                 setError(signInError.message);
             }
         }
-        // On success, auth state change listener will redirect via useEffect
     };
 
     return (
@@ -50,68 +72,108 @@ const SignInPage = () => {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-[#3E2723] rounded-2xl mb-4 shadow-lg">
                         <Coffee size={32} className="text-[#D4AF37]" />
                     </div>
-                    <h1 className="text-3xl font-black text-[#3E2723]">Welcome Back</h1>
-                    <p className="text-gray-500 text-sm mt-1">Sign in to your Nescafe IITPKD account</p>
+                    <h1 className="text-3xl font-black text-[#3E2723]">
+                        {showReturningUser ? `Hi, ${metadata?.name}` : 'Welcome Back'}
+                    </h1>
+                    <p className="text-gray-500 text-sm mt-1">
+                        {showReturningUser ? 'Sign in to continue your session' : 'Sign in to your Nescafe IITPKD account'}
+                    </p>
                 </div>
 
                 {/* Card */}
-                <div className="bg-white rounded-3xl shadow-xl p-7 space-y-5">
+                <div className="bg-white rounded-3xl shadow-xl p-7 space-y-5 transition-all duration-500">
                     {error && (
                         <div className="bg-red-50 border border-red-100 text-red-600 text-sm font-medium p-3 rounded-xl">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {/* Email */}
-                        <div>
-                            <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Email</label>
-                            <div className="relative">
-                                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="you@iitpkd.ac.in"
-                                    className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
-                                />
+                    {showReturningUser ? (
+                        /* Returning User Summary */
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border-2 border-gray-100">
+                                <div className="w-12 h-12 bg-[#3E2723] rounded-full flex items-center justify-center text-[#D4AF37] font-black text-lg">
+                                    {metadata?.name?.charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-black text-[#3E2723] truncate">{metadata?.name}</h3>
+                                    <p className="text-xs text-gray-400 truncate">{metadata?.email}</p>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Password */}
-                        <div>
-                            <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Password</label>
-                            <div className="relative">
-                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={form.password}
-                                    onChange={handleChange}
-                                    required
-                                    placeholder="Your password"
-                                    className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
-                                />
+                            <button
+                                onClick={() => setShowReturningUser(false)}
+                                className="w-full bg-[#3E2723] text-white py-4 rounded-2xl font-black text-base hover:bg-[#5D4037] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-90"
+                            >
+                                Sign In ☕
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('nescafe_user_metadata');
+                                    setMetadata(null);
+                                    setForm({ email: '', password: '' });
+                                    setShowReturningUser(false);
+                                }}
+                                className="w-full text-xs font-bold text-gray-400 hover:text-[#3E2723] transition-colors"
+                            >
+                                Not you? Switch Account
+                            </button>
+                        </div>
+                    ) : (
+                        /* Standard Sign In Form */
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Email */}
+                            <div>
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Email</label>
+                                <div className="relative">
+                                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={form.email}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="you@iitpkd.ac.in"
+                                        className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-[#3E2723] text-white py-4 rounded-2xl font-black text-base hover:bg-[#5D4037] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <><Loader2 size={20} className="animate-spin" /> Signing in...</>
-                            ) : (
-                                'Sign In ☕'
-                            )}
-                        </button>
-                    </form>
+                            {/* Password */}
+                            <div>
+                                <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Password</label>
+                                <div className="relative">
+                                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        value={form.password}
+                                        onChange={handleChange}
+                                        required
+                                        autoFocus={!!form.email}
+                                        placeholder="Your password"
+                                        className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-[#3E2723] text-white py-4 rounded-2xl font-black text-base hover:bg-[#5D4037] transition-all flex items-center justify-center gap-2 shadow-lg active:scale-90 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <><Loader2 size={20} className="animate-spin" /> Signing in...</>
+                                ) : (
+                                    'Sign In ☕'
+                                )}
+                            </button>
+                        </form>
+                    )}
 
                     <p className="text-center text-sm text-gray-400">
-                        No account yet?{' '}
+                        Don't have an account?{' '}
                         <Link to="/signup" className="font-bold text-[#3E2723] hover:text-[#D4AF37] transition-colors">
                             Sign Up
                         </Link>

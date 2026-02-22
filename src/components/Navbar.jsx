@@ -127,7 +127,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               id="hamburger-btn"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
               aria-label="Toggle menu"
-              className="md:hidden p-2 rounded-lg transition-colors duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center text-[#3E2723]"
+              className="hidden md:flex p-2 rounded-lg transition-colors duration-200 min-h-[44px] min-w-[44px] items-center justify-center text-[#3E2723]"
             >
               {isMobileMenuOpen ? <X size={26} /> : <MenuIcon size={26} />}
             </button>

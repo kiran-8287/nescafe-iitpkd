@@ -23,9 +23,15 @@ export const AuthProvider = ({ children }) => {
                 setUser(session?.user ?? null);
                 setLoading(false);
 
-                // On sign-in, ensure user profile row exists in users table
+                // On sign-in, ensure user profile row exists in users table and store local metadata
                 if (session?.user) {
-                    await ensureUserProfile(session.user);
+                    const profile = await ensureUserProfile(session.user);
+                    // Save minimal info for returning user view
+                    localStorage.setItem('nescafe_user_metadata', JSON.stringify({
+                        name: profile?.name || session.user.user_metadata?.name || 'User',
+                        email: session.user.email,
+                        lastLogin: Date.now()
+                    }));
                 }
             }
         );
@@ -45,15 +51,19 @@ export const AuthProvider = ({ children }) => {
             if (error && error.code === 'PGRST116') {
                 // Row doesn't exist, insert from metadata set during signup
                 const meta = user.user_metadata || {};
-                await supabase.from('users').insert({
+                const newUser = {
                     id: user.id,
                     name: meta.name || 'Anonymous',
                     role: meta.role || 'student',
                     hostel: meta.hostel || null,
-                });
+                };
+                await supabase.from('users').insert(newUser);
+                return newUser;
             }
+            return data;
         } catch (e) {
             console.error('Error ensuring user profile:', e);
+            return null;
         }
     };
 
