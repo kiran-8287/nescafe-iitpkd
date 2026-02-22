@@ -47,7 +47,7 @@ const CartDrawer = () => {
     const handleCheckout = async () => {
         if (cartItems.length === 0) return;
 
-        if (orderMode === 'delivery' && (!hostelDetails.block || !hostelDetails.room)) {
+        if (orderMode === 'delivery' && !hostelDetails.block) {
             toast.error("Please enter delivery details");
             return;
         }
@@ -75,7 +75,6 @@ const CartDrawer = () => {
                     total_amount: billDetails.finalTotal,
                     order_mode: orderMode,
                     hostel_block: orderMode === 'delivery' ? hostelDetails.block : null,
-                    room_number: orderMode === 'delivery' ? hostelDetails.room : null,
                     status: 'preparing',
                     payment_status: 'pending'
                 })
@@ -299,16 +298,6 @@ const CartDrawer = () => {
                                                                 {HOSTELS.map(h => <option key={h} value={h}>{h}</option>)}
                                                             </select>
                                                         </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[10px] font-black text-gray-400 ml-1 mb-1 block uppercase">Room / Spot</label>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Ex: 304 or 'Main Entrance'"
-                                                            value={hostelDetails.room}
-                                                            onChange={(e) => setHostelDetails({ ...hostelDetails, room: e.target.value })}
-                                                            className="w-full px-4 py-2.5 bg-gray-50 border border-transparent focus:border-[#D4AF37] rounded-xl text-xs font-bold text-[#3E2723] outline-none transition-all"
-                                                        />
                                                     </div>
                                                     <div className="flex items-center gap-2 text-[10px] font-bold text-[#D4AF37] bg-white p-2 rounded-lg border border-[#D4AF37]/20">
                                                         <Bike size={12} />

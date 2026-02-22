@@ -52,7 +52,6 @@ CREATE TABLE public.orders (
     status TEXT DEFAULT 'preparing', -- preparing, ready, delivered, cancelled
     order_mode TEXT NOT NULL, -- pickup, delivery
     hostel_block TEXT,
-    room_number TEXT,
     payment_status TEXT DEFAULT 'pending', -- pending, paid, failed
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

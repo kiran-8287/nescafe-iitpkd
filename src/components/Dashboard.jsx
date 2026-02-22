@@ -24,19 +24,29 @@ const Dashboard = () => {
     }, [user]);
 
     const fetchProfile = async () => {
-        const { data } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-        if (data) {
-            setProfile(data);
-            setFormData({
-                name: data.name || '',
-                hostel: data.hostel || ''
-            });
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error('Profile fetch error:', error);
+            }
+
+            if (data) {
+                setProfile(data);
+                setFormData({
+                    name: data.name || '',
+                    hostel: data.hostel || ''
+                });
+            }
+        } catch (err) {
+            console.error('Unexpected error in fetchProfile:', err);
+        } finally {
+            setLoadingProfile(false);
         }
-        setLoadingProfile(false);
     };
 
     const handleSaveProfile = async () => {

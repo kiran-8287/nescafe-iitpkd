@@ -160,8 +160,8 @@ const OrderConfirmPage = () => {
                 <div className="flex justify-between mb-4 pb-4 border-b border-white/10">
                     <span className="text-white/60 text-sm font-bold uppercase tracking-wider">Status</span>
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${order?.status === 'ready' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]' :
-                            order?.status === 'delivered' ? 'bg-green-500 text-white' :
-                                'bg-blue-500 text-white animate-pulse'
+                        order?.status === 'delivered' ? 'bg-green-500 text-white' :
+                            'bg-blue-500 text-white animate-pulse'
                         }`}>
                         {order?.status || 'Processing'}
                     </span>
@@ -179,8 +179,7 @@ const OrderConfirmPage = () => {
                         <div className="flex justify-between items-start text-left">
                             <span className="text-white/60 text-sm font-bold flex items-center gap-2 shrink-0 uppercase tracking-wider"><MapPin size={16} /> Delivering To</span>
                             <span className="font-black text-white text-right text-sm">
-                                {initialHostel.block}<br />
-                                <span className="text-white/60 font-medium">Room {initialHostel.room}</span>
+                                {initialHostel.block}
                             </span>
                         </div>
                     )}
