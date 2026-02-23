@@ -4,10 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { menuItems } from '../data/mock';
 import toast from 'react-hot-toast';
 
-const ItemBottomSheet = ({ item, isOpen, onClose }) => {
+const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { addItem, cartItems } = useCart();
@@ -32,14 +31,14 @@ const ItemBottomSheet = ({ item, isOpen, onClose }) => {
     }, [isOpen, item]);
 
     const recommendedItems = useMemo(() => {
-        if (!item) return [];
+        if (!item || !allItems.length) return [];
         const isDrink = item.category.toLowerCase().includes('coffee') || item.category.toLowerCase().includes('beverage');
         const targetCategories = isDrink ? ['Maggie', 'Sandwich'] : ['Tea and Coffee', 'Cold Beverages'];
-        return menuItems
+        return allItems
             .filter(i => targetCategories.includes(i.category) && i.id !== item.id)
             .sort(() => 0.5 - Math.random())
             .slice(0, 3);
-    }, [item]);
+    }, [item, allItems]);
 
     if (!item) return null;
 

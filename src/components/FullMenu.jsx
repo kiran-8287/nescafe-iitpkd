@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { menuItems } from '../data/mock';
 import { Search, Plus, Minus, Info, Flame, Leaf, Star, LogIn } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 import ItemBottomSheet from './ItemBottomSheet';
 import MenuSkeleton from './MenuSkeleton';
@@ -13,6 +13,7 @@ const FullMenu = ({ onBack }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { cartItems, addItem, updateQuantity } = useCart();
+    const [menuItems, setMenuItems] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('Tea and Coffee');
@@ -25,9 +26,42 @@ const FullMenu = ({ onBack }) => {
     const categories = ['Tea and Coffee', 'Cold Beverages', 'Maggie', 'Sandwich'];
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
+        fetchItems();
+
+        // Real-time subscription: auto-refresh when admin toggles availability
+        const subscription = supabase
+            .channel('fullmenu-items-live')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'items' }, () => {
+                fetchItems();
+            })
+            .subscribe();
+
+        return () => supabase.removeChannel(subscription);
     }, []);
+
+    const fetchItems = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('items')
+                .select('*')
+                .eq('is_available', true);
+
+            if (error) throw error;
+
+            const mappedData = data.map(item => ({
+                ...item,
+                isVeg: item.is_veg
+            }));
+
+            setMenuItems(mappedData || []);
+        } catch (error) {
+            console.error('Error fetching menu items:', error);
+            toast.error('Failed to load menu');
+            setMenuItems([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(searchTerm), 150);
@@ -153,8 +187,8 @@ const FullMenu = ({ onBack }) => {
     };
 
     const filteredItems = menuItems.filter(item =>
-        item.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        item.description.toLowerCase().includes(debouncedSearch.toLowerCase())
+        (item.name || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        (item.description || '').toLowerCase().includes(debouncedSearch.toLowerCase())
     );
 
     const renderBadge = (badge) => {
@@ -293,8 +327,12 @@ const FullMenu = ({ onBack }) => {
                 )}
             </div>
 
-            <ItemBottomSheet item={selectedItem} isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
-
+            <ItemBottomSheet
+                item={selectedItem}
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+                allItems={menuItems}
+            />
             <style>
                 {`
                 .scrollbar-hide::-webkit-scrollbar { display: none; }

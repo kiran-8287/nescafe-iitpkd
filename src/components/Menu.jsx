@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { menuItems } from '../data/mock';
 import { Search, Plus, Minus, Info, Flame, Leaf, Star, LogIn } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 import ItemBottomSheet from './ItemBottomSheet';
 import MenuSkeleton from './MenuSkeleton';
@@ -16,6 +16,7 @@ const Menu = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tea and Coffee');
+  const [menuItems, setMenuItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +24,45 @@ const Menu = () => {
 
   const categoryContainerRef = useRef(null);
   const categories = ['Tea and Coffee', 'Cold Beverages', 'Maggie', 'Sandwich'];
+
+  useEffect(() => {
+    fetchItems();
+
+    // Real-time subscription: auto-refresh when admin toggles availability
+    const subscription = supabase
+      .channel('menu-items-live')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'items' }, () => {
+        fetchItems();
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(subscription);
+  }, []);
+
+  const fetchItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('items')
+        .select('*')
+        .eq('is_available', true);
+
+      if (error) throw error;
+
+      // Map database fields to UI property names
+      const mappedData = data.map(item => ({
+        ...item,
+        isVeg: item.is_veg // Map is_veg to isVeg for compatibility
+      }));
+
+      setMenuItems(mappedData || []);
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      toast.error('Failed to load menu. Showing local backup.');
+      setMenuItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Debounce search
   useEffect(() => {
@@ -32,14 +72,10 @@ const Menu = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Listen for "Surprise Me" event from Hero component
   useEffect(() => {
     const handleSurprise = () => {
+      if (menuItems.length === 0) return;
       setTimeout(() => {
         const randomIndex = Math.floor(Math.random() * menuItems.length);
         const randomItem = menuItems[randomIndex];
@@ -50,7 +86,7 @@ const Menu = () => {
 
     window.addEventListener('surpriseMe', handleSurprise);
     return () => window.removeEventListener('surpriseMe', handleSurprise);
-  }, []);
+  }, [menuItems]);
 
   const getItemQuantity = (id) => {
     return cartItems.filter(i => i.id === id).reduce((sum, i) => sum + i.quantity, 0);
@@ -153,8 +189,8 @@ const Menu = () => {
   };
 
   const filteredItems = menuItems.filter(item =>
-    (item.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      item.description.toLowerCase().includes(debouncedSearch.toLowerCase())) &&
+    ((item.name || '').toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      (item.description || '').toLowerCase().includes(debouncedSearch.toLowerCase())) &&
     (debouncedSearch !== '' || item.category === activeCategory)
   );
 
@@ -251,6 +287,7 @@ const Menu = () => {
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                         {item.isVeg && <div className="absolute top-2 left-2 bg-white/90 p-1 rounded-md border border-green-500"><div className="w-2 h-2 rounded-full bg-green-500"></div></div>}
                       </div>
+
                       <div className="flex-1 flex flex-col justify-between min-w-0">
                         <div>
                           <div className="flex justify-between items-start mb-1">
@@ -317,6 +354,7 @@ const Menu = () => {
         item={selectedItem}
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
+        allItems={menuItems}
       />
 
       <style jsx>{`
