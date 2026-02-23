@@ -13,8 +13,7 @@ import {
     RefreshCcw,
     ChefHat,
     ChevronRight,
-    CircleDashed,
-    Trash
+    CircleDashed
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -137,31 +136,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleSystemReset = async () => {
-        if (!window.confirm("⚠️ DANGER: This will delete ALL user profiles, ALL orders, and ALL order items. You must still manually delete users from the Supabase Auth tab. Proceed?")) return;
-
-        try {
-            setLoading(true);
-
-            // Delete in correct order to satisfy foreign keys
-            const { error: itemsError } = await supabase.from('order_items').delete().neq('id', '00000000-0000-4000-a000-000000000000');
-            if (itemsError) throw itemsError;
-
-            const { error: ordersError } = await supabase.from('orders').delete().neq('id', '00000000-0000-4000-a000-000000000000');
-            if (ordersError) throw ordersError;
-
-            const { error: usersError } = await supabase.from('users').delete().neq('id', '00000000-0000-4000-a000-000000000000');
-            if (usersError) throw usersError;
-
-            toast.success('System Reset Complete!');
-            fetchOrders();
-        } catch (error) {
-            console.error('Reset error:', error);
-            toast.error('Failed to reset system');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const filteredOrders = filterStatus === 'all'
         ? orders
@@ -191,12 +165,6 @@ const AdminDashboard = () => {
                 <div className="flex items-center gap-3">
                     {activeTab === 'orders' ? (
                         <>
-                            <button
-                                onClick={handleSystemReset}
-                                className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-red-100 transition-all border border-red-100"
-                            >
-                                <Trash size={14} /> System Reset
-                            </button>
                             <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
                                 {['all', 'preparing', 'ready', 'delivered'].map((status) => (
                                     <button

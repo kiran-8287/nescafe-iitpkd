@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "dev": "concurrently \"npm run frontend:start\" \"npm run backend:dev\"",
+        "dev": "concurrently -k -n \"WEB,SERVER\" -c \"cyan,magenta\" \"npm run frontend:start\" \"npm run backend:dev\"",
         "frontend:start": "npm start --prefix frontend",
         "frontend:build": "npm run build --prefix frontend",
         "backend:start": "npm start --prefix backend",

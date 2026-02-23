@@ -351,7 +351,10 @@ const CartDrawer = () => {
                                         <p className="text-gray-400 text-sm">Add some delicious caffeine to get started!</p>
                                     </div>
                                     <button
-                                        onClick={() => setCartOpen(false)}
+                                        onClick={() => {
+                                            setCartOpen(false);
+                                            navigate('/menu');
+                                        }}
                                         className="bg-[#3E2723] text-white px-8 py-3 rounded-2xl font-bold shadow-xl active:scale-95 transition-transform"
                                     >
                                         Go to Menu

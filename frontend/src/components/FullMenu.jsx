@@ -9,7 +9,6 @@ import toast from 'react-hot-toast';
 import ItemBottomSheet from './ItemBottomSheet';
 import MenuSkeleton from './MenuSkeleton';
 
-import { menuItems as mockItems } from '../data/mock';
 
 const FullMenu = ({ onBack }) => {
     const navigate = useNavigate();
@@ -50,11 +49,8 @@ const FullMenu = ({ onBack }) => {
 
             if (error) throw error;
 
-            if (!data || data.length === 0) {
-                throw new Error('No items found');
-            }
-
-            const mappedData = data.map(item => ({
+            // Empty data is valid — admin may have turned off all items.
+            const mappedData = (data || []).map(item => ({
                 ...item,
                 isVeg: item.is_veg
             }));
@@ -62,14 +58,9 @@ const FullMenu = ({ onBack }) => {
             setMenuItems(mappedData);
         } catch (error) {
             console.error('Error fetching menu items:', error);
-            toast.error('Failed to connect to live menu. Showing local backup.');
-
-            // Fallback to mock data
-            const mappedMock = mockItems.map(item => ({
-                ...item,
-                is_available: true
-            }));
-            setMenuItems(mappedMock);
+            toast.error('Could not connect to live menu. Try refreshing.');
+            // Only fall back to mock data on a real network/auth error
+            setMenuItems([]);
         } finally {
             setIsLoading(false);
         }
@@ -213,7 +204,7 @@ const FullMenu = ({ onBack }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#FFF8E1] pt-20 pb-32 relative overflow-hidden">
+        <div className="min-h-screen bg-[#FFF8E1] pt-24 md:pt-28 pb-32 relative overflow-hidden">
             {/* Fly-to-Cart Overlay */}
             <AnimatePresence>
                 {flyingItems.map(item => (
@@ -248,7 +239,7 @@ const FullMenu = ({ onBack }) => {
                             </p>
                         </div>
 
-                        <div className="sticky top-20 z-30 bg-[#FFF8E1]/95 backdrop-blur-md py-4 -mx-4 px-4 sm:mx-0 sm:px-0 font-sans">
+                        <div className="sticky top-[64px] md:top-[76px] z-30 bg-[#FFF8E1]/95 backdrop-blur-md py-4 -mx-4 px-4 sm:mx-0 sm:px-0 font-sans">
                             <div className="relative mb-4">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
@@ -283,7 +274,7 @@ const FullMenu = ({ onBack }) => {
                                 if (items.length === 0) return null;
 
                                 return (
-                                    <div key={cat} id={`full-${cat}`} className="scroll-mt-52">
+                                    <div key={cat} id={`full-${cat}`} className="scroll-mt-64 md:scroll-mt-72">
                                         <div className="flex items-center gap-4 mb-6">
                                             <h3 className="text-xl sm:text-2xl font-black text-[#3E2723] uppercase tracking-tighter font-serif">{cat}</h3>
                                             <div className="h-0.5 flex-1 bg-gradient-to-r from-[#D4AF37]/30 to-transparent"></div>

@@ -57,7 +57,7 @@ const FunFacts = () => {
     const tab = TABS.find(t => t.key === activeTab);
 
     return (
-        <div className="min-h-screen bg-[#FFF8E1] pt-20 pb-12 px-4 sm:px-6">
+        <div className="min-h-screen bg-[#FFF8E1] pt-24 md:pt-32 pb-12 px-4 sm:px-6">
             <div className="max-w-4xl mx-auto">
 
                 {/* Back + Title */}

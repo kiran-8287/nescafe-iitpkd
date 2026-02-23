@@ -115,9 +115,9 @@ const OrderHistory = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 font-sans">
+        <div className="min-h-screen bg-gray-50 pb-20 pt-20 md:pt-24 font-sans">
             {/* Header */}
-            <div className="bg-white px-6 pt-12 pb-6 shadow-sm sticky top-0 z-30 border-b border-gray-100">
+            <div className="bg-white px-6 pt-12 pb-6 shadow-sm sticky top-[64px] md:top-[76px] z-30 border-b border-gray-100">
                 <div className="max-w-2xl mx-auto flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate('/dashboard')}
