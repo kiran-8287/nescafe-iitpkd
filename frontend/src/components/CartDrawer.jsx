@@ -146,7 +146,7 @@ const CartDrawer = () => {
     return (
         <AnimatePresence>
             {isCartOpen && (
-                <>
+                <React.Fragment key="cart-drawer">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -433,7 +433,7 @@ const CartDrawer = () => {
                             </div>
                         )}
                     </motion.div>
-                </>
+                </React.Fragment>
             )}
             {/* Scrollbar hide utility */}
             <style>

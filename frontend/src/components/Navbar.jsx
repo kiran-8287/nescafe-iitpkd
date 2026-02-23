@@ -7,11 +7,9 @@ import { useAuth } from '../context/AuthContext';
 
 const Navbar = ({ activeSection, onHome, onNavigate }) => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { cartCount, toggleCart } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const isAdmin = profile?.role === 'admin';
 
   // Close menu on outside click
   useEffect(() => {

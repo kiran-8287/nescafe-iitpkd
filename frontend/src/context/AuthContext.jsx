@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
+// Fails fast if Supabase is paused or unreachable (free tier pauses after 7 days)
+const withTimeout = (promise, ms = 8000) =>
+    Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Supabase timed out after ${ms}ms. Project may be paused.`)), ms)
+        )
+    ]);
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -8,6 +17,7 @@ export const AuthProvider = ({ children }) => {
     const [profile, setProfile] = useState(null);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         let mounted = true;
@@ -24,16 +34,20 @@ export const AuthProvider = ({ children }) => {
 
             setSession(session);
             setUser(session?.user ?? null);
-
-            // Resolve loading state immediately after session is found
             setLoading(false);
 
             if (session?.user) {
                 try {
-                    const profileData = await ensureUserProfile(session.user);
-                    if (mounted) setProfile(profileData);
+                    const [profileData, adminStatus] = await Promise.all([
+                        ensureUserProfile(session.user),
+                        checkIsAdmin(session.user.id)
+                    ]);
+                    if (mounted) {
+                        setProfile(profileData);
+                        setIsAdmin(adminStatus);
+                    }
                 } catch (e) {
-                    console.error('Initial profile fetch failed:', e);
+                    console.error('Initial profile/admin fetch failed:', e);
                 }
             }
         });
@@ -46,20 +60,24 @@ export const AuthProvider = ({ children }) => {
                 console.log('Auth State Change Event:', event, 'Session:', session);
                 setSession(session);
                 setUser(session?.user ?? null);
-
-                // Resolve loading state immediately after session is found/changed
                 setLoading(false);
 
-                // On sign-in, ensure user profile row exists
                 if (session?.user) {
                     try {
-                        const profileData = await ensureUserProfile(session.user);
-                        if (mounted) setProfile(profileData);
+                        const [profileData, adminStatus] = await Promise.all([
+                            ensureUserProfile(session.user),
+                            checkIsAdmin(session.user.id)
+                        ]);
+                        if (mounted) {
+                            setProfile(profileData);
+                            setIsAdmin(adminStatus);
+                        }
                     } catch (e) {
-                        console.error('Auth state change profile fetch failed:', e);
+                        console.error('Auth state change profile/admin fetch failed:', e);
                     }
                 } else {
                     setProfile(null);
+                    setIsAdmin(false);
                 }
             }
         );
@@ -70,20 +88,38 @@ export const AuthProvider = ({ children }) => {
         };
     }, []);
 
+    // Check if the logged-in user exists in the dedicated admins table
+    const checkIsAdmin = async (userId) => {
+        try {
+            const { data, error } = await withTimeout(
+                supabase
+                    .from('admins')
+                    .select('user_id')
+                    .eq('user_id', userId)
+                    .single()
+            );
+            if (error) return false; // PGRST116 = not found = not admin
+            return !!data;
+        } catch (e) {
+            console.error('Admin check failed:', e.message);
+            return false;
+        }
+    };
+
     const ensureUserProfile = async (user) => {
         try {
             console.log('Checking for profile for user:', user.id);
-            // Check if row already exists
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            const { data, error } = await withTimeout(
+                supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single()
+            );
 
             if (error) {
                 if (error.code === 'PGRST116') {
                     console.log('Profile not found, inserting...');
-                    // Row doesn't exist, insert from metadata set during signup
                     const meta = user.user_metadata || {};
                     const newUser = {
                         id: user.id,
@@ -112,22 +148,22 @@ export const AuthProvider = ({ children }) => {
 
     const signOut = async () => {
         try {
-            // Manually clear state first for immediate UI response
             setSession(null);
             setUser(null);
             setProfile(null);
+            setIsAdmin(false);
             await supabase.auth.signOut();
         } catch (e) {
             console.error('Error during sign out:', e);
-            // Even if it fails, we want the app to treat the user as logged out locally
             setSession(null);
             setUser(null);
             setProfile(null);
+            setIsAdmin(false);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, profile, session, loading, signOut }}>
+        <AuthContext.Provider value={{ user, profile, session, loading, isAdmin, signOut }}>
             {children}
         </AuthContext.Provider>
     );

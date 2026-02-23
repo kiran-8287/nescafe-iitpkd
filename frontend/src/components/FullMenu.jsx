@@ -8,7 +8,16 @@ import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
 import ItemBottomSheet from './ItemBottomSheet';
 import MenuSkeleton from './MenuSkeleton';
+import { menuItems as mockItems } from '../data/mock';
 
+// Fails fast if Supabase is paused or unreachable
+const withTimeout = (promise, ms = 8000) =>
+    Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Supabase timed out after ${ms}ms — project may be paused.`)), ms)
+        )
+    ]);
 
 const FullMenu = ({ onBack }) => {
     const navigate = useNavigate();
@@ -42,10 +51,12 @@ const FullMenu = ({ onBack }) => {
 
     const fetchItems = async () => {
         try {
-            const { data, error } = await supabase
-                .from('items')
-                .select('*')
-                .eq('is_available', true);
+            const { data, error } = await withTimeout(
+                supabase
+                    .from('items')
+                    .select('*')
+                    .eq('is_available', true)
+            );
 
             if (error) throw error;
 
@@ -58,13 +69,21 @@ const FullMenu = ({ onBack }) => {
             setMenuItems(mappedData);
         } catch (error) {
             console.error('Error fetching menu items:', error);
-            toast.error('Could not connect to live menu. Try refreshing.');
-            // Only fall back to mock data on a real network/auth error
-            setMenuItems([]);
+            const isTimeout = error.message?.includes('timed out');
+            toast.error(
+                isTimeout
+                    ? '⚠️ Database is waking up. Showing local menu — refresh in 30s.'
+                    : 'Could not connect to live menu. Try refreshing.',
+                { duration: 6000 }
+            );
+            // Fallback to mock data when Supabase is unreachable
+            const mappedMock = mockItems.map(item => ({ ...item, is_available: true }));
+            setMenuItems(mappedMock);
         } finally {
             setIsLoading(false);
         }
     };
+
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(searchTerm), 150);
