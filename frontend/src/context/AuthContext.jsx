@@ -17,68 +17,81 @@ export const AuthProvider = ({ children }) => {
     const [profile, setProfile] = useState(null);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(false);
+    // Initialize isAdmin from localStorage if available to prevent flickering
+    const [isAdmin, setIsAdmin] = useState(() => {
+        try {
+            return localStorage.getItem('nescafe_is_admin') === 'true';
+        } catch {
+            return false;
+        }
+    });
 
     useEffect(() => {
         let mounted = true;
 
-        // Get the initial session
-        supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+        const initializeAuth = async (currentSession) => {
             if (!mounted) return;
 
-            if (error) {
-                console.error('Initial session fetch error:', error);
-                setLoading(false);
-                return;
-            }
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
 
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-
-            if (session?.user) {
+            if (currentSession?.user) {
                 try {
-                    const [profileData, adminStatus] = await Promise.all([
-                        ensureUserProfile(session.user),
-                        checkIsAdmin(session.user.id)
-                    ]);
+                    // Start both checks immediately
+                    const profilePromise = ensureUserProfile(currentSession.user);
+                    const adminPromise = checkIsAdmin(currentSession.user.id);
+
+                    const [profileData, adminStatus] = await Promise.all([profilePromise, adminPromise]);
+
                     if (mounted) {
                         setProfile(profileData);
                         setIsAdmin(adminStatus);
+                        // Cache the status
+                        localStorage.setItem('nescafe_is_admin', adminStatus.toString());
                     }
                 } catch (e) {
-                    console.error('Initial profile/admin fetch failed:', e);
+                    console.error('Auth initialization fetch failed:', e);
+                }
+            } else {
+                if (mounted) {
+                    setProfile(null);
+                    setIsAdmin(false);
+                    localStorage.removeItem('nescafe_is_admin');
                 }
             }
+
+            if (mounted) setLoading(false);
+        };
+
+        // Get initial session
+        supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+            initializeAuth(initialSession);
         });
 
         // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                if (!mounted) return;
+            async (event, currentSession) => {
+                console.log('Auth State Change Event:', event);
 
-                console.log('Auth State Change Event:', event, 'Session:', session);
-                setSession(session);
-                setUser(session?.user ?? null);
-                setLoading(false);
-
-                if (session?.user) {
-                    try {
-                        const [profileData, adminStatus] = await Promise.all([
-                            ensureUserProfile(session.user),
-                            checkIsAdmin(session.user.id)
-                        ]);
-                        if (mounted) {
-                            setProfile(profileData);
-                            setIsAdmin(adminStatus);
-                        }
-                    } catch (e) {
-                        console.error('Auth state change profile/admin fetch failed:', e);
+                // If it's a sign-out event, clear immediately
+                if (event === 'SIGNED_OUT') {
+                    if (mounted) {
+                        setSession(null);
+                        setUser(null);
+                        setProfile(null);
+                        setIsAdmin(false);
+                        localStorage.removeItem('nescafe_is_admin');
+                        setLoading(false);
                     }
-                } else {
-                    setProfile(null);
-                    setIsAdmin(false);
+                    return;
                 }
+
+                // For other events (SIGNED_IN, TOKEN_REFRESHED), re-verify
+                // But don't flip loading back to true if it was already false during a refresh
+                // to avoid jarring UI flickers unless it's a new sign-in
+                if (event === 'SIGNED_IN') setLoading(true);
+
+                initializeAuth(currentSession);
             }
         );
 
@@ -90,6 +103,7 @@ export const AuthProvider = ({ children }) => {
 
     // Check if the logged-in user exists in the dedicated admins table
     const checkIsAdmin = async (userId) => {
+        if (!userId) return false;
         try {
             const { data, error } = await withTimeout(
                 supabase
@@ -98,11 +112,17 @@ export const AuthProvider = ({ children }) => {
                     .eq('user_id', userId)
                     .single()
             );
-            if (error) return false; // PGRST116 = not found = not admin
+            if (error) {
+                // If the check fails (e.g. not found), but we previously thought they were an admin
+                // we check localStorage as a fallback during network blips
+                if (error.code === 'PGRST116') return false;
+                return localStorage.getItem('nescafe_is_admin') === 'true';
+            }
             return !!data;
         } catch (e) {
             console.error('Admin check failed:', e.message);
-            return false;
+            // Fallback to cached value on network timeout/error
+            return localStorage.getItem('nescafe_is_admin') === 'true';
         }
     };
 

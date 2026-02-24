@@ -15,6 +15,7 @@ import BottomNav from "./components/BottomNav";
 import MiniCartBar from "./components/MiniCartBar";
 import CartDrawer from "./components/CartDrawer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import OrderNotificationListener from "./components/OrderNotificationListener";
 
 // Lazy loaded page components
 const FullMenu = React.lazy(() => import("./components/FullMenu"));
@@ -98,6 +99,7 @@ const AppContent = ({ isLoading, setIsLoading }) => {
 
             <div className={`transition-opacity duration-1000 ${isLoading && !isAuthPage ? 'opacity-0' : 'opacity-100'}`}>
                 <Toaster position="top-center" reverseOrder={false} />
+                <OrderNotificationListener />
 
                 {!isAuthPage && location.pathname !== '/order-confirmed' && (
                     <Navbar activeSection={activeSection} onHome={() => navigate('/')} onNavigate={scrollToSection} />
