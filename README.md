@@ -36,7 +36,7 @@ This system eliminates long queues at the Nescafe outlet by providing a seamless
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/kiran-8287/nescafe-iitpkd
 cd cafe
 ```
 
