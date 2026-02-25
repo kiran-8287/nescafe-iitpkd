@@ -59,84 +59,117 @@ const CartDrawer = () => {
         }
 
         setIsSubmitting(true);
-        const loadingToast = toast.loading("Processing your caffeine...");
+        const loadingToast = toast.loading("Connecting to secure payment gateway...");
 
         try {
-            console.log('Starting checkout process...');
-            console.log('Current user:', user);
-            console.log('Bill details:', billDetails);
+            const BACKEND_URL = 'http://localhost:5000'; // Update this for production
 
-            // 1. Create Order record
-            console.log('Inserting order into database...');
-            const { data: orderData, error: orderError } = await supabase
-                .from('orders')
-                .insert({
-                    user_id: user.id,
-                    total_amount: billDetails.finalTotal,
-                    order_mode: orderMode,
-                    hostel_block: orderMode === 'delivery' ? hostelDetails.block : null,
-                    status: 'preparing',
-                    payment_status: 'pending'
+            // 1. Create order on backend
+            const orderResponse = await fetch(`${BACKEND_URL}/api/create-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: billDetails.finalTotal,
+                    receipt: `receipt_${Date.now()}`
                 })
-                .select()
-                .single();
-
-            if (orderError) {
-                console.error('Order creation error:', orderError);
-                throw orderError;
-            }
-            console.log('Order created successfully:', orderData);
-
-            // 2. Create Order Items
-            console.log('Creating order items for order:', orderData.id);
-            const itemsToInsert = cartItems.map(item => ({
-                order_id: orderData.id,
-                item_id: String(item.id),
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price,
-                variant: item.selectedVariant || 'Standard',
-                customization: item.customization || []
-            }));
-
-            const { error: itemsError } = await supabase
-                .from('order_items')
-                .insert(itemsToInsert);
-
-            if (itemsError) {
-                console.error('Order items insertion error:', itemsError);
-                throw itemsError;
-            }
-            console.log('Order items inserted successfully');
-
-            // Success!
-            toast.success("Order received! Start your timer.", { id: loadingToast });
-
-            // Clear cart and Navigate
-            console.log('Navigating to confirmation page...');
-            setCartOpen(false);
-            navigate('/order-confirmed', {
-                state: {
-                    orderId: orderData.id,
-                    orderMode,
-                    hostelDetails,
-                    finalTotal: billDetails.finalTotal
-                }
             });
 
-        } catch (error) {
-            console.error('Final checkout error:', error);
-
-            let errorMessage = "Order failed. Check your connection.";
-            if (error.code === '42501') {
-                errorMessage = "Database Permission Denied (RLS). Please check your Supabase policies.";
-            } else if (error.message) {
-                errorMessage = `Error: ${error.message}`;
+            if (!orderResponse.ok) {
+                const errorData = await orderResponse.json();
+                throw new Error(errorData.error || 'Failed to create payment order');
             }
 
-            toast.error(errorMessage, {
-                id: loadingToast,
-                duration: 6000
+            const razorpayOrder = await orderResponse.json();
+            toast.dismiss(loadingToast);
+
+            // 2. Open Razorpay Checkout
+            const options = {
+                key: 'rzp_test_SJXFLQKiQL5sor', // Public Key ID
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                name: "Nescafe IITPKD",
+                description: "Fuel for your brain ☕",
+                order_id: razorpayOrder.id,
+                handler: async function (response) {
+                    const verificationToast = toast.loading("Verifying payment...");
+                    try {
+                        // 3. Verify payment on backend
+                        const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                order_details: {
+                                    user_id: user.id,
+                                    total_amount: billDetails.finalTotal,
+                                    order_mode: orderMode,
+                                    hostel_block: orderMode === 'delivery' ? hostelDetails.block : null,
+                                    items: cartItems
+                                }
+                            })
+                        });
+
+                        const result = await verifyRes.json();
+
+                        if (result.status === 'success') {
+                            toast.success("Payment successful! Order placed.", { id: verificationToast });
+                            setCartOpen(false);
+                            clearCart();
+                            navigate('/order-confirmed', {
+                                state: {
+                                    orderId: result.orderId,
+                                    orderMode,
+                                    hostelDetails,
+                                    finalTotal: billDetails.finalTotal
+                                }
+                            });
+                        } else {
+                            throw new Error(result.message || 'Payment verification failed');
+                        }
+                    } catch (err) {
+                        toast.error(err.message || 'Verification failed', { id: verificationToast });
+                    }
+                },
+                prefill: {
+                    name: user.user_metadata?.name || '',
+                    email: user.email || '',
+                    contact: user.user_metadata?.phone || '', // UPI often requires a phone number
+                },
+                config: {
+                    display: {
+                        blocks: {
+                            banks: {
+                                name: 'Pay using UPI',
+                                instruments: [
+                                    {
+                                        method: 'upi'
+                                    }
+                                ],
+                            },
+                        },
+                        sequence: ['block.banks'],
+                        preferences: {
+                            show_default_blocks: true,
+                        },
+                    },
+                },
+                theme: {
+                    color: "#3E2723"
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                toast.error(`Payment failed: ${response.error.description}`);
+            });
+            rzp.open();
+
+        } catch (error) {
+            console.error('Checkout error:', error);
+            toast.error(error.message || "Something went wrong. Please try again.", {
+                id: loadingToast
             });
         } finally {
             setIsSubmitting(false);

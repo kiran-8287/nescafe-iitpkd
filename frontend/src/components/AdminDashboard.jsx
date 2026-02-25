@@ -645,6 +645,11 @@ const AdminDashboard = () => {
                                                         <h3 className="font-black text-[#3E2723] text-lg">{order.users?.name || 'Anonymous'}</h3>
                                                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider">{order.users?.email}</p>
                                                         <p className="text-[10px] text-[#D4AF37] font-bold mt-0.5">{new Date(order.created_at).toLocaleString()}</p>
+                                                        <div className="mt-2 flex gap-2">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                                {order.payment_status || 'unpaid'}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     <div className={`p-3 rounded-2xl ${order.order_mode === 'delivery' ? 'bg-orange-50 text-orange-500' : 'bg-blue-50 text-blue-500'}`}>
                                                         {order.order_mode === 'delivery' ? <Bike size={24} /> : <ShoppingBag size={24} />}
