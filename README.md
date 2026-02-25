@@ -27,43 +27,6 @@ This system eliminates long queues at the Nescafe outlet by providing a seamless
 
 ---
 
-##  Installation & Setup
-
-### Prerequisites
-- Node.js (v18+)
-- Supabase Account
-- Razorpay Developer Account
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/kiran-8287/nescafe-iitpkd
-cd cafe
-```
-
-### 2. Install Dependencies
-```bash
-# Install root, frontend, and backend dependencies
-npm run install-all
-```
-
-### 3. Environment Variables
-Create a `.env` file in the `backend` folder and add:
-```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-RAZORPAY_KEY_ID=your_key_id
-RAZORPAY_KEY_SECRET=your_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
-```
-
-### 4. Run Locally
-```bash
-# Runs both frontend and backend concurrently
-npm run dev
-```
-
----
-
 ##  System Architecture
 The system uses a decoupled architecture for maximum stability and speed during peak hours.
 
