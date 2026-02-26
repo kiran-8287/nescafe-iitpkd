@@ -117,7 +117,8 @@ const CartDrawer = () => {
                 throw new Error("Failed to load payment gateway. Please check your internet connection.");
             }
 
-            const BACKEND_URL = 'http://localhost:5000'; // Update this for production
+            const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
+            const BACKEND_URL = isProd ? 'https://nescafe-iitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
 
             // 1. Create order on backend (Authorized)
             const orderResponse = await fetch(`${BACKEND_URL}/api/create-order`, {
@@ -153,6 +154,9 @@ const CartDrawer = () => {
                 handler: async function (response) {
                     const verificationToast = toast.loading("Verifying payment...");
                     try {
+                        const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
+                        const BACKEND_URL = isProd ? 'https://nescafe-iitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
+
                         // 3. Verify payment on backend (Authorized)
                         const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {
                             method: 'POST',
@@ -180,12 +184,12 @@ const CartDrawer = () => {
                             setCartOpen(false);
                             clearCart();
                             navigate('/order-confirmed', {
-                                state: {
+                                state: JSON.parse(JSON.stringify({
                                     orderId: result.orderId,
                                     orderMode,
                                     hostelDetails,
                                     finalTotal: billDetails.finalTotal
-                                }
+                                }))
                             });
                         } else {
                             throw new Error(result.message || 'Payment verification failed');

@@ -53,6 +53,11 @@
     <script>
         // Only load visual edit scripts when inside an iframe
         if (window.self !== window.top) {
+            // Load emergent main script only in visual editor
+            var emergentScript = document.createElement('script');
+            emergentScript.src = 'https://assets.emergent.sh/scripts/emergent-main.js';
+            document.head.appendChild(emergentScript);
+
             // Load debug monitor script
             var debugMonitorScript = document.createElement('script');
             debugMonitorScript.src = 'https://assets.emergent.sh/scripts/debug-monitor.js';
@@ -152,7 +157,7 @@
             api_host: "https://us.i.posthog.com",
             person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
             session_recording: {
-                recordCrossOriginIframes: true,
+                recordCrossOriginIframes: false,
                 capturePerformance: false,
             },
         });
