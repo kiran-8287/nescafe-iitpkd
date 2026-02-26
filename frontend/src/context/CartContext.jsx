@@ -127,12 +127,22 @@ export const CartProvider = ({ children }) => {
         return () => supabase.removeChannel(subscription);
     }, [state.items]);
 
-    // Calculations based on current cart
-    const subtotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
-    const deliveryFee = orderMode === 'delivery' ? 10 : 0;
-    const discount = couponApplied ? Math.floor(subtotal * 0.2) : 0;
-    const taxes = Math.floor((subtotal - discount) * 0.05);
-    const finalTotal = subtotal - discount + taxes + deliveryFee;
+    // Calculations based on current cart (Memoized for performance)
+    const { subtotal, deliveryFee, discount, taxes, finalTotal } = React.useMemo(() => {
+        const sub = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
+        const dFee = orderMode === 'delivery' ? 10 : 0;
+        const disc = couponApplied ? Math.floor(sub * 0.2) : 0;
+        const tx = Math.floor((sub - disc) * 0.05);
+        const final = sub - disc + tx + dFee;
+
+        return {
+            subtotal: sub,
+            deliveryFee: dFee,
+            discount: disc,
+            taxes: tx,
+            finalTotal: final
+        };
+    }, [state.items, orderMode, couponApplied]);
 
     const value = {
         cartItems: state.items,

@@ -10,6 +10,20 @@ import { useState } from 'react';
 
 const HOSTELS = ["Block A (Boys)", "Block B (Girls)", "Block C (Mixed)", "Faculty Quarters", "Library Reading Room"];
 
+const loadRazorpay = () => {
+    return new Promise((resolve) => {
+        if (window.Razorpay) {
+            resolve(true);
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
+
 const CartDrawer = () => {
     const navigate = useNavigate();
     const {
@@ -96,6 +110,12 @@ const CartDrawer = () => {
             }
 
             toast.loading("Connecting to secure payment gateway...", { id: loadingToast });
+
+            // 0.5 Load Razorpay Script (Lazy Load)
+            const isLoaded = await loadRazorpay();
+            if (!isLoaded) {
+                throw new Error("Failed to load payment gateway. Please check your internet connection.");
+            }
 
             const BACKEND_URL = 'http://localhost:5000'; // Update this for production
 
