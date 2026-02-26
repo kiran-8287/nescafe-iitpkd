@@ -118,7 +118,7 @@ const CartDrawer = () => {
             }
 
             const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
-            const BACKEND_URL = isProd ? 'https://nescafe-iitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
+            const BACKEND_URL = isProd ? 'https://nescafeiitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
 
             // 1. Create order on backend (Authorized)
             const orderResponse = await fetch(`${BACKEND_URL}/api/create-order`, {
@@ -155,7 +155,7 @@ const CartDrawer = () => {
                     const verificationToast = toast.loading("Verifying payment...");
                     try {
                         const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
-                        const BACKEND_URL = isProd ? 'https://nescafe-iitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
+                        const BACKEND_URL = isProd ? 'https://nescafeiitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
 
                         // 3. Verify payment on backend (Authorized)
                         const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {
