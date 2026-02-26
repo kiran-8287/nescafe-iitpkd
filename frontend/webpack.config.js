@@ -98,11 +98,37 @@ module.exports = (env, argv) => {
         optimization: {
             splitChunks: {
                 chunks: 'all',
+                maxInitialRequests: Infinity,
+                minSize: 20000,
                 cacheGroups: {
                     vendor: {
                         test: /[\\/]node_modules[\\/]/,
-                        name: 'vendors',
-                        chunks: 'all',
+                        name(module) {
+                            const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+                            return `npm.${packageName.replace('@', '')}`;
+                        },
+                        priority: -10,
+                        reuseExistingChunk: true,
+                    },
+                    framer: {
+                        test: /[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/,
+                        name: 'vendor-framer',
+                        priority: 10,
+                    },
+                    lucide: {
+                        test: /[\\/]node_modules[\\/]lucide-react[\\/]/,
+                        name: 'vendor-lucide',
+                        priority: 10,
+                    },
+                    supabase: {
+                        test: /[\\/]node_modules[\\/](@supabase|supabase-js)[\\/]/,
+                        name: 'vendor-supabase',
+                        priority: 10,
+                    },
+                    react: {
+                        test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+                        name: 'vendor-react',
+                        priority: 20,
                     },
                 },
             },

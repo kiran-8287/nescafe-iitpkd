@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import "@/App.css";
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import Menu from "./components/Menu";
-import About from "./components/About";
-import Gallery from "./components/Gallery";
-import Testimonials from "./components/Testimonials";
-import Contact from "./components/Contact";
-import Footer from "./components/Footer";
-import FloatingOrderButton from "./components/FloatingOrderButton";
 import LoadingScreen from "./components/LoadingScreen";
-import BottomNav from "./components/BottomNav";
-import MiniCartBar from "./components/MiniCartBar";
-import CartDrawer from "./components/CartDrawer";
 import ProtectedRoute from "./components/ProtectedRoute";
-import OrderNotificationListener from "./components/OrderNotificationListener";
+// Static imports removed to be lazy loaded
 
 // Lazy loaded page components
+const Navbar = React.lazy(() => import("./components/Navbar"));
+const Footer = React.lazy(() => import("./components/Footer"));
+const Hero = React.lazy(() => import("./components/Hero"));
+const Menu = React.lazy(() => import("./components/Menu"));
+const About = React.lazy(() => import("./components/About"));
+const Gallery = React.lazy(() => import("./components/Gallery"));
+const Testimonials = React.lazy(() => import("./components/Testimonials"));
+const Contact = React.lazy(() => import("./components/Contact"));
+const FloatingOrderButton = React.lazy(() => import("./components/FloatingOrderButton"));
+const BottomNav = React.lazy(() => import("./components/BottomNav"));
+const MiniCartBar = React.lazy(() => import("./components/MiniCartBar"));
+const CartDrawer = React.lazy(() => import("./components/CartDrawer"));
+const OrderNotificationListener = React.lazy(() => import("./components/OrderNotificationListener"));
 const FullMenu = React.lazy(() => import("./components/FullMenu"));
 const OrderConfirmPage = React.lazy(() => import("./components/OrderConfirmPage"));
 const FunFacts = React.lazy(() => import("./components/FunFacts"));
@@ -99,10 +100,14 @@ const AppContent = ({ isLoading, setIsLoading }) => {
 
             <div className={`transition-opacity duration-1000 ${isLoading && !isAuthPage ? 'opacity-0' : 'opacity-100'}`}>
                 <Toaster position="top-center" reverseOrder={false} />
-                <OrderNotificationListener />
+                <React.Suspense fallback={null}>
+                    <OrderNotificationListener />
+                </React.Suspense>
 
                 {!isAuthPage && location.pathname !== '/order-confirmed' && (
-                    <Navbar activeSection={activeSection} onHome={() => navigate('/')} onNavigate={scrollToSection} />
+                    <React.Suspense fallback={<div className="h-16 bg-white shadow-md animate-pulse" />}>
+                        <Navbar activeSection={activeSection} onHome={() => navigate('/')} onNavigate={scrollToSection} />
+                    </React.Suspense>
                 )}
 
                 <React.Suspense fallback={
@@ -153,11 +158,13 @@ const AppContent = ({ isLoading, setIsLoading }) => {
 
                 {!isAuthPage && location.pathname !== '/order-confirmed' && (
                     <>
-                        <Footer />
-                        <FloatingOrderButton />
-                        <MiniCartBar />
-                        <CartDrawer />
-                        <BottomNav activeSection={activeSection} onNavigate={scrollToSection} />
+                        <React.Suspense fallback={null}>
+                            <Footer />
+                            <FloatingOrderButton />
+                            <MiniCartBar />
+                            <CartDrawer />
+                            <BottomNav activeSection={activeSection} onNavigate={scrollToSection} />
+                        </React.Suspense>
                     </>
                 )}
             </div>
