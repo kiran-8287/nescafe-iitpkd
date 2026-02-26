@@ -27,17 +27,79 @@ const supabase = createClient(
 app.use(cors());
 app.use(express.json());
 
+// Authentication Middleware
+const authenticateUser = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) throw error || new Error('Invalid user');
+
+        req.user = user; // Attach verified user to request
+        next();
+    } catch (error) {
+        console.error('AUTH ERROR:', error.message);
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+};
+
 app.get('/', (req, res) => {
     res.send('Nescafe Backend is running! ☕');
 });
 
+// Helper to calculate order total securely
+async function calculateOrderAmount(items, orderMode, couponApplied) {
+    const itemIds = items.map(item => item.id);
+    const { data: dbItems, error: dbError } = await supabase
+        .from('items')
+        .select('id, price')
+        .in('id', itemIds);
+
+    if (dbError) throw dbError;
+
+    const priceMap = {};
+    dbItems.forEach(item => priceMap[item.id] = item.price);
+
+    let subtotal = 0;
+    items.forEach(item => {
+        const price = priceMap[item.id] || 0;
+        subtotal += price * item.quantity;
+    });
+
+    const deliveryFee = (orderMode === 'delivery') ? 10 : 0;
+    const discount = couponApplied ? Math.floor(subtotal * 0.2) : 0;
+    const totalAfterDiscount = subtotal - discount;
+    const taxes = Math.floor(totalAfterDiscount * 0.05);
+    const finalTotal = totalAfterDiscount + taxes + deliveryFee;
+
+    return {
+        finalTotal,
+        subtotal,
+        discount,
+        taxes,
+        deliveryFee,
+        priceMap
+    };
+}
+
 // 1. Create Order endpoint
-app.post('/api/create-order', async (req, res) => {
+app.post('/api/create-order', authenticateUser, async (req, res) => {
     try {
-        const { amount, currency = 'INR', receipt } = req.body;
+        const { items, orderMode, couponApplied, currency = 'INR', receipt } = req.body;
+
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Cart is empty' });
+        }
+
+        // Securely calculate amount on backend
+        const { finalTotal } = await calculateOrderAmount(items, orderMode, couponApplied);
 
         const options = {
-            amount: Math.round(amount * 100), // Razorpay expects amount in paise
+            amount: Math.round(finalTotal * 100), // Razorpay expects amount in paise
             currency,
             receipt,
         };
@@ -51,13 +113,13 @@ app.post('/api/create-order', async (req, res) => {
 });
 
 // 2. Verify Payment endpoint
-app.post('/api/verify-payment', async (req, res) => {
+app.post('/api/verify-payment', authenticateUser, async (req, res) => {
     try {
         const {
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature,
-            order_details // Custom metadata we send from frontend
+            order_details
         } = req.body;
 
         // Verify signature
@@ -66,16 +128,23 @@ app.post('/api/verify-payment', async (req, res) => {
         const generated_signature = hmac.digest('hex');
 
         if (generated_signature === razorpay_signature) {
+            // Securely recalculate the amount and get price map
+            const { finalTotal, priceMap } = await calculateOrderAmount(
+                order_details.items,
+                order_details.order_mode,
+                order_details.couponApplied
+            );
+
             // Payment verified! Now create order in Supabase
             const { data: orderData, error: orderError } = await supabase
                 .from('orders')
                 .insert({
-                    user_id: order_details.user_id,
-                    total_amount: order_details.total_amount,
+                    user_id: req.user.id, // SECURE: Use verified ID from token, not client!
+                    total_amount: finalTotal,
                     order_mode: order_details.order_mode,
                     hostel_block: order_details.hostel_block,
                     status: 'preparing',
-                    payment_status: 'paid', // Mark as paid
+                    payment_status: 'paid',
                     razorpay_order_id: razorpay_order_id,
                     razorpay_payment_id: razorpay_payment_id
                 })
@@ -84,13 +153,28 @@ app.post('/api/verify-payment', async (req, res) => {
 
             if (orderError) throw orderError;
 
-            // Create order items
+            // Atomic Inventory Check and Decrement
+            for (const item of order_details.items) {
+                const { data: stockSuccess, error: stockError } = await supabase
+                    .rpc('process_item_order', {
+                        item_uuid: item.id,
+                        quantity_to_buy: item.quantity
+                    });
+
+                if (stockError) throw stockError;
+
+                if (!stockSuccess) {
+                    throw new Error(`Item "${item.name}" is no longer in stock. Please contact support for a refund.`);
+                }
+            }
+
+            // Create order items using SECURE backend prices
             const itemsToInsert = order_details.items.map(item => ({
                 order_id: orderData.id,
                 item_id: String(item.id),
                 name: item.name,
                 quantity: item.quantity,
-                price: item.price,
+                price: priceMap[item.id] || 0, // Use backend price
                 variant: item.selectedVariant || 'Standard',
                 customization: item.customization || []
             }));

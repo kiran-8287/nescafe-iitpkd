@@ -6,6 +6,83 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+// Shared detail content (moved outside to prevent unmounting/remounting on every state change)
+const DetailContent = ({
+    item,
+    selectedVariant,
+    setSelectedVariant,
+    selectedCustomizations,
+    toggleCustomization,
+    specialRequest,
+    setSpecialRequest,
+    compact
+}) => (
+    <div className={`space-y-5 ${compact ? '' : 'px-6 py-6 pb-32'}`}>
+        {/* Description */}
+        <div className="flex justify-between items-start mb-1">
+            <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest">About</h3>
+            {item.stock_quantity > 0 && item.stock_quantity <= 5 && (
+                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full animate-pulse border border-orange-100">
+                    Hurry! Only {item.stock_quantity} left
+                </span>
+            )}
+        </div>
+        <p className="text-[#5D4037] text-sm leading-relaxed">{item.description}</p>
+
+        {/* Variants */}
+        {item.variants?.length > 1 && (
+            <div>
+                <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Coffee size={13} className="text-[#D4AF37]" /> Size
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                    {item.variants.map((v) => (
+                        <button key={v} onClick={() => setSelectedVariant(v)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${selectedVariant === v
+                                ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-md scale-105'
+                                : 'bg-gray-50 border-gray-800 text-gray-500 hover:border-[#D4AF37]'}`}>
+                            {v}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
+
+        {/* Customizations */}
+        {item.customizations?.length > 0 && (
+            <div>
+                <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Star size={13} className="text-[#D4AF37]" /> Customise
+                </h3>
+                <div className="space-y-2">
+                    {item.customizations.map((opt) => (
+                        <button key={opt} onClick={() => toggleCustomization(opt)}
+                            className={`w-full flex justify-between items-center p-3 rounded-xl transition-all border-2 text-xs font-medium ${selectedCustomizations.includes(opt)
+                                ? 'bg-[#FFF8E1] border-[#D4AF37] text-[#3E2723]'
+                                : 'bg-gray-50 border-gray-800 text-gray-400'}`}>
+                            <span>{opt}</span>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedCustomizations.includes(opt) ? 'bg-[#D4AF37] border-[#D4AF37]' : 'border-gray-300'}`}>
+                                {selectedCustomizations.includes(opt) && <Plus size={9} className="text-white" strokeWidth={3} />}
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        )}
+
+        {/* Special instructions */}
+        <div>
+            <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-2">Special Instructions</h3>
+            <textarea
+                value={specialRequest}
+                onChange={(e) => setSpecialRequest(e.target.value)}
+                placeholder="Less sugar, extra ice..."
+                className="w-full bg-gray-50 border-2 border-gray-800 focus:border-[#D4AF37] rounded-xl p-3 text-sm font-medium text-[#3E2723] outline-none transition-all placeholder:text-gray-300 min-h-[72px] resize-none"
+            />
+        </div>
+    </div>
+);
+
 const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -16,9 +93,16 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
     const [specialRequest, setSpecialRequest] = useState('');
     const [flyingItems, setFlyingItems] = useState([]);
 
+    const remainingStock = useMemo(() => {
+        if (!item) return 0;
+        const inCart = cartItems.filter(i => i.id === item.id).reduce((sum, i) => sum + i.quantity, 0);
+        return Math.max(0, item.stock_quantity - inCart);
+    }, [item, cartItems]);
+
     useEffect(() => {
         if (isOpen) {
-            setQty(1);
+            // Default to 1 if there is stock, 0 if sold out
+            setQty(remainingStock > 0 ? 1 : 0);
             setSelectedVariant(item?.variants?.[0] || 'Standard');
             setSelectedCustomizations([]);
             setSpecialRequest('');
@@ -28,7 +112,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
             document.body.style.overflow = 'unset';
         }
         return () => { document.body.style.overflow = 'unset'; };
-    }, [isOpen, item]);
+    }, [isOpen, item, remainingStock]);
 
     const recommendedItems = useMemo(() => {
         if (!item || !allItems.length) return [];
@@ -108,7 +192,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
         if (isUpsell) {
             addItem({ ...targetItem, quantity: 1, selectedVariant: targetItem.variants?.[0] || 'Standard', customization: [], price: targetItem.price });
             triggerFlyAnimation(e, targetItem.image);
-            toast.success(isFirstItem ? 'Great choice. Your future self approves.' : `${targetItem.name} added!`, {
+            toast.success(isFirstItem ? 'Great choice. Your future self approves.' : `Successfully added ${targetItem.name}`, {
                 icon: isFirstItem ? '✨' : '🛒', style: { background: '#3E2723', color: '#fff' }
             });
             return;
@@ -121,74 +205,13 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
             price: parseFloat(calculatePrice()) / qty
         });
         triggerFlyAnimation(e, item.image);
-        toast.success(isFirstItem ? 'Great choice. Your future self approves.' : `${item.name} added to cart!`, {
+        toast.success(isFirstItem ? 'Great choice. Your future self approves.' : `Successfully added ${item.name}`, {
             icon: isFirstItem ? '✨' : '🛒', style: { background: '#3E2723', color: '#fff' }
         });
         setTimeout(onClose, 800);
     };
 
-    // Shared detail content (used in both mobile & desktop layouts)
-    const DetailContent = ({ compact }) => (
-        <div className={`space-y-5 ${compact ? '' : 'px-6 py-6 pb-32'}`}>
-            {/* Description */}
-            <div>
-                <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-1">About</h3>
-                <p className="text-[#5D4037] text-sm leading-relaxed">{item.description}</p>
-            </div>
 
-            {/* Variants */}
-            {item.variants?.length > 1 && (
-                <div>
-                    <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <Coffee size={13} className="text-[#D4AF37]" /> Size
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                        {item.variants.map((v) => (
-                            <button key={v} onClick={() => setSelectedVariant(v)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${selectedVariant === v
-                                    ? 'bg-[#3E2723] border-[#3E2723] text-white shadow-md scale-105'
-                                    : 'bg-gray-50 border-gray-800 text-gray-500 hover:border-[#D4AF37]'}`}>
-                                {v}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Customizations */}
-            {item.customizations?.length > 0 && (
-                <div>
-                    <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <Star size={13} className="text-[#D4AF37]" /> Customise
-                    </h3>
-                    <div className="space-y-2">
-                        {item.customizations.map((opt) => (
-                            <button key={opt} onClick={() => toggleCustomization(opt)}
-                                className={`w-full flex justify-between items-center p-3 rounded-xl transition-all border-2 text-xs font-medium ${selectedCustomizations.includes(opt)
-                                    ? 'bg-[#FFF8E1] border-[#D4AF37] text-[#3E2723]'
-                                    : 'bg-gray-50 border-gray-800 text-gray-400'}`}>
-                                <span>{opt}</span>
-                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedCustomizations.includes(opt) ? 'bg-[#D4AF37] border-[#D4AF37]' : 'border-gray-300'}`}>
-                                    {selectedCustomizations.includes(opt) && <Plus size={9} className="text-white" strokeWidth={3} />}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Special instructions */}
-            <div>
-                <h3 className="text-sm font-black text-[#3E2723] uppercase tracking-widest mb-2">Special Instructions</h3>
-                <textarea
-                    value={specialRequest}
-                    onChange={(e) => setSpecialRequest(e.target.value)}
-                    placeholder="Less sugar, extra ice..."
-                    className="w-full bg-gray-50 border-2 border-gray-800 focus:border-[#D4AF37] rounded-xl p-3 text-sm font-medium text-[#3E2723] outline-none transition-all placeholder:text-gray-300 min-h-[72px] resize-none"
-                />
-            </div>
-        </div>
-    );
 
     return (
         <AnimatePresence>
@@ -261,8 +284,10 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                             <Minus size={16} />
                                         </button>
                                         <span className="w-8 text-center font-black text-sm text-[#3E2723]">{qty}</span>
-                                        <button onClick={() => setQty(qty + 1)}
-                                            className="w-9 h-9 flex items-center justify-center hover:bg-white rounded-lg transition-all text-[#3E2723]">
+                                        <button
+                                            onClick={() => setQty(qty + 1)}
+                                            disabled={qty >= remainingStock}
+                                            className={`w-9 h-9 flex items-center justify-center hover:bg-white rounded-lg transition-all text-[#3E2723] ${qty >= remainingStock ? 'opacity-30 cursor-not-allowed' : ''}`}>
                                             <Plus size={16} />
                                         </button>
                                     </div>
@@ -270,17 +295,27 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
 
                                 {/* Scrollable details */}
                                 <div className="flex-1 overflow-y-auto px-5 py-3 no-scrollbar">
-                                    <DetailContent compact />
+                                    <DetailContent
+                                        item={item}
+                                        selectedVariant={selectedVariant}
+                                        setSelectedVariant={setSelectedVariant}
+                                        selectedCustomizations={selectedCustomizations}
+                                        toggleCustomization={toggleCustomization}
+                                        specialRequest={specialRequest}
+                                        setSpecialRequest={setSpecialRequest}
+                                        compact
+                                    />
                                 </div>
 
                                 {/* Add to cart */}
                                 <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
                                     <button
-                                        onClick={(e) => handleAddToCart(e, item, qty)}
-                                        className="w-full bg-[#3E2723] text-white h-12 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl hover:bg-[#5D4037] active:scale-95 transition-all"
+                                        onClick={(e) => remainingStock > 0 && handleAddToCart(e, item, qty)}
+                                        disabled={remainingStock <= 0}
+                                        className={`w-full h-12 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all ${remainingStock > 0 ? 'bg-[#3E2723] text-white hover:bg-[#5D4037]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                     >
                                         <ShoppingCart size={17} />
-                                        Add to Cart · <span className="font-mono">₹{calculatePrice()}</span>
+                                        {remainingStock > 0 ? `Add to Cart · ₹${calculatePrice()}` : 'Out of Stock'}
                                     </button>
                                 </div>
                             </div>
@@ -327,7 +362,15 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
 
                         {/* Scrollable content */}
                         <div className="flex-1 overflow-y-auto no-scrollbar bg-gray-50/50">
-                            <DetailContent />
+                            <DetailContent
+                                item={item}
+                                selectedVariant={selectedVariant}
+                                setSelectedVariant={setSelectedVariant}
+                                selectedCustomizations={selectedCustomizations}
+                                toggleCustomization={toggleCustomization}
+                                specialRequest={specialRequest}
+                                setSpecialRequest={setSpecialRequest}
+                            />
                         </div>
 
                         {/* Sticky Footer */}
@@ -339,15 +382,19 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                         <Minus size={18} />
                                     </button>
                                     <span className="w-9 text-center font-bold text-base text-[#3E2723]">{qty}</span>
-                                    <button onClick={() => setQty(qty + 1)}
-                                        className="w-11 h-full flex items-center justify-center hover:bg-white rounded-xl transition-all text-[#3E2723]">
+                                    <button
+                                        onClick={() => setQty(qty + 1)}
+                                        disabled={qty >= remainingStock}
+                                        className={`w-11 h-full flex items-center justify-center hover:bg-white rounded-xl transition-all text-[#3E2723] ${qty >= remainingStock ? 'opacity-30 cursor-not-allowed' : ''}`}>
                                         <Plus size={18} />
                                     </button>
                                 </div>
-                                <button onClick={(e) => handleAddToCart(e, item, qty)}
-                                    className="flex-1 bg-[#3E2723] text-white h-[52px] rounded-2xl font-bold text-base flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all hover:bg-[#5D4037]">
+                                <button
+                                    onClick={(e) => remainingStock > 0 && handleAddToCart(e, item, qty)}
+                                    disabled={remainingStock <= 0}
+                                    className={`flex-1 h-[52px] rounded-2xl font-bold text-base flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all ${remainingStock > 0 ? 'bg-[#3E2723] text-white hover:bg-[#5D4037]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                                     <ShoppingCart size={20} />
-                                    Add to Cart · <span className="font-mono">₹{calculatePrice()}</span>
+                                    {remainingStock > 0 ? `Add to Cart · ₹${calculatePrice()}` : 'Out of Stock'}
                                 </button>
                             </div>
                         </div>

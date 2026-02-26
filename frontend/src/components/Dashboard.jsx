@@ -170,7 +170,7 @@ const Dashboard = () => {
                                     type="text"
                                     value={formData.hostel}
                                     onChange={(e) => setFormData({ ...formData, hostel: e.target.value })}
-                                    placeholder="e.g. Block A, Room 101"
+                                    placeholder="e.g. Block A"
                                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-bold text-[#3E2723] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all"
                                 />
                             </div>

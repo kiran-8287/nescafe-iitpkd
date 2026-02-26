@@ -28,7 +28,7 @@ const CartDrawer = () => {
         billDetails
     } = useCart();
 
-    const { user } = useAuth();
+    const { user, session } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleApplyCoupon = () => {
@@ -59,17 +59,57 @@ const CartDrawer = () => {
         }
 
         setIsSubmitting(true);
-        const loadingToast = toast.loading("Connecting to secure payment gateway...");
+        const loadingToast = toast.loading("Verifying stock availability...");
 
         try {
+            // 0. Pre-checkout stock validation
+            const itemIds = [...new Set(cartItems.map(item => item.id))];
+            const { data: latestItems, error: fetchError } = await supabase
+                .from('items')
+                .select('id, name, stock_quantity, is_available')
+                .in('id', itemIds);
+
+            if (fetchError) throw fetchError;
+
+            const stockIssues = [];
+            cartItems.forEach(cartItem => {
+                const dbItem = latestItems.find(i => i.id === cartItem.id);
+                if (!dbItem || !dbItem.is_available) {
+                    stockIssues.push(`${cartItem.name} is no longer available`);
+                } else if (dbItem.stock_quantity < cartItem.quantity) {
+                    stockIssues.push(`Only ${dbItem.stock_quantity} units of ${cartItem.name} left`);
+                }
+            });
+
+            if (stockIssues.length > 0) {
+                toast.error(
+                    <div>
+                        <p className="font-bold mb-1">Stock mismatch detected:</p>
+                        <ul className="list-disc ml-4 text-xs font-medium">
+                            {stockIssues.map((issue, i) => <li key={i}>{issue}</li>)}
+                        </ul>
+                    </div>,
+                    { id: loadingToast, duration: 4000 }
+                );
+                setIsSubmitting(false);
+                return;
+            }
+
+            toast.loading("Connecting to secure payment gateway...", { id: loadingToast });
+
             const BACKEND_URL = 'http://localhost:5000'; // Update this for production
 
-            // 1. Create order on backend
+            // 1. Create order on backend (Authorized)
             const orderResponse = await fetch(`${BACKEND_URL}/api/create-order`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify({
-                    amount: billDetails.finalTotal,
+                    items: cartItems,
+                    orderMode,
+                    couponApplied,
                     receipt: `receipt_${Date.now()}`
                 })
             });
@@ -93,18 +133,20 @@ const CartDrawer = () => {
                 handler: async function (response) {
                     const verificationToast = toast.loading("Verifying payment...");
                     try {
-                        // 3. Verify payment on backend
+                        // 3. Verify payment on backend (Authorized)
                         const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${session?.access_token}`
+                            },
                             body: JSON.stringify({
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
                                 order_details: {
-                                    user_id: user.id,
-                                    total_amount: billDetails.finalTotal,
                                     order_mode: orderMode,
+                                    couponApplied: couponApplied,
                                     hostel_block: orderMode === 'delivery' ? hostelDetails.block : null,
                                     items: cartItems
                                 }

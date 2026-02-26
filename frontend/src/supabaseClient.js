@@ -10,3 +10,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         detectSessionInUrl: true
     }
 });
+
+// Expose for console testing
+if (typeof window !== 'undefined') {
+    window.supabase = supabase;
+}

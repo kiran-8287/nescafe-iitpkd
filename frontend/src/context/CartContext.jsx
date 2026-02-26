@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import toast from 'react-hot-toast';
 
 const CartContext = createContext();
 
@@ -62,6 +64,29 @@ const cartReducer = (state, action) => {
         case 'SET_CART_OPEN':
             return { ...state, isCartOpen: action.payload };
 
+        case 'SYNC_INVENTORY': {
+            const { itemId, stock, isAvailable } = action.payload;
+            let changed = false;
+            const newItems = state.items.map(item => {
+                if (item.id === itemId) {
+                    if (!isAvailable) {
+                        changed = true;
+                        return null; // Mark for removal
+                    }
+                    if (item.quantity > stock) {
+                        changed = true;
+                        return { ...item, quantity: stock };
+                    }
+                }
+                return item;
+            }).filter(Boolean);
+
+            if (changed) {
+                return { ...state, items: newItems };
+            }
+            return state;
+        }
+
         default:
             return state;
     }
@@ -71,13 +96,36 @@ export const CartProvider = ({ children }) => {
     const [state, dispatch] = useReducer(cartReducer, initialState, getSavedState);
 
     const [orderMode, setOrderMode] = React.useState('pickup'); // 'pickup' | 'delivery'
-    const [hostelDetails, setHostelDetails] = React.useState({ block: '', room: '' });
+    const [hostelDetails, setHostelDetails] = React.useState({ block: '' });
     const [couponApplied, setCouponApplied] = React.useState(false);
 
     // Sync with localStorage
     useEffect(() => {
         localStorage.setItem('nescafe_cart_state', JSON.stringify(state));
     }, [state]);
+
+    // Real-time Inventory Sync
+    useEffect(() => {
+        const subscription = supabase
+            .channel('cart-inventory-sync')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'items' }, (payload) => {
+                const updatedItem = payload.new;
+                const itemInCart = state.items.find(i => i.id === updatedItem.id);
+
+                if (itemInCart) {
+                    if (!updatedItem.is_available) {
+                        toast.error(`${updatedItem.name} just sold out and was removed from your cart.`, { icon: '🚫' });
+                        dispatch({ type: 'SYNC_INVENTORY', payload: { itemId: updatedItem.id, isAvailable: false } });
+                    } else if (itemInCart.quantity > updatedItem.stock_quantity) {
+                        toast.error(`Only ${updatedItem.stock_quantity} units of ${updatedItem.name} are left. Cart updated.`, { icon: '⏳' });
+                        dispatch({ type: 'SYNC_INVENTORY', payload: { itemId: updatedItem.id, stock: updatedItem.stock_quantity, isAvailable: true } });
+                    }
+                }
+            })
+            .subscribe();
+
+        return () => supabase.removeChannel(subscription);
+    }, [state.items]);
 
     // Calculations based on current cart
     const subtotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -116,7 +164,7 @@ export const CartProvider = ({ children }) => {
             dispatch({ type: 'CLEAR_CART' });
             setCouponApplied(false);
             setOrderMode('pickup');
-            setHostelDetails({ block: '', room: '' });
+            setHostelDetails({ block: '' });
         },
         toggleCart: () => dispatch({ type: 'TOGGLE_CART' }),
         setCartOpen: (isOpen) => dispatch({ type: 'SET_CART_OPEN', payload: isOpen }),

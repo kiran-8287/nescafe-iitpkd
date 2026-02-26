@@ -41,8 +41,33 @@ CREATE TABLE public.items (
     is_veg BOOLEAN DEFAULT true,
     badge TEXT,
     is_available BOOLEAN DEFAULT true,
+    stock_quantity INTEGER DEFAULT 0, -- Track inventory
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- RPC for atomic inventory decrement
+CREATE OR REPLACE FUNCTION public.process_item_order(item_uuid UUID, quantity_to_buy INT)
+RETURNS BOOLEAN AS $$
+DECLARE
+    current_stock INT;
+BEGIN
+    -- Atomic update with condition to prevent negative stock
+    UPDATE public.items
+    SET stock_quantity = stock_quantity - quantity_to_buy
+    WHERE id = item_uuid AND stock_quantity >= quantity_to_buy
+    RETURNING stock_quantity INTO current_stock;
+
+    IF FOUND THEN
+        -- Bonus: If stock hits 0, flip is_available so frontend hides it immediately via Realtime
+        IF current_stock = 0 THEN
+            UPDATE public.items SET is_available = false WHERE id = item_uuid;
+        END IF;
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. Create Orders Table
 CREATE TABLE public.orders (
@@ -68,21 +93,43 @@ CREATE TABLE public.order_items (
     customization JSONB DEFAULT '[]'::jsonb
 );
 
--- 5. Row Level Security (RLS) Configuration
+-- 5. Create Admin Management
+CREATE TABLE public.admins (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Admin check helper function
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.admins
+    WHERE user_id = auth.uid()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. Row Level Security (RLS) Configuration
 
 -- Users table
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own profile" ON public.users FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update their own profile" ON public.users FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Admins can view all profiles" ON public.users FOR SELECT USING (public.is_admin());
 
 -- Items table (Menu is public)
 ALTER TABLE public.items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public items are viewable by everyone" ON public.items FOR SELECT USING (true);
+CREATE POLICY "Admins can manage items" ON public.items FOR ALL USING (public.is_admin());
 
 -- Orders table
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can see their own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert their own orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Admins can see all orders" ON public.orders FOR SELECT USING (public.is_admin());
+CREATE POLICY "Admins can update order status" ON public.orders FOR UPDATE USING (public.is_admin());
 
 -- Order Items table
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
@@ -92,8 +139,13 @@ CREATE POLICY "Users can see their own order items" ON public.order_items FOR SE
 CREATE POLICY "Users can insert their own order items" ON public.order_items FOR INSERT WITH CHECK (
     EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid())
 );
+CREATE POLICY "Admins can see all order items" ON public.order_items FOR SELECT USING (public.is_admin());
 
--- 6. Indices for performance
+-- Admins table RLS
+ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admins can view the admin list" ON public.admins FOR SELECT USING (public.is_admin());
+
+-- 7. Indices for performance
 CREATE INDEX idx_orders_user_id ON public.orders(user_id);
 CREATE INDEX idx_order_items_order_id ON public.order_items(order_id);
 CREATE INDEX idx_items_category ON public.items(category);

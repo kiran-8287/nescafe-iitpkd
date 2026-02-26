@@ -676,7 +676,7 @@ const AdminDashboard = () => {
                                                     {order.order_mode === 'delivery' && (
                                                         <div className="bg-gray-50 p-3 rounded-2xl border border-gray-100">
                                                             <p className="text-[10px] font-black text-gray-400 uppercase mb-1">Delivery Address</p>
-                                                            <p className="text-xs font-bold text-[#3E2723]">{order.hostel_block}, Room {order.room_number}</p>
+                                                            <p className="text-xs font-bold text-[#3E2723]">{order.hostel_block}</p>
                                                         </div>
                                                     )}
                                                 </div>

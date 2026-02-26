@@ -153,6 +153,7 @@ const FullMenu = ({ onBack }) => {
         e.stopPropagation();
 
         if (!user) {
+            // ... (toast logic omitted for brevity in target matching, but I must preserve it)
             toast((t) => (
                 <div className="flex flex-col gap-3 p-1 font-sans">
                     <div className="flex items-center gap-2">
@@ -187,7 +188,15 @@ const FullMenu = ({ onBack }) => {
         }
 
         const existingIndex = cartItems.findIndex(i => i.id === item.id);
-        if (newQty > getItemQuantity(item.id)) {
+        const currentQty = getItemQuantity(item.id);
+
+        if (newQty > currentQty) {
+            // Check stock before adding/incrementing
+            if (newQty > item.stock_quantity) {
+                toast.error(`Only ${item.stock_quantity} units available.`, { icon: '⏳' });
+                return;
+            }
+
             if (existingIndex === -1) {
                 const isFirstItem = cartItems.length === 0;
                 addItem(item);
@@ -198,7 +207,10 @@ const FullMenu = ({ onBack }) => {
                         style: { background: '#3E2723', color: '#fff' }
                     });
                 } else {
-                    toast.success(`${item.name} added!`, { icon: '☕' });
+                    toast.success(`Successfully added ${item.name}`, {
+                        icon: '🛒',
+                        style: { background: '#3E2723', color: '#fff' }
+                    });
                 }
             } else {
                 updateQuantity(existingIndex, newQty);
@@ -303,7 +315,11 @@ const FullMenu = ({ onBack }) => {
                                             {items.map((item) => {
                                                 const qty = getItemQuantity(item.id);
                                                 return (
-                                                    <div key={item.id} onClick={() => { setSelectedItem(item); setIsSheetOpen(true); }} className="bg-white rounded-3xl p-3 sm:p-4 flex gap-4 shadow-sm hover:shadow-xl transition-all border border-gray-50 group relative cursor-pointer active:scale-[0.98] font-sans">
+                                                    <div
+                                                        key={item.id}
+                                                        onClick={() => { setSelectedItem(item); setIsSheetOpen(true); }}
+                                                        className="bg-white rounded-3xl p-3 sm:p-4 flex gap-4 shadow-sm hover:shadow-xl transition-all border border-gray-50 group relative cursor-pointer active:scale-[0.98] font-sans"
+                                                    >
                                                         <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden flex-shrink-0">
                                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                             {item.isVeg && <div className="absolute top-2 left-2 bg-white/90 p-1 rounded-md border border-green-500"><div className="w-2 h-2 rounded-full bg-green-500"></div></div>}
@@ -318,18 +334,25 @@ const FullMenu = ({ onBack }) => {
                                                             </div>
                                                             <div className="flex justify-between items-end">
                                                                 <span className="text-lg sm:text-xl font-black text-[#3E2723]">₹{item.price}</span>
-                                                                {qty === 0 ? (
-                                                                    <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(15); handleUpdateQty(e, item, 1); }} className="bg-white border-2 border-[#D4AF37] text-[#3E2723] font-bold px-6 py-1.5 rounded-xl hover:bg-[#D4AF37] transition-all shadow-sm active:scale-90 active:bg-[#3E2723] active:text-white active:border-[#3E2723]">ADD</button>
-                                                                ) : (
+                                                                {qty > 0 && (
                                                                     <div className="flex items-center bg-[#3E2723] text-white rounded-xl p-1 shadow-md">
                                                                         <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(10); handleUpdateQty(e, item, qty - 1); }} className="p-1 hover:bg-white/10 rounded-lg transition-colors"><Minus size={18} /></button>
                                                                         <span className="w-8 text-center font-bold text-sm">{qty}</span>
-                                                                        <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(10); handleUpdateQty(e, item, qty + 1); }} className="p-1 hover:bg-white/10 rounded-lg transition-colors"><Plus size={18} /></button>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (window.navigator.vibrate) window.navigator.vibrate(10);
+                                                                                setSelectedItem(item);
+                                                                                setIsSheetOpen(true);
+                                                                            }}
+                                                                            disabled={qty >= item.stock_quantity}
+                                                                            className={`p-1 hover:bg-white/10 rounded-lg transition-colors ${qty >= item.stock_quantity ? 'opacity-30 cursor-not-allowed' : ''}`}>
+                                                                            <Plus size={18} />
+                                                                        </button>
                                                                     </div>
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <button onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setIsSheetOpen(true); }} className="absolute bottom-4 right-4 sm:top-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity p-2 bg-gray-100 rounded-full text-gray-400 hover:text-[#D4AF37] hover:bg-white shadow-sm sm:static sm:mr-[-8px]"><Info size={16} /></button>
                                                     </div>
                                                 );
                                             })}

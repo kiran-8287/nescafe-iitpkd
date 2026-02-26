@@ -112,17 +112,20 @@ export const AuthProvider = ({ children }) => {
                     .eq('user_id', userId)
                     .single()
             );
+
             if (error) {
-                // If the check fails (e.g. not found), but we previously thought they were an admin
-                // we check localStorage as a fallback during network blips
+                // PGRST116 is "No rows found"
                 if (error.code === 'PGRST116') return false;
-                return localStorage.getItem('nescafe_is_admin') === 'true';
+                // For other errors (network, timeout), we fail safe (no admin)
+                // We no longer trust localStorage as an authority here!
+                console.error('Supabase admin check error:', error.message);
+                return false;
             }
             return !!data;
         } catch (e) {
             console.error('Admin check failed:', e.message);
-            // Fallback to cached value on network timeout/error
-            return localStorage.getItem('nescafe_is_admin') === 'true';
+            // Fail safe on timeout/exception
+            return false;
         }
     };
 

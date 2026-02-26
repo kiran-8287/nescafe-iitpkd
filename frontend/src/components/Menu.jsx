@@ -167,6 +167,13 @@ const Menu = () => {
     }
 
     const isFirstItem = cartItems.length === 0;
+    const currentQtyInCart = getItemQuantity(item.id);
+
+    if (currentQtyInCart >= item.stock_quantity) {
+      toast.error(`Sorry, no more ${item.name} available!`, { icon: '🚫' });
+      return;
+    }
+
     addItem(item);
     triggerFlyAnimation(e, item.image);
 
@@ -176,7 +183,10 @@ const Menu = () => {
         style: { background: '#3E2723', color: '#fff' }
       });
     } else {
-      toast.success(`${item.name} added!`, { icon: '☕' });
+      toast.success(`Successfully added ${item.name}`, {
+        icon: '🛒',
+        style: { background: '#3E2723', color: '#fff' }
+      });
     }
   };
 
@@ -190,6 +200,10 @@ const Menu = () => {
 
     const existingIndex = cartItems.findIndex(i => i.id === item.id);
     if (newQty > 0) {
+      if (newQty > item.stock_quantity) {
+        toast.error(`Only ${item.stock_quantity} units available.`, { icon: '⏳' });
+        return;
+      }
       if (existingIndex === -1) {
         handleAddToCart(e, item);
       } else {
@@ -309,18 +323,15 @@ const Menu = () => {
                           <p className="text-gray-500 text-xs sm:text-sm line-clamp-2 leading-relaxed mb-2">{item.description}</p>
                         </div>
                         <div className="flex justify-between items-end">
-                          <span className="text-lg sm:text-xl font-black text-[#3E2723]">₹{item.price}</span>
-                          {qty === 0 ? (
-                            <button
-                              onClick={(e) => {
-                                if (window.navigator.vibrate) window.navigator.vibrate(15);
-                                handleAddToCart(e, item);
-                              }}
-                              className="bg-white border-2 border-[#D4AF37] text-[#3E2723] font-bold px-6 py-1.5 rounded-xl hover:bg-[#D4AF37] hover:text-white transition-all shadow-sm active:scale-90 active:bg-[#3E2723] active:text-white active:border-[#3E2723]"
-                            >
-                              ADD
-                            </button>
-                          ) : (
+                          <div className="flex flex-col items-start">
+                            <span className="text-lg sm:text-xl font-black text-[#3E2723]">₹{item.price}</span>
+                            {item.stock_quantity > 0 && item.stock_quantity <= 5 && (
+                              <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-md mt-1 animate-pulse">
+                                Only {item.stock_quantity} left!
+                              </span>
+                            )}
+                          </div>
+                          {qty > 0 && (
                             <div className="flex items-center bg-[#3E2723] text-white rounded-xl p-1 shadow-md">
                               <button
                                 onClick={(e) => {
@@ -334,10 +345,13 @@ const Menu = () => {
                               <span className="w-8 text-center font-bold text-sm">{qty}</span>
                               <button
                                 onClick={(e) => {
+                                  e.stopPropagation();
                                   if (window.navigator.vibrate) window.navigator.vibrate(10);
-                                  handleUpdateQty(e, item, qty + 1);
+                                  setSelectedItem(item);
+                                  setIsSheetOpen(true);
                                 }}
-                                className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                                disabled={qty >= item.stock_quantity}
+                                className={`p-1 hover:bg-white/10 rounded-lg transition-colors ${qty >= item.stock_quantity ? 'opacity-30 cursor-not-allowed' : ''}`}
                               >
                                 <Plus size={18} />
                               </button>
