@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { Coffee, Mail, Lock, User, Building2, BookOpen, Loader2, CheckCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ROLES = ['student', 'staff', 'professor'];
 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { Coffee, Mail, Lock, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const SignInPage = () => {
     const navigate = useNavigate();

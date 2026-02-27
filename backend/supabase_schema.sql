@@ -78,6 +78,8 @@ CREATE TABLE public.orders (
     order_mode TEXT NOT NULL, -- pickup, delivery
     hostel_block TEXT,
     payment_status TEXT DEFAULT 'pending', -- pending, paid, failed
+    razorpay_order_id TEXT,
+    razorpay_payment_id TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

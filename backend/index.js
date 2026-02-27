@@ -136,7 +136,6 @@ app.post(['/api/create-order', '/create-order'], authenticateUser, async (req, r
 });
 
 // 2. Verify Payment endpoint
-// 2. Verify Payment endpoint
 app.post(['/api/verify-payment', '/verify-payment'], authenticateUser, async (req, res) => {
     try {
         const {
