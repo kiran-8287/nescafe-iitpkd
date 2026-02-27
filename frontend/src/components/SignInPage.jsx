@@ -69,20 +69,29 @@ const SignInPage = () => {
         setError('');
         setLoading(true);
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: form.email,
-            password: form.password,
-        });
+        try {
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: form.email,
+                password: form.password,
+            });
 
-        setLoading(false);
+            setLoading(false);
 
-        if (signInError) {
-            if (signInError.message.includes('Email not confirmed')) {
-                setError('Please check your inbox and confirm your email first.');
-            } else if (signInError.message.includes('Invalid login credentials')) {
-                setError('Wrong email or password. Try again.');
+            if (signInError) {
+                if (signInError.message.includes('Email not confirmed')) {
+                    setError('Please check your inbox and confirm your email first.');
+                } else if (signInError.message.includes('Invalid login credentials')) {
+                    setError('Wrong email or password. Try again.');
+                } else {
+                    setError(signInError.message);
+                }
+            }
+        } catch (err) {
+            setLoading(false);
+            if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+                setError('Network error. Please check your connection and try again.');
             } else {
-                setError(signInError.message);
+                setError(err.message || 'Something went wrong. Please try again.');
             }
         }
     };

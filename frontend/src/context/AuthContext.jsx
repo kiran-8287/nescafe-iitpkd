@@ -2,11 +2,12 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
 // Fails fast if Supabase is paused or unreachable (free tier pauses after 7 days)
-const withTimeout = (promise, ms = 8000) =>
+// 20s timeout to handle slow mobile connections and cold starts
+const withTimeout = (promise, ms = 20000) =>
     Promise.race([
         promise,
         new Promise((_, reject) =>
-            setTimeout(() => reject(new Error(`Supabase timed out after ${ms}ms. Project may be paused.`)), ms)
+            setTimeout(() => reject(new Error(`Connection timed out. Please check your network.`)), ms)
         )
     ]);
 
