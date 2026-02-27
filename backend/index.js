@@ -249,9 +249,14 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something went wrong!');
 });
 
-app.listen(port, () => {
-    console.log(`Backend server listening at http://localhost:${port}`);
-});
+// Export for Vercel
+module.exports = app;
+
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Backend server listening at http://localhost:${port}`);
+    });
+}
 
 process.on('uncaughtException', (err) => {
     console.error('UNCAUGHT EXCEPTION:', err);
