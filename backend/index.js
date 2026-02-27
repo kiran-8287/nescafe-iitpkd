@@ -60,7 +60,16 @@ const authenticateUser = async (req, res, next) => {
     }
 };
 
-app.get('/', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV,
+        hasRazorpay: !!process.env.RAZORPAY_KEY_ID
+    });
+});
+
+app.get(['/api', '/'], (req, res) => {
     res.send('Nescafe Backend is running! ☕');
 });
 

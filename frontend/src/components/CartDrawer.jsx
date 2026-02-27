@@ -143,6 +143,9 @@ const CartDrawer = () => {
                 } else {
                     const textError = await orderResponse.text();
                     console.error("Backend returned non-JSON error:", textError);
+                    if (orderResponse.status === 404) {
+                        throw new Error("API not found. If recently deployed, please wait a minute or check Vercel Root Directory settings.");
+                    }
                     throw new Error(`Server error (${orderResponse.status}). Please try again later.`);
                 }
             }
