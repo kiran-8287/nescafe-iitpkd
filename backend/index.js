@@ -8,6 +8,9 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Export app for importing in api/index.js
+module.exports = app;
+
 // Initialize Razorpay
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
     console.error('FATAL ERROR: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing in .env');
@@ -30,6 +33,12 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// Request logging for debugging routing on Vercel
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+});
 
 // Authentication Middleware
 const authenticateUser = async (req, res, next) => {
@@ -93,7 +102,7 @@ async function calculateOrderAmount(items, orderMode, couponApplied) {
 // 1. Create Order endpoint
 // 1. Create Order endpoint
 app.post(['/api/create-order', '/create-order'], authenticateUser, async (req, res) => {
-    try {
+    console.log('CREATE ORDER REQUEST RECEIVED'); try {
         const { items, orderMode, couponApplied, currency = 'INR', receipt } = req.body;
 
         if (!items || !Array.isArray(items) || items.length === 0) {
@@ -253,7 +262,10 @@ app.use((err, req, res, next) => {
 });
 
 // Export for Vercel
-module.exports = app;
+// Final handle for undefined routes to avoid default Express HTML 404
+app.use((req, res) => {
+    res.status(404).json({ error: `Not Found: ${req.path}` });
+});
 
 if (require.main === module) {
     app.listen(port, () => {
