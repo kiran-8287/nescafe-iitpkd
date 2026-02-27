@@ -24,7 +24,11 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Authentication Middleware
@@ -192,6 +196,50 @@ app.post('/api/verify-payment', authenticateUser, async (req, res) => {
     } catch (error) {
         console.error('PAYMENT VERIFICATION ERROR:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// 3. Razorpay Webhook handler (Direct from Razorpay)
+app.post('/api/razorpay-webhook', async (req, res) => {
+    try {
+        const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+        const signature = req.headers['x-razorpay-signature'];
+
+        const body = JSON.stringify(req.body);
+        const expectedSignature = crypto
+            .createHmac('sha256', secret)
+            .update(body)
+            .digest('hex');
+
+        if (signature !== expectedSignature) {
+            console.error('WEBHOOK ERROR: Invalid signature');
+            return res.status(400).send('Invalid signature');
+        }
+
+        const event = req.body.event;
+        const payload = req.body.payload;
+
+        console.log(`WEBHOOK RECEIVED: ${event}`);
+
+        if (event === 'order.paid') {
+            const razorpayOrderId = payload.order.entity.id;
+
+            // Fail-safe: Update payment status in Supabase if verify-payment didn't finish
+            const { error: updateError } = await supabase
+                .from('orders')
+                .update({ payment_status: 'paid', status: 'preparing' })
+                .eq('razorpay_order_id', razorpayOrderId)
+                .is('payment_status', 'pending'); // Only update if still pending
+
+            if (updateError) {
+                console.error(`WEBHOOK DB UPDATE ERROR: ${updateError.message}`);
+            }
+        }
+
+        res.status(200).json({ status: 'ok' });
+    } catch (error) {
+        console.error('WEBHOOK HANDLER ERROR:', error);
+        res.status(500).send('Webhook process failed');
     }
 });
 
