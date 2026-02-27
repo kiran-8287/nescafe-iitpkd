@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
                     .from('admins')
                     .select('user_id')
                     .eq('user_id', userId)
-                    .single()
+                    .maybeSingle()
             );
 
             if (error) {
@@ -137,7 +137,7 @@ export const AuthProvider = ({ children }) => {
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
-                    .single()
+                    .maybeSingle()
             );
 
             if (error) {

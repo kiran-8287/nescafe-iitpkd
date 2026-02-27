@@ -91,7 +91,8 @@ async function calculateOrderAmount(items, orderMode, couponApplied) {
 }
 
 // 1. Create Order endpoint
-app.post('/api/create-order', authenticateUser, async (req, res) => {
+// 1. Create Order endpoint
+app.post(['/api/create-order', '/create-order'], authenticateUser, async (req, res) => {
     try {
         const { items, orderMode, couponApplied, currency = 'INR', receipt } = req.body;
 
@@ -117,7 +118,8 @@ app.post('/api/create-order', authenticateUser, async (req, res) => {
 });
 
 // 2. Verify Payment endpoint
-app.post('/api/verify-payment', authenticateUser, async (req, res) => {
+// 2. Verify Payment endpoint
+app.post(['/api/verify-payment', '/verify-payment'], authenticateUser, async (req, res) => {
     try {
         const {
             razorpay_order_id,
@@ -200,7 +202,8 @@ app.post('/api/verify-payment', authenticateUser, async (req, res) => {
 });
 
 // 3. Razorpay Webhook handler (Direct from Razorpay)
-app.post('/api/razorpay-webhook', async (req, res) => {
+// 3. Razorpay Webhook handler (Direct from Razorpay)
+app.post(['/api/razorpay-webhook', '/razorpay-webhook'], async (req, res) => {
     try {
         const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
         const signature = req.headers['x-razorpay-signature'];

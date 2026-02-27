@@ -136,8 +136,15 @@ const CartDrawer = () => {
             });
 
             if (!orderResponse.ok) {
-                const errorData = await orderResponse.json();
-                throw new Error(errorData.error || 'Failed to create payment order');
+                const contentType = orderResponse.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const errorData = await orderResponse.json();
+                    throw new Error(errorData.error || 'Failed to create payment order');
+                } else {
+                    const textError = await orderResponse.text();
+                    console.error("Backend returned non-JSON error:", textError);
+                    throw new Error(`Server error (${orderResponse.status}). Please try again later.`);
+                }
             }
 
             const razorpayOrder = await orderResponse.json();
