@@ -11,6 +11,10 @@
             "destination": "/api/index.js"
         },
         {
+            "source": "/supabase/:path*",
+            "destination": "/api/index.js"
+        },
+        {
             "source": "/(.*)",
             "destination": "/frontend/dist/index.html"
         }
