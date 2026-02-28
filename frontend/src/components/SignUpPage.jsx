@@ -65,8 +65,8 @@ const SignUpPage = () => {
             // Automatically resolve redirect URL based on environment
             const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
             const REDIRECT_URL = isProd
-                ? 'https://nescafeiitpkd.vercel.app/login'
-                : `${window.location.origin}/login`;
+                ? 'https://nescafeiitpkd.vercel.app/verify'
+                : `${window.location.origin}/verify`;
 
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: form.email,
