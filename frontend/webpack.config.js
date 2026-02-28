@@ -81,6 +81,7 @@ module.exports = (env, argv) => {
                 patterns: [
                     { from: 'sw.js', to: '.' },
                     { from: 'manifest.json', to: '.' },
+                    { from: 'vercel.json', to: '.' },
                 ],
             }),
             isDevelopment && new ReactRefreshWebpackPlugin(),
