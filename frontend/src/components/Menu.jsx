@@ -38,7 +38,13 @@ const Menu = () => {
       })
       .subscribe();
 
-    return () => supabase.removeChannel(subscription);
+    // Polling fallback: Every 30 seconds in case WebSockets are blocked by carrier
+    const pollInterval = setInterval(fetchItems, 30000);
+
+    return () => {
+      supabase.removeChannel(subscription);
+      clearInterval(pollInterval);
+    };
   }, []);
 
   const fetchItems = async () => {
