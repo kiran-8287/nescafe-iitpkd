@@ -31,7 +31,11 @@ const supabase = createClient(
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'x-client-info', 'Prefer', 'Range'],
+    allowedHeaders: [
+        'Content-Type', 'Authorization', 'apikey',
+        'x-client-info', 'x-supabase-api-version',
+        'Prefer', 'Range'
+    ],
     exposedHeaders: ['Content-Range', 'X-Total-Count']
 }));
 
@@ -46,11 +50,15 @@ app.use('/supabase', createProxyMiddleware({
     target: SUPABASE_TARGET,
     changeOrigin: true,
     pathRewrite: { '^/supabase': '' },
+    // Skip WebSocket upgrades — Vercel serverless doesn't support WS.
+    // Realtime will reconnect directly to supabase.co for WS.
+    ws: false,
     on: {
         proxyReq: (proxyReq, req) => {
-            // Ensure the apikey header is passed through for Supabase auth
-            if (req.headers['apikey']) {
-                proxyReq.setHeader('apikey', req.headers['apikey']);
+            // Pass through all Supabase-required headers
+            if (req.headers['apikey']) proxyReq.setHeader('apikey', req.headers['apikey']);
+            if (req.headers['x-supabase-api-version']) {
+                proxyReq.setHeader('x-supabase-api-version', req.headers['x-supabase-api-version']);
             }
         },
         error: (err, req, res) => {

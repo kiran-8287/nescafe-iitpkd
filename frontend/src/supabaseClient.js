@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-// In production, route ALL Supabase traffic through our backend proxy.
+// In production, route ALL Supabase HTTP traffic through our backend proxy.
 // This fixes mobile carrier DNS blocking of supabase.co.
-// In local dev, connect directly for speed (no proxy round-trip).
+// In local dev, connect directly for speed.
 const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168');
 
 const SUPABASE_PROJECT_URL = 'https://udzrvxwjakgwfbnatnbt.supabase.co';
+
+// HTTP (auth, database) goes through our backend proxy in production
 const SUPABASE_URL = IS_LOCAL
     ? SUPABASE_PROJECT_URL
     : 'https://nescafe-iitpkd.vercel.app/supabase';
@@ -17,6 +19,11 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true
+    },
+    realtime: {
+        // Realtime (WebSocket) MUST go directly to Supabase \u2014 Vercel serverless can't proxy WS.
+        // This is acceptable since realtime is only used for live order updates (non-critical path).
+        url: `wss://${SUPABASE_PROJECT_URL.replace('https://', '')}/realtime/v1`
     }
 });
 
