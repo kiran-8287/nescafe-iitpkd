@@ -113,9 +113,16 @@ const AdminDashboard = () => {
                 console.log('Items subscription status:', status);
             });
 
+        // Polling fallback: Every 30 seconds
+        const pollInterval = setInterval(() => {
+            if (activeTab === 'orders') fetchOrders();
+            if (activeTab === 'menu') fetchItems();
+        }, 30000);
+
         return () => {
             supabase.removeChannel(ordersSubscription);
             supabase.removeChannel(itemsSubscription);
+            clearInterval(pollInterval);
         };
     }, [timeRange, activeTab]); // Refresh when time range or tab changes
 

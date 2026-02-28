@@ -37,8 +37,12 @@ const OrderConfirmPage = () => {
                 })
                 .subscribe();
 
+            // Polling fallback: Every 15 seconds
+            const pollInterval = setInterval(fetchOrder, 15000);
+
             return () => {
                 supabase.removeChannel(subscription);
+                clearInterval(pollInterval);
             };
         }
 
