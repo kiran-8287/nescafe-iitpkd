@@ -22,12 +22,12 @@ const OrderNotificationListener = React.lazy(() => import("./components/OrderNot
 const FullMenu = React.lazy(() => import("./components/FullMenu"));
 const OrderConfirmPage = React.lazy(() => import("./components/OrderConfirmPage"));
 const FunFacts = React.lazy(() => import("./components/FunFacts"));
-const SignInPage = React.lazy(() => import("./components/SignInPage"));
-const SignUpPage = React.lazy(() => import("./components/SignUpPage"));
-const Dashboard = React.lazy(() => import("./components/Dashboard"));
+import SignInPage from "./components/SignInPage";
+import SignUpPage from "./components/SignUpPage";
+import Dashboard from "./components/Dashboard";
+import VerifyEmail from "./components/VerifyEmail";
 const OrderHistory = React.lazy(() => import("./components/OrderHistory"));
 const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
-const VerifyEmail = React.lazy(() => import("./components/VerifyEmail"));
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
