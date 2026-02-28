@@ -23,7 +23,7 @@ const SignInPage = () => {
         setResending(true);
         const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
         const REDIRECT_URL = isProd
-            ? 'https://nescafe-iitpkd.vercel.app/login'
+            ? 'https://nescafeiitpkd.vercel.app/login'
             : `${window.location.origin}/login`;
 
         const { error: resendError } = await supabase.auth.resend({

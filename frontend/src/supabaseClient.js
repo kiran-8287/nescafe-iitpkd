@@ -9,7 +9,7 @@ const SUPABASE_PROJECT_URL = 'https://udzrvxwjakgwfbnatnbt.supabase.co';
 // HTTP (auth, database) goes through our backend proxy in production
 const SUPABASE_URL = IS_LOCAL
     ? SUPABASE_PROJECT_URL
-    : 'https://nescafe-iitpkd.vercel.app/supabase';
+    : 'https://nescafeiitpkd.vercel.app/supabase';
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkenJ2eHdqYWtnd2ZibmF0bmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NzgxNTEsImV4cCI6MjA4NzI1NDE1MX0.JjXfqKrf8UFshA1_QuCgqEbJQ8FsjTk6HBnCznZTdo8';
 

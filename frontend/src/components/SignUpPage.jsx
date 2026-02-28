@@ -20,7 +20,7 @@ const SignUpPage = () => {
         setResending(true);
         const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
         const REDIRECT_URL = isProd
-            ? 'https://nescafe-iitpkd.vercel.app/login'
+            ? 'https://nescafeiitpkd.vercel.app/login'
             : `${window.location.origin}/login`;
 
         const { error: resendError } = await supabase.auth.resend({
@@ -65,7 +65,7 @@ const SignUpPage = () => {
             // Automatically resolve redirect URL based on environment
             const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
             const REDIRECT_URL = isProd
-                ? 'https://nescafe-iitpkd.vercel.app/login'
+                ? 'https://nescafeiitpkd.vercel.app/login'
                 : `${window.location.origin}/login`;
 
             const { data, error: signUpError } = await supabase.auth.signUp({
