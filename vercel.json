@@ -15,6 +15,30 @@
             "destination": "/api/index.js"
         },
         {
+            "source": "/verify",
+            "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/login",
+            "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/signup",
+            "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/dashboard",
+            "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/admin",
+            "destination": "/frontend/dist/index.html"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/frontend/dist/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/frontend/dist/index.html"
         }
