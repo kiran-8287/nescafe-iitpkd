@@ -18,9 +18,15 @@ const SignUpPage = () => {
 
     const handleResend = async () => {
         setResending(true);
+        const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
+        const REDIRECT_URL = isProd ? 'https://nescafe-iitpkd.vercel.app/login' : `${window.location.origin}/login`;
+
         const { error: resendError } = await supabase.auth.resend({
             type: 'signup',
             email: form.email,
+            options: {
+                emailRedirectTo: REDIRECT_URL
+            }
         });
         setResending(false);
         if (resendError) {
@@ -54,10 +60,14 @@ const SignUpPage = () => {
 
         try {
             console.log('Attempting sign up for:', form.email);
+            const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
+            const REDIRECT_URL = isProd ? 'https://nescafe-iitpkd.vercel.app/login' : `${window.location.origin}/login`;
+
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: form.email,
                 password: form.password,
                 options: {
+                    emailRedirectTo: REDIRECT_URL,
                     data: {
                         name: form.name,
                         role: form.role,
