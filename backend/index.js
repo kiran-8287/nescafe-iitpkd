@@ -3,6 +3,7 @@ const cors = require('cors');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 require('dotenv').config();
 
 const app = express();
@@ -29,9 +30,36 @@ const supabase = createClient(
 
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'x-client-info', 'Prefer', 'Range'],
+    exposedHeaders: ['Content-Range', 'X-Total-Count']
 }));
+
+// ============================================================
+// SUPABASE PROXY — Routes all Supabase traffic through backend
+// This fixes mobile carrier DNS blocking of supabase.co
+// MUST be placed BEFORE express.json() to preserve raw body
+// ============================================================
+const SUPABASE_TARGET = process.env.SUPABASE_URL || 'https://udzrvxwjakgwfbnatnbt.supabase.co';
+
+app.use('/supabase', createProxyMiddleware({
+    target: SUPABASE_TARGET,
+    changeOrigin: true,
+    pathRewrite: { '^/supabase': '' },
+    on: {
+        proxyReq: (proxyReq, req) => {
+            // Ensure the apikey header is passed through for Supabase auth
+            if (req.headers['apikey']) {
+                proxyReq.setHeader('apikey', req.headers['apikey']);
+            }
+        },
+        error: (err, req, res) => {
+            console.error('Supabase proxy error:', err.message);
+            res.status(502).json({ error: 'Proxy error reaching Supabase', details: err.message });
+        }
+    }
+}));
+
 app.use(express.json());
 
 // Request logging for debugging routing on Vercel
