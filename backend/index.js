@@ -34,7 +34,7 @@ app.use(cors({
     allowedHeaders: [
         'Content-Type', 'Authorization', 'apikey',
         'x-client-info', 'x-supabase-api-version',
-        'Prefer', 'Range'
+        'Prefer', 'Range', 'accept-profile', 'content-profile'
     ],
     exposedHeaders: ['Content-Range', 'X-Total-Count']
 }));
