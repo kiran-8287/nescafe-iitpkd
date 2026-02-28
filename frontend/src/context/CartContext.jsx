@@ -106,6 +106,34 @@ export const CartProvider = ({ children }) => {
 
     // Real-time Inventory Sync
     useEffect(() => {
+        const syncInventory = async () => {
+            if (state.items.length === 0) return;
+            try {
+                const itemIds = state.items.map(i => i.id);
+                const { data, error } = await supabase
+                    .from('items')
+                    .select('id, name, stock_quantity, is_available')
+                    .in('id', itemIds);
+
+                if (error || !data) return;
+
+                data.forEach(updatedItem => {
+                    const itemInCart = state.items.find(i => i.id === updatedItem.id);
+                    if (itemInCart) {
+                        if (!updatedItem.is_available) {
+                            toast.error(`${updatedItem.name} just sold out and was removed from your cart.`, { icon: '🚫' });
+                            dispatch({ type: 'SYNC_INVENTORY', payload: { itemId: updatedItem.id, isAvailable: false } });
+                        } else if (itemInCart.quantity > updatedItem.stock_quantity) {
+                            toast.error(`Only ${updatedItem.stock_quantity} units of ${updatedItem.name} are left. Cart updated.`, { icon: '⏳' });
+                            dispatch({ type: 'SYNC_INVENTORY', payload: { itemId: updatedItem.id, stock: updatedItem.stock_quantity, isAvailable: true } });
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Inventory sync failed:', e);
+            }
+        };
+
         const subscription = supabase
             .channel('cart-inventory-sync')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'items' }, (payload) => {
@@ -124,7 +152,13 @@ export const CartProvider = ({ children }) => {
             })
             .subscribe();
 
-        return () => supabase.removeChannel(subscription);
+        // Polling fallback: Every 60 seconds
+        const pollInterval = setInterval(syncInventory, 60000);
+
+        return () => {
+            supabase.removeChannel(subscription);
+            clearInterval(pollInterval);
+        };
     }, [state.items]);
 
     // Calculations based on current cart (Memoized for performance)

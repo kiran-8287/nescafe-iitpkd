@@ -14,6 +14,29 @@ const OrderNotificationListener = () => {
 
         console.log('Starting global order listener for user:', user.id);
 
+        const checkOrderStatus = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .eq('status', 'ready')
+                    .order('updated_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error || !data) return;
+
+                // If we found a ready order that we haven't shown yet
+                if (data.status === 'ready' && (!readyOrder || readyOrder.id !== data.id)) {
+                    setReadyOrder(data);
+                    playNotificationSound();
+                }
+            } catch (e) {
+                console.error('Order status poll failed:', e);
+            }
+        };
+
         const subscription = supabase
             .channel(`user-orders-${user.id}`)
             .on('postgres_changes', {
@@ -30,10 +53,14 @@ const OrderNotificationListener = () => {
             })
             .subscribe();
 
+        // Polling fallback: Every 30 seconds
+        const pollInterval = setInterval(checkOrderStatus, 30000);
+
         return () => {
             supabase.removeChannel(subscription);
+            clearInterval(pollInterval);
         };
-    }, [user]);
+    }, [user, readyOrder]);
 
     const playNotificationSound = () => {
         try {

@@ -34,9 +34,10 @@ app.use(cors({
     allowedHeaders: [
         'Content-Type', 'Authorization', 'apikey',
         'x-client-info', 'x-supabase-api-version',
-        'Prefer', 'Range', 'accept-profile', 'content-profile'
+        'Prefer', 'Range', 'accept-profile', 'content-profile',
+        'if-match', 'if-none-match'
     ],
-    exposedHeaders: ['Content-Range', 'X-Total-Count']
+    exposedHeaders: ['Content-Range', 'X-Total-Count', 'Location', 'Content-Location']
 }));
 
 // ============================================================
@@ -55,11 +56,25 @@ app.use('/supabase', createProxyMiddleware({
     ws: false,
     on: {
         proxyReq: (proxyReq, req) => {
-            // Pass through all Supabase-required headers
-            if (req.headers['apikey']) proxyReq.setHeader('apikey', req.headers['apikey']);
-            if (req.headers['x-supabase-api-version']) {
-                proxyReq.setHeader('x-supabase-api-version', req.headers['x-supabase-api-version']);
-            }
+            // Forward ALL critical Supabase/PostgREST headers
+            const headersToForward = [
+                'apikey',
+                'authorization',
+                'x-client-info',
+                'x-supabase-api-version',
+                'prefer',
+                'range',
+                'accept-profile',
+                'content-profile',
+                'if-match',
+                'if-none-match'
+            ];
+
+            headersToForward.forEach(h => {
+                if (req.headers[h]) {
+                    proxyReq.setHeader(h, req.headers[h]);
+                }
+            });
         },
         error: (err, req, res) => {
             console.error('Supabase proxy error:', err.message);
