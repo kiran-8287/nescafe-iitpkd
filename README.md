@@ -55,6 +55,20 @@ graph LR
 
 ---
 
+---
+
+## 🌐 Deployment & Domains
+
+| Layer | Production URL |
+|---|---|
+| **Frontend** | [nescafeiitpkd.vercel.app](https://nescafeiitpkd.vercel.app) |
+| **Backend** | [nescafe-iitpkd.vercel.app](https://nescafe-iitpkd.vercel.app) |
+
+> [!IMPORTANT]
+> All Supabase traffic is proxied through the backend at `/supabase` to ensure connectivity across all Indian mobile networks.
+
+---
+
 ##  Author
 **Sai Kiran**
 IIT Palakkad

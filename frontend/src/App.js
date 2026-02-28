@@ -27,13 +27,14 @@ const SignUpPage = React.lazy(() => import("./components/SignUpPage"));
 const Dashboard = React.lazy(() => import("./components/Dashboard"));
 const OrderHistory = React.lazy(() => import("./components/OrderHistory"));
 const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
+const VerifyEmail = React.lazy(() => import("./components/VerifyEmail"));
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
 import { Analytics } from '@vercel/analytics/react';
 
 // Pages where we don't want the Navbar/Footer/Cart chrome
-const AUTH_PAGES = ['/login', '/signup', '/dashboard'];
+const AUTH_PAGES = ['/login', '/signup', '/dashboard', '/verify'];
 
 // Component to handle scroll observation and internal navigation
 const AppContent = ({ isLoading, setIsLoading }) => {
@@ -138,6 +139,7 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                         {/* Auth Routes */}
                         <Route path="/login" element={<SignInPage />} />
                         <Route path="/signup" element={<SignUpPage />} />
+                        <Route path="/verify" element={<VerifyEmail />} />
                         <Route path="/dashboard" element={
                             <ProtectedRoute>
                                 <Dashboard />
