@@ -342,7 +342,7 @@ const FullMenu = ({ onBack }) => {
                                                                 <span className="text-lg sm:text-xl font-black text-[#3E2723]">₹{item.price}</span>
                                                                 {qty > 0 && (
                                                                     <div className="flex items-center bg-[#3E2723] text-white rounded-xl p-1 shadow-md">
-                                                                        <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(10); handleUpdateQty(e, item, qty - 1); }} className="p-1 hover:bg-white/10 rounded-lg transition-colors"><Minus size={18} /></button>
+                                                                        <button onClick={(e) => { if (window.navigator.vibrate) window.navigator.vibrate(10); handleUpdateQty(e, item, qty - 1); }} aria-label="Decrease quantity" className="p-1 hover:bg-white/10 rounded-lg transition-colors"><Minus size={18} /></button>
                                                                         <span className="w-8 text-center font-bold text-sm">{qty}</span>
                                                                         <button
                                                                             onClick={(e) => {
@@ -352,6 +352,7 @@ const FullMenu = ({ onBack }) => {
                                                                                 setIsSheetOpen(true);
                                                                             }}
                                                                             disabled={qty >= item.stock_quantity}
+                                                                            aria-label="Increase quantity"
                                                                             className={`p-1 hover:bg-white/10 rounded-lg transition-colors ${qty >= item.stock_quantity ? 'opacity-30 cursor-not-allowed' : ''}`}>
                                                                             <Plus size={18} />
                                                                         </button>

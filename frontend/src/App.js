@@ -34,7 +34,7 @@ import { Toaster } from 'react-hot-toast';
 import { Analytics } from '@vercel/analytics/react';
 
 // Pages where we don't want the Navbar/Footer/Cart chrome
-const AUTH_PAGES = ['/login', '/signup', '/dashboard', '/verify'];
+const AUTH_PAGES = ['/login', '/signup', '/verify'];
 
 // Component to handle scroll observation and internal navigation
 const AppContent = ({ isLoading, setIsLoading }) => {

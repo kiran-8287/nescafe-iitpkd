@@ -284,6 +284,7 @@ const CartDrawer = () => {
                             </div>
                             <button
                                 onClick={() => setCartOpen(false)}
+                                aria-label="Close cart"
                                 className="p-2 bg-gray-50 rounded-full text-gray-400 hover:text-[#3E2723] transition-colors"
                             >
                                 <X size={24} />
@@ -298,6 +299,7 @@ const CartDrawer = () => {
                                         <h3 className="text-xs font-black text-[#3E2723] uppercase tracking-wider">Order Items</h3>
                                         <button
                                             onClick={clearCart}
+                                            aria-label="Clear all items from cart"
                                             className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
                                         >
                                             <Trash2 size={14} /> Clear All
@@ -320,6 +322,7 @@ const CartDrawer = () => {
                                                         <h4 className="font-bold text-[#3E2723] text-sm truncate">{item.name}</h4>
                                                         <button
                                                             onClick={() => removeItem(index)}
+                                                            aria-label="Remove item"
                                                             className="text-gray-300 hover:text-red-500 transition-colors p-1"
                                                         >
                                                             <Trash2 size={14} />
@@ -336,6 +339,7 @@ const CartDrawer = () => {
                                                         <div className="flex items-center bg-gray-50 rounded-lg p-0.5 shadow-inner">
                                                             <button
                                                                 onClick={() => updateQuantity(index, item.quantity - 1)}
+                                                                aria-label="Decrease quantity"
                                                                 className="p-1 hover:bg-white rounded-md transition-all text-[#3E2723]"
                                                             >
                                                                 <Minus size={12} />
@@ -343,6 +347,7 @@ const CartDrawer = () => {
                                                             <span className="w-6 text-center font-bold text-xs text-[#3E2723]">{item.quantity}</span>
                                                             <button
                                                                 onClick={() => updateQuantity(index, item.quantity + 1)}
+                                                                aria-label="Increase quantity"
                                                                 className="p-1 hover:bg-white rounded-md transition-all text-[#3E2723]"
                                                             >
                                                                 <Plus size={12} />

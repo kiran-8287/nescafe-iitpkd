@@ -2,20 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
-import { Coffee, LogOut, User, Building2, Mail, Shield, Lock, ArrowLeft } from 'lucide-react';
+import { Coffee, LogOut, User, Building2, Mail, Shield, Lock, ArrowLeft, Phone, BadgeCheck, Camera, ChevronRight, Activity, Pencil } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
     const { user, signOut, isAdmin } = useAuth();
-
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [confirmSignOut, setConfirmSignOut] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
-        hostel: ''
+        hostel: '',
+        phone: ''
     });
 
     useEffect(() => {
@@ -42,7 +43,8 @@ const Dashboard = () => {
                 setProfile(data);
                 setFormData({
                     name: data.name || '',
-                    hostel: data.hostel || ''
+                    hostel: data.hostel || '',
+                    phone: data.phone || ''
                 });
             }
         } catch (err) {
@@ -58,18 +60,26 @@ const Dashboard = () => {
             return;
         }
 
+        const phoneRegex = /^[0-9]{10}$/;
+        if (formData.phone && formData.phone !== 'Not Provided' && !phoneRegex.test(formData.phone)) {
+            toast.error("Please enter a valid 10-digit phone number.");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const { error } = await supabase
                 .from('users')
                 .update({
                     name: formData.name,
-                    hostel: formData.hostel
+                    hostel: formData.hostel,
+                    phone: formData.phone
                 })
                 .eq('id', user.id);
 
             if (error) throw error;
             toast.success("Profile updated! Looking sharp.");
+            setIsEditing(false);
             fetchProfile();
         } catch (error) {
             console.error('Update error:', error);
@@ -90,157 +100,280 @@ const Dashboard = () => {
         }
     };
 
-    const displayName = profile?.name || user?.user_metadata?.name || 'Coffee Lover';
+    const displayName = profile?.name || user?.user_metadata?.name || 'User';
     const displayRole = profile?.role || user?.user_metadata?.role || 'student';
+    const initial = displayName.charAt(0).toUpperCase();
+
+    if (loadingProfile) {
+        return (
+            <div className="min-h-screen bg-[#FDFCF8] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-[#3E2723]/10 border-t-[#D4AF37] rounded-full animate-spin"></div>
+                    <p className="text-[#3E2723]/60 font-medium animate-pulse">Refining your dashboard...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-[#FFF8E1] flex flex-col items-center justify-center p-6 font-sans">
-            <div className="w-full max-w-sm mb-2">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-[#3E2723] text-xs font-black uppercase tracking-widest hover:text-[#D4AF37] transition-colors"
+        <div className="min-h-screen bg-[#FDFCF8] font-sans selection:bg-[#D4AF37]/20 pt-16 md:pt-20">
+            {/* Global Navbar is now handled by App.js */}
+
+            {/* Profile Cover Banner */}
+            <div className="h-40 md:h-56 w-full bg-gradient-to-br from-[#3E2723] via-[#5D4037] to-[#D4AF37]/30 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-20 pointer-events-none"
+                    style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+                <div className="absolute -bottom-1 left-0 w-full h-24 bg-gradient-to-t from-[#FDFCF8] to-transparent" />
+            </div>
+
+            <main className="max-w-4xl mx-auto px-6 -mt-16 md:-mt-24 relative z-10 space-y-8 pb-20">
+                {/* Profile Identity Section */}
+                <motion.section
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8"
                 >
-                    <ArrowLeft size={16} /> Back
-                </button>
-            </div>
+                    <div className="relative group">
+                        <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-[2.5rem] shadow-2xl shadow-[#3E2723]/20 border-[6px] md:border-[10px] border-white overflow-hidden flex items-center justify-center transform transition-transform group-hover:scale-[1.02] duration-500">
+                            <span className="text-5xl md:text-6xl font-black text-[#3E2723] drop-shadow-sm">{initial}</span>
+                        </div>
+                        <button className="absolute bottom-1 right-1 p-3 bg-[#3E2723] text-white rounded-2xl shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white">
+                            <Camera size={20} />
+                        </button>
+                    </div>
 
-            {/* Header */}
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-[#3E2723] rounded-2xl mb-4 shadow-lg">
-                    <Coffee size={32} className="text-[#D4AF37]" />
-                </div>
-                <h1 className="text-3xl font-black text-[#3E2723]">Your Brew Hub</h1>
-                <p className="text-gray-500 text-sm mt-1">Nescafe IITPKD — Member Dashboard</p>
-
-                {/* Admin Quick Access */}
-                {isAdmin && (
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-[#3E2723] rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#B8962E] transition-all shadow-md active:scale-95"
-                    >
-                        <Shield size={14} /> Admin Dashboard
-                    </button>
-                )}
-            </div>
-
-            {/* Profile Card */}
-            <div className="bg-white rounded-3xl shadow-xl p-7 w-full max-w-sm space-y-5 mb-5">
-                {loadingProfile ? (
-                    <div className="text-center text-gray-400 py-4 animate-pulse">Loading your profile...</div>
-                ) : (
-                    <>
-                        {/* Avatar + Name */}
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-[#FFF8E1] border-2 border-[#D4AF37]/30 rounded-2xl flex items-center justify-center flex-shrink-0">
-                                <span className="text-2xl font-black text-[#3E2723]">
-                                    {displayName.charAt(0).toUpperCase()}
-                                </span>
-                            </div>
-                            <div>
-                                <p className="font-black text-[#3E2723] text-lg leading-tight">{displayName}</p>
-                                <p className="text-xs text-gray-400 font-medium">{user?.email}</p>
+                    <div className="text-center md:text-left flex-1 pb-4">
+                        <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                            <h1 className="text-4xl md:text-5xl font-black text-[#3E2723] tracking-tight drop-shadow-sm">{displayName}</h1>
+                            <div className="bg-blue-500 p-1.5 rounded-full shadow-lg shadow-blue-500/20">
+                                <BadgeCheck size={20} className="text-white" />
                             </div>
                         </div>
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                            <span className="px-3 py-1 bg-[#3E2723]/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-[#3E2723]/60 border border-[#3E2723]/5">
+                                Verified Member
+                            </span>
+                            <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                            <span className="text-gray-400 font-bold text-sm tracking-tight">{user?.email}</span>
+                        </div>
+                    </div>
 
-                        <div className="h-px bg-gray-100" />
+                    {/* Edit Profile Toggle */}
+                    {!isEditing && (
+                        <div className="pb-4">
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="flex items-center gap-2 px-8 py-4 bg-white border border-[#3E2723]/10 rounded-[1.5rem] shadow-xl shadow-[#3E2723]/5 hover:shadow-2xl hover:border-[#D4AF37] transition-all group active:scale-95"
+                            >
+                                <Pencil className="w-4 h-4 text-[#D4AF37] group-hover:rotate-12 transition-transform" />
+                                <span className="text-xs font-black text-[#3E2723] uppercase tracking-[0.2em]">Manage Profile</span>
+                            </button>
+                        </div>
+                    )}
+                </motion.section>
 
-                        {/* Form Fields */}
-                        <div className="space-y-4 pt-1">
-
-                            {/* Editable Name */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <User size={12} className="text-[#D4AF37]" /> Full Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Your Name"
-                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-bold text-[#3E2723] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Editable Hostel / Block */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Building2 size={12} className="text-[#D4AF37]" /> Hostel / Block
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.hostel}
-                                    onChange={(e) => setFormData({ ...formData, hostel: e.target.value })}
-                                    placeholder="e.g. Block A"
-                                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-bold text-[#3E2723] focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Locked Email */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Mail size={12} className="text-gray-400" /> Email Address
-                                    <span className="ml-auto flex items-center gap-1 text-gray-300"><Lock size={10} /> Locked</span>
-                                </label>
-                                <div className="w-full bg-gray-100 border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-400 cursor-not-allowed select-none">
-                                    {user?.email}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-8 space-y-8">
+                        {/* Personal Details Group */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
+                        >
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
+                                    <User size={20} className="text-[#D4AF37]" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-[#3E2723] leading-none mb-1">Personal Profile</h3>
+                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Identification & Presence</p>
                                 </div>
                             </div>
 
-                            {/* Locked Role */}
-                            <div className="space-y-1.5">
-                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                    <Shield size={12} className="text-gray-400" /> Role
-                                    <span className="ml-auto flex items-center gap-1 text-gray-300"><Lock size={10} /> Locked</span>
-                                </label>
-                                <div className="w-full bg-gray-100 border border-gray-100 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-400 capitalize cursor-not-allowed select-none">
-                                    {displayRole}
+                            <div className="space-y-6">
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Full Name</label>
+                                        <div className="relative group">
+                                            <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            {isEditing ? (
+                                                <input
+                                                    type="text"
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                                    placeholder="Enter your name"
+                                                />
+                                            ) : (
+                                                <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
+                                                    {formData.name || 'Not Provided'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Phone Number</label>
+                                        <div className="relative">
+                                            <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                            {isEditing ? (
+                                                <input
+                                                    type="tel"
+                                                    value={formData.phone}
+                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                                    placeholder="Mobile Number"
+                                                    maxLength={10}
+                                                />
+                                            ) : (
+                                                <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
+                                                    {formData.phone || 'Not Provided'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Email Address</label>
+                                    <div className="relative group">
+                                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                        <input
+                                            type="text"
+                                            value={user?.email}
+                                            disabled
+                                            className="w-full bg-gray-100/50 border border-transparent rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-gray-400 cursor-not-allowed"
+                                        />
+                                        <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        {/* Save Button */}
-                        <div className="pt-2 border-t border-gray-50">
-                            <button
-                                onClick={handleSaveProfile}
-                                disabled={isSaving}
-                                className="w-full bg-[#3E2723] text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#5D4037] transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:scale-100"
-                            >
-                                {isSaving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
-                    </>
-                )}
-            </div>
+                        {/* Campus Context Group */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
+                        >
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
+                                    <Building2 size={20} className="text-[#D4AF37]" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-[#3E2723] leading-none mb-1">Campus Context</h3>
+                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Localization & Access</p>
+                                </div>
+                            </div>
 
-            {/* Sign Out */}
-            <div className="w-full max-w-sm">
-                {!confirmSignOut ? (
-                    <button
-                        onClick={() => setConfirmSignOut(true)}
-                        className="w-full bg-white border-2 border-red-100 text-red-500 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-red-50 transition-all active:scale-95 shadow-sm"
-                    >
-                        <LogOut size={20} /> Sign Out
-                    </button>
-                ) : (
-                    <div className="bg-white border-2 border-red-100 rounded-2xl p-4 space-y-3 shadow-sm">
-                        <p className="text-center text-sm font-black text-[#3E2723]">Sure you want to leave? ☕</p>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setConfirmSignOut(false)}
-                                className="flex-1 py-3 rounded-xl border-2 border-gray-100 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95"
-                            >
-                                Cancel
-                            </button>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Hostel / Location</label>
+                                    <div className="relative group">
+                                        <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        {isEditing ? (
+                                            <input
+                                                type="text"
+                                                value={formData.hostel}
+                                                onChange={(e) => setFormData({ ...formData, hostel: e.target.value })}
+                                                className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                                placeholder="e.g. Block A"
+                                            />
+                                        ) : (
+                                            <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
+                                                {formData.hostel || 'Not Provided'}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Account Role</label>
+                                    <div className="relative group">
+                                        <Shield size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                        <input
+                                            type="text"
+                                            value={displayRole}
+                                            disabled
+                                            className="w-full bg-gray-100/50 border border-transparent rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-gray-400 capitalize cursor-not-allowed"
+                                        />
+                                        <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    {/* Sidebar Area */}
+                    <div className="lg:col-span-4 space-y-6">
+                        {/* Primary Action - Only visible when editing */}
+                        <AnimatePresence>
+                            {isEditing && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-3"
+                                >
+                                    <button
+                                        onClick={handleSaveProfile}
+                                        disabled={isSaving}
+                                        className="w-full bg-[#3E2723] text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-[#3E2723]/20 flex items-center justify-center gap-3 disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-95"
+                                    >
+                                        {isSaving ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : <BadgeCheck size={20} className="text-[#D4AF37]" />}
+                                        {isSaving ? 'Updating...' : 'Update Profile'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setFormData({
+                                                name: profile?.name || '',
+                                                hostel: profile?.hostel || '',
+                                                phone: profile?.phone || ''
+                                            });
+                                        }}
+                                        className="w-full bg-white border border-[#3E2723]/10 text-[#3E2723]/60 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all"
+                                    >
+                                        Discard Changes
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Admin Access */}
+                        {isAdmin && (
+                            <div className="pt-2">
+                                <button
+                                    onClick={() => navigate('/admin')}
+                                    className="w-full flex items-center justify-center gap-3 p-5 rounded-[2rem] bg-[#D4AF37] text-[#3E2723] font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-[#D4AF37]/20 hover:bg-[#B8962E] transition-all active:scale-95 group"
+                                >
+                                    <Shield size={20} className="group-hover:rotate-12 transition-transform" />
+                                    Admin Dashboard
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Simple Sign Out */}
+                        <div className="pt-2">
                             <button
                                 onClick={handleSignOut}
-                                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-600 font-black text-xs uppercase tracking-widest hover:bg-red-100 transition-all active:scale-95"
                             >
-                                <LogOut size={14} /> Yes, Sign Out
+                                <LogOut size={18} /> Sign Out
                             </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            </main>
+
+            <footer className="text-center py-12 text-gray-300">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em]">Built for IIT Palakkad Campus</p>
+            </footer>
         </div>
     );
 };

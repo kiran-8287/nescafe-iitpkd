@@ -8,7 +8,7 @@ const ROLES = ['student', 'staff', 'professor'];
 
 const SignUpPage = () => {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student', hostel: '' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student', hostel: '', phone: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -49,6 +49,14 @@ const SignUpPage = () => {
             return;
         }
 
+        // Phone validation (10 digits)
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(form.phone)) {
+            setError('Please enter a valid 10-digit phone number.');
+            setLoading(false);
+            return;
+        }
+
         const emailLower = form.email.toLowerCase();
 
         // Institutional email validation
@@ -77,6 +85,7 @@ const SignUpPage = () => {
                         name: form.name,
                         role: form.role,
                         hostel: form.hostel,
+                        phone: form.phone,
                     }
                 }
             });
@@ -164,6 +173,27 @@ const SignUpPage = () => {
                                     required
                                     placeholder="Your full name"
                                     className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                            <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Phone Number</label>
+                            <div className="relative">
+                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 flex items-center gap-1">
+                                    <span className="text-xs font-bold text-[#3E2723]/40">+91</span>
+                                    <div className="w-px h-4 bg-gray-200 ml-1" />
+                                </div>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={form.phone}
+                                    onChange={handleChange}
+                                    required
+                                    maxLength={10}
+                                    placeholder="10-digit number"
+                                    className="w-full pl-16 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
                                 />
                             </div>
                         </div>

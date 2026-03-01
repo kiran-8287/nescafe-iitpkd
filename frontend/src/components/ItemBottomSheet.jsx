@@ -258,6 +258,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
 
                                 {/* Close */}
                                 <button onClick={onClose}
+                                    aria-label="Close"
                                     className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all">
                                     <X size={18} />
                                 </button>
@@ -280,6 +281,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                     <span className="text-2xl font-black text-[#3E2723]">₹{item.price}</span>
                                     <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
                                         <button onClick={() => setQty(Math.max(1, qty - 1))}
+                                            aria-label="Decrease quantity"
                                             className="w-9 h-9 flex items-center justify-center hover:bg-white rounded-lg transition-all text-[#3E2723]">
                                             <Minus size={16} />
                                         </button>
@@ -287,6 +289,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                         <button
                                             onClick={() => setQty(qty + 1)}
                                             disabled={qty >= remainingStock}
+                                            aria-label="Increase quantity"
                                             className={`w-9 h-9 flex items-center justify-center hover:bg-white rounded-lg transition-all text-[#3E2723] ${qty >= remainingStock ? 'opacity-30 cursor-not-allowed' : ''}`}>
                                             <Plus size={16} />
                                         </button>
@@ -335,6 +338,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                             <button onClick={onClose}
+                                aria-label="Close"
                                 className="absolute top-6 right-6 p-2.5 bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all z-10">
                                 <X size={20} />
                             </button>
@@ -378,6 +382,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                             <div className="flex gap-4 items-center">
                                 <div className="flex items-center bg-gray-100 rounded-2xl p-1 h-[52px]">
                                     <button onClick={() => setQty(Math.max(1, qty - 1))}
+                                        aria-label="Decrease quantity"
                                         className="w-11 h-full flex items-center justify-center hover:bg-white rounded-xl transition-all text-[#3E2723]">
                                         <Minus size={18} />
                                     </button>
@@ -385,6 +390,7 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                     <button
                                         onClick={() => setQty(qty + 1)}
                                         disabled={qty >= remainingStock}
+                                        aria-label="Increase quantity"
                                         className={`w-11 h-full flex items-center justify-center hover:bg-white rounded-xl transition-all text-[#3E2723] ${qty >= remainingStock ? 'opacity-30 cursor-not-allowed' : ''}`}>
                                         <Plus size={18} />
                                     </button>

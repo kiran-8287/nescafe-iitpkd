@@ -16,7 +16,8 @@ import {
     RotateCcw,
     Receipt,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    RefreshCcw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -36,6 +37,14 @@ const OrderHistory = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // all, ongoing, completed
     const [expandedOrder, setExpandedOrder] = useState(null);
+    const [pullDistance, setPullDistance] = useState(0);
+    const [isPulling, setIsPulling] = useState(false);
+    const [startY, setStartY] = useState(0);
+    const PULL_THRESHOLD = 100;
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -43,9 +52,9 @@ const OrderHistory = () => {
         }
     }, [user]);
 
-    const fetchOrders = async () => {
+    const fetchOrders = async (isManual = false) => {
         try {
-            setLoading(true);
+            if (!isManual) setLoading(true);
             const { data, error } = await supabase
                 .from('orders')
                 .select(`
@@ -57,12 +66,38 @@ const OrderHistory = () => {
 
             if (error) throw error;
             setOrders(data || []);
+            if (isManual) toast.success("History updated!");
         } catch (error) {
             console.error('Error fetching orders:', error);
             toast.error("Couldn't fetch your history. Like our internet.");
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleTouchStart = (e) => {
+        if (window.scrollY === 0) {
+            setStartY(e.touches[0].pageY);
+            setIsPulling(true);
+        }
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isPulling) return;
+        const currentY = e.touches[0].pageY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+            // Apply resistance
+            setPullDistance(Math.min(diff * 0.5, PULL_THRESHOLD + 20));
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (pullDistance > PULL_THRESHOLD) {
+            fetchOrders(true);
+        }
+        setPullDistance(0);
+        setIsPulling(false);
     };
 
     const handleReorder = (order) => {
@@ -115,7 +150,33 @@ const OrderHistory = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20 pt-20 md:pt-24 font-sans">
+        <div
+            className="min-h-screen bg-gray-50 pb-20 pt-20 md:pt-24 font-sans"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+        >
+            {/* Pull to Refresh Indicator */}
+            <motion.div
+                className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center"
+                style={{ top: pullDistance > 0 ? 80 : -50 }}
+                animate={{
+                    y: pullDistance,
+                    rotate: pullDistance * 2,
+                    opacity: pullDistance > 20 ? 1 : 0
+                }}
+                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            >
+                <div className="bg-white p-3 rounded-full shadow-xl border border-gray-100 text-[#3E2723]">
+                    <RefreshCcw
+                        size={20}
+                        className={pullDistance > PULL_THRESHOLD ? 'animate-spin' : ''}
+                    />
+                </div>
+                {pullDistance > PULL_THRESHOLD && (
+                    <span className="text-[10px] font-black text-[#3E2723] uppercase mt-2 drop-shadow-sm">Release to Brew</span>
+                )}
+            </motion.div>
             {/* Header */}
             <div className="bg-white px-6 pt-12 pb-6 shadow-sm sticky top-[64px] md:top-[76px] z-30 border-b border-gray-100">
                 <div className="max-w-2xl mx-auto flex items-center gap-4 mb-6">

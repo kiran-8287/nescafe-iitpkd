@@ -96,6 +96,7 @@ const Navbar = ({ activeSection, onHome, onNavigate }) => {
               <button
                 id="desktop-cart-icon"
                 onClick={toggleCart}
+                aria-label={`View cart, ${cartCount} items`}
                 className="relative p-2 transition-all duration-300 hover:scale-110 text-[#3E2723]"
               >
                 <ShoppingCart size={24} />
