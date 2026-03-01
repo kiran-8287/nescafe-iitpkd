@@ -12,7 +12,7 @@ const OrderNotificationListener = () => {
     useEffect(() => {
         if (!user) return;
 
-        console.log('Starting global order listener for user:', user.id);
+        // console.log('Starting global order listener for user:', user.id); // Debug only
 
         const checkOrderStatus = async () => {
             try {
@@ -45,7 +45,7 @@ const OrderNotificationListener = () => {
                 table: 'orders',
                 filter: `user_id=eq.${user.id}`
             }, (payload) => {
-                console.log('Order update received:', payload);
+                // console.log('Order update received:', payload); // Debug only
                 if (payload.new.status === 'ready' && payload.old.status !== 'ready') {
                     setReadyOrder(payload.new);
                     playNotificationSound();

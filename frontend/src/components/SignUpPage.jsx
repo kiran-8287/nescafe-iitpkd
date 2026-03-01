@@ -69,7 +69,7 @@ const SignUpPage = () => {
         // Removed validation for staff and professors as per user request
 
         try {
-            console.log('Attempting sign up for:', form.email);
+            // console.log('Attempting sign up for:', form.email); // Debug only
             // Automatically resolve redirect URL based on environment
             const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
             const REDIRECT_URL = isProd
@@ -96,7 +96,7 @@ const SignUpPage = () => {
                 console.error('Supabase Sign Up Error:', signUpError);
                 setError(signUpError.message);
             } else {
-                console.log('Sign Up Success:', data);
+                // console.log('Sign Up Success:', data); // Debug only
                 setSuccess(true);
             }
         } catch (err) {

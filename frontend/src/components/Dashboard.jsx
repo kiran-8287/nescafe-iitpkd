@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
-import { Coffee, LogOut, User, Building2, Mail, Shield, Lock, ArrowLeft, Phone, BadgeCheck, Camera, ChevronRight, Activity, Pencil } from 'lucide-react';
+import { Coffee, LogOut, User, Building2, Mail, Shield, Lock, ArrowLeft, Phone, BadgeCheck, ChevronRight, Activity, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -20,6 +20,7 @@ const Dashboard = () => {
     });
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         if (user) {
             fetchProfile();
         } else {
@@ -137,9 +138,6 @@ const Dashboard = () => {
                         <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-[2.5rem] shadow-2xl shadow-[#3E2723]/20 border-[6px] md:border-[10px] border-white overflow-hidden flex items-center justify-center transform transition-transform group-hover:scale-[1.02] duration-500">
                             <span className="text-5xl md:text-6xl font-black text-[#3E2723] drop-shadow-sm">{initial}</span>
                         </div>
-                        <button className="absolute bottom-1 right-1 p-3 bg-[#3E2723] text-white rounded-2xl shadow-xl hover:scale-110 active:scale-90 transition-all border-4 border-white">
-                            <Camera size={20} />
-                        </button>
                     </div>
 
                     <div className="text-center md:text-left flex-1 pb-4">
@@ -158,164 +156,149 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Edit Profile Toggle */}
-                    {!isEditing && (
-                        <div className="pb-4">
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="flex items-center gap-2 px-8 py-4 bg-white border border-[#3E2723]/10 rounded-[1.5rem] shadow-xl shadow-[#3E2723]/5 hover:shadow-2xl hover:border-[#D4AF37] transition-all group active:scale-95"
-                            >
-                                <Pencil className="w-4 h-4 text-[#D4AF37] group-hover:rotate-12 transition-transform" />
-                                <span className="text-xs font-black text-[#3E2723] uppercase tracking-[0.2em]">Manage Profile</span>
-                            </button>
-                        </div>
-                    )}
                 </motion.section>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Main Content Area */}
-                    <div className="lg:col-span-8 space-y-8">
-                        {/* Personal Details Group */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
-                        >
-                            <div className="flex items-center gap-3 mb-8">
-                                <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
-                                    <User size={20} className="text-[#D4AF37]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-black text-[#3E2723] leading-none mb-1">Personal Profile</h3>
-                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Identification & Presence</p>
-                                </div>
+                <div className="max-w-2xl mx-auto space-y-8">
+                    {/* Personal Details Group */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
+                    >
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
+                                <User size={20} className="text-[#D4AF37]" />
                             </div>
-
-                            <div className="space-y-6">
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Full Name</label>
-                                        <div className="relative group">
-                                            <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            {isEditing ? (
-                                                <input
-                                                    type="text"
-                                                    value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
-                                                    placeholder="Enter your name"
-                                                />
-                                            ) : (
-                                                <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
-                                                    {formData.name || 'Not Provided'}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Phone Number</label>
-                                        <div className="relative">
-                                            <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            {isEditing ? (
-                                                <input
-                                                    type="tel"
-                                                    value={formData.phone}
-                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
-                                                    placeholder="Mobile Number"
-                                                    maxLength={10}
-                                                />
-                                            ) : (
-                                                <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
-                                                    {formData.phone || 'Not Provided'}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Email Address</label>
-                                    <div className="relative group">
-                                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
-                                        <input
-                                            type="text"
-                                            value={user?.email}
-                                            disabled
-                                            className="w-full bg-gray-100/50 border border-transparent rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-gray-400 cursor-not-allowed"
-                                        />
-                                        <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
-                                    </div>
-                                </div>
+                            <div>
+                                <h3 className="font-black text-[#3E2723] leading-none mb-1">Personal Profile</h3>
+                                <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Identification & Presence</p>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        {/* Campus Context Group */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
-                        >
-                            <div className="flex items-center gap-3 mb-8">
-                                <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
-                                    <Building2 size={20} className="text-[#D4AF37]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-black text-[#3E2723] leading-none mb-1">Campus Context</h3>
-                                    <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Localization & Access</p>
-                                </div>
-                            </div>
-
+                        <div className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Hostel / Location</label>
+                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Full Name</label>
                                     <div className="relative group">
-                                        <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                         {isEditing ? (
                                             <input
                                                 type="text"
-                                                value={formData.hostel}
-                                                onChange={(e) => setFormData({ ...formData, hostel: e.target.value })}
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
-                                                placeholder="e.g. Block A"
+                                                placeholder="Enter your name"
                                             />
                                         ) : (
                                             <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
-                                                {formData.hostel || 'Not Provided'}
+                                                {formData.name || 'Not Provided'}
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Account Role</label>
-                                    <div className="relative group">
-                                        <Shield size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
-                                        <input
-                                            type="text"
-                                            value={displayRole}
-                                            disabled
-                                            className="w-full bg-gray-100/50 border border-transparent rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-gray-400 capitalize cursor-not-allowed"
-                                        />
-                                        <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Phone Number</label>
+                                    <div className="relative">
+                                        <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        {isEditing ? (
+                                            <input
+                                                type="tel"
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                                placeholder="Mobile Number"
+                                                maxLength={10}
+                                            />
+                                        ) : (
+                                            <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
+                                                {formData.phone || 'Not Provided'}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
-                    </div>
 
-                    {/* Sidebar Area */}
-                    <div className="lg:col-span-4 space-y-6">
-                        {/* Primary Action - Only visible when editing */}
-                        <AnimatePresence>
-                            {isEditing && (
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Email Address</label>
+                                <div className="relative group">
+                                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <input
+                                        type="text"
+                                        value={user?.email}
+                                        disabled
+                                        className="w-full bg-gray-100/50 border border-transparent rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-gray-400 cursor-not-allowed"
+                                    />
+                                    <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Campus Context Group */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
+                    >
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
+                                <Building2 size={20} className="text-[#D4AF37]" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-[#3E2723] leading-none mb-1">Campus Context</h3>
+                                <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Localization & Access</p>
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Hostel / Location</label>
+                                <div className="relative group">
+                                    <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={formData.hostel}
+                                            onChange={(e) => setFormData({ ...formData, hostel: e.target.value })}
+                                            className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                            placeholder="e.g. Block A"
+                                        />
+                                    ) : (
+                                        <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
+                                            {formData.hostel || 'Not Provided'}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-[#3E2723]/40 uppercase tracking-[0.2em] ml-1">Account Role</label>
+                                <div className="relative group">
+                                    <Shield size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                    <input
+                                        type="text"
+                                        value={displayRole}
+                                        disabled
+                                        className="w-full bg-gray-100/50 border border-transparent rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-gray-400 capitalize cursor-not-allowed"
+                                    />
+                                    <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Unified Actions Area */}
+                    <div className="pt-8 pb-12 space-y-4">
+                        <AnimatePresence mode="wait">
+                            {isEditing ? (
                                 <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    exit={{ opacity: 0, height: 0 }}
+                                    key="edit-actions"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
                                     className="space-y-3"
                                 >
                                     <button
@@ -342,31 +325,41 @@ const Dashboard = () => {
                                         Discard Changes
                                     </button>
                                 </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="view-actions"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="space-y-4"
+                                >
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="w-full flex items-center justify-center gap-3 p-5 rounded-[2rem] bg-white border border-[#3E2723]/10 shadow-xl shadow-[#3E2723]/5 hover:shadow-2xl hover:border-[#D4AF37] transition-all group active:scale-95"
+                                    >
+                                        <Pencil className="w-4 h-4 text-[#D4AF37] group-hover:rotate-12 transition-transform" />
+                                        <span className="text-sm font-black text-[#3E2723] uppercase tracking-[0.15em]">Edit Profile</span>
+                                    </button>
+
+                                    {isAdmin && (
+                                        <button
+                                            onClick={() => navigate('/admin')}
+                                            className="w-full flex items-center justify-center gap-3 p-5 rounded-[2rem] bg-[#D4AF37] text-[#3E2723] font-black text-sm uppercase tracking-[0.15em] shadow-lg shadow-[#D4AF37]/20 hover:bg-[#B8962E] transition-all active:scale-95 group"
+                                        >
+                                            <Shield size={20} className="group-hover:rotate-12 transition-transform" />
+                                            Admin Dashboard
+                                        </button>
+                                    )}
+
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="w-full flex items-center justify-center gap-3 p-5 rounded-[2rem] bg-red-50 text-red-600 font-black text-sm uppercase tracking-[0.15em] hover:bg-red-100 transition-all active:scale-95"
+                                    >
+                                        <LogOut size={20} /> Sign Out
+                                    </button>
+                                </motion.div>
                             )}
                         </AnimatePresence>
-
-                        {/* Admin Access */}
-                        {isAdmin && (
-                            <div className="pt-2">
-                                <button
-                                    onClick={() => navigate('/admin')}
-                                    className="w-full flex items-center justify-center gap-3 p-5 rounded-[2rem] bg-[#D4AF37] text-[#3E2723] font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-[#D4AF37]/20 hover:bg-[#B8962E] transition-all active:scale-95 group"
-                                >
-                                    <Shield size={20} className="group-hover:rotate-12 transition-transform" />
-                                    Admin Dashboard
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Simple Sign Out */}
-                        <div className="pt-2">
-                            <button
-                                onClick={handleSignOut}
-                                className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-600 font-black text-xs uppercase tracking-widest hover:bg-red-100 transition-all active:scale-95"
-                            >
-                                <LogOut size={18} /> Sign Out
-                            </button>
-                        </div>
                     </div>
                 </div>
             </main>
@@ -374,7 +367,7 @@ const Dashboard = () => {
             <footer className="text-center py-12 text-gray-300">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em]">Built for IIT Palakkad Campus</p>
             </footer>
-        </div>
+        </div >
     );
 };
 

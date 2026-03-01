@@ -85,7 +85,7 @@ const AdminDashboard = () => {
         const ordersSubscription = supabase
             .channel('orders-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-                console.log('Real-time order change detected:', payload);
+                // console.log('Real-time order change detected:', payload); // Debug only
 
                 // Trigger browser notification for NEW orders
                 if (payload.eventType === 'INSERT' && notificationsEnabled) {
@@ -102,18 +102,18 @@ const AdminDashboard = () => {
                 if (activeTab === 'analytics') fetchAnalytics();
             })
             .subscribe((status) => {
-                console.log('Orders subscription status:', status);
+                // console.log('Orders subscription status:', status); // Debug only
             });
 
         // Real-time subscription for items
         const itemsSubscription = supabase
             .channel('items-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, (payload) => {
-                console.log('Real-time item change detected:', payload);
+                // console.log('Real-time item change detected:', payload); // Debug only
                 fetchItems();
             })
             .subscribe((status) => {
-                console.log('Items subscription status:', status);
+                // console.log('Items subscription status:', status); // Debug only
             });
 
         // Polling fallback: Every 30 seconds
@@ -234,7 +234,7 @@ const AdminDashboard = () => {
     const fetchAnalytics = async () => {
         setLoading(true);
         setRpcErrors(null);
-        console.log('Fetching Business Intelligence data via RPC...');
+        // console.log('Fetching Business Intelligence data via RPC...'); // Debug only
         try {
             const [revRes, topRes, peakRes] = await Promise.all([
                 supabase.rpc('get_revenue_stats'),
@@ -252,11 +252,11 @@ const AdminDashboard = () => {
                 console.error('Analytics RPC Errors:', errors);
             }
 
-            console.log('Final Analytics Payload for State:', {
+            /* console.log('Final Analytics Payload for State:', {
                 revenue: revRes.data,
                 top: topRes.data,
                 peak: peakRes.data
-            });
+            }); */ // Debug only
 
             setAnalytics({
                 revenue: revRes.data || { today: 0, yesterday: 0, week: 0 },

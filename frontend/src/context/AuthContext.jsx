@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
         // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, currentSession) => {
-                console.log('Auth State Change Event:', event);
+                // console.log('Auth State Change Event:', event); // Debug only
 
                 // If it's a sign-out event, clear immediately
                 if (event === 'SIGNED_OUT') {
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
 
     const ensureUserProfile = async (user) => {
         try {
-            console.log('Checking for profile for user:', user.id);
+            // console.log('Checking for profile for user:', user.id); // Debug only
             const { data, error } = await withTimeout(
                 supabase
                     .from('users')
@@ -143,7 +143,7 @@ export const AuthProvider = ({ children }) => {
 
             if (error) {
                 if (error.code === 'PGRST116') {
-                    console.log('Profile not found, inserting...');
+                    // console.log('Profile not found, inserting...'); // Debug only
                     const meta = user.user_metadata || {};
                     const newUser = {
                         id: user.id,
@@ -155,14 +155,14 @@ export const AuthProvider = ({ children }) => {
                     if (insertError) {
                         console.error('Error inserting user profile:', insertError);
                     } else {
-                        console.log('Profile created successfully');
+                        // console.log('Profile created successfully'); // Debug only
                     }
                     return newUser;
                 }
                 console.error('Error checking user profile:', error);
                 return null;
             }
-            console.log('Profile already exists');
+            // console.log('Profile already exists'); // Debug only
             return data;
         } catch (e) {
             console.error('Caught exception in ensureUserProfile:', e);
