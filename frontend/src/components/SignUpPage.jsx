@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { Coffee, Mail, Lock, User, Building2, BookOpen, Loader2, CheckCircle } from 'lucide-react';
+import { Coffee, Mail, Lock, User, Building2, BookOpen, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ROLES = ['student', 'staff', 'professor'];
 
 const SignUpPage = () => {
     const navigate = useNavigate();
-    const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student', hostel: '', phone: '' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: 'student', hostel: '', phone: '' });
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -45,6 +46,12 @@ const SignUpPage = () => {
 
         if (form.password.length < 6) {
             setError('Password must be at least 6 characters.');
+            setLoading(false);
+            return;
+        }
+
+        if (form.password !== form.confirmPassword) {
+            setError('Passwords do not match');
             setLoading(false);
             return;
         }
@@ -221,13 +228,37 @@ const SignUpPage = () => {
                             <div className="relative">
                                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     name="password"
                                     value={form.password}
                                     onChange={handleChange}
                                     required
                                     placeholder="Min. 6 characters"
-                                    className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                    className="w-full pl-10 pr-12 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div>
+                            <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Confirm Password</label>
+                            <div className="relative">
+                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="confirmPassword"
+                                    value={form.confirmPassword}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Retype your password"
+                                    className="w-full pl-10 pr-12 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
                                 />
                             </div>
                         </div>

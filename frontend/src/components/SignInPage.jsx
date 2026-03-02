@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { Coffee, Mail, Lock, Loader2 } from 'lucide-react';
+import { Coffee, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const SignInPage = () => {
@@ -14,6 +14,7 @@ const SignInPage = () => {
     const [showReturningUser, setShowReturningUser] = useState(false);
     const [metadata, setMetadata] = useState(null);
     const [resending, setResending] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleResend = async () => {
         if (!form.email) {
@@ -197,15 +198,22 @@ const SignInPage = () => {
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         name="password"
                                         value={form.password}
                                         onChange={handleChange}
                                         required
                                         autoFocus={!!form.email}
                                         placeholder="Your password"
-                                        className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                        className="w-full pl-10 pr-12 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
                                 </div>
                             </div>
 
