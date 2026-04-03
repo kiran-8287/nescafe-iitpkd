@@ -13,9 +13,10 @@ const SignUpPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [resending, setResending] = useState(false);
+    const [isPhoneVerified, setIsPhoneVerified] = useState(true); // Always verified now
 
     const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    const [resending, setResending] = useState(false);
 
     const handleResend = async () => {
         setResending(true);
@@ -64,6 +65,8 @@ const SignUpPage = () => {
             return;
         }
 
+
+
         const emailLower = form.email.toLowerCase();
 
         // Institutional email validation
@@ -93,6 +96,7 @@ const SignUpPage = () => {
                         role: form.role,
                         hostel: form.hostel,
                         phone: form.phone,
+                        phone_verified: true
                     }
                 }
             });
@@ -115,29 +119,29 @@ const SignUpPage = () => {
 
     if (success) {
         return (
-            <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center p-6">
-                <div className="bg-white rounded-3xl shadow-xl p-10 text-center max-w-sm w-full">
-                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <CheckCircle size={40} className="text-green-500" />
+            <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center p-4 sm:p-6 transition-all duration-500">
+                <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-10 text-center max-w-sm sm:max-w-md w-full border border-[#3E2723]/5">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5">
+                        <CheckCircle size={32} className="text-green-500 sm:w-10 sm:h-10" />
                     </div>
-                    <h2 className="text-2xl font-black text-[#3E2723] mb-2">Check Your Email!</h2>
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                        We sent a confirmation link to <span className="font-bold text-[#3E2723]">{form.email}</span>.
+                    <h2 className="text-xl sm:text-2xl font-black text-[#3E2723] mb-2 tracking-tight">Check Your Email!</h2>
+                    <p className="text-gray-500 text-xs sm:text-sm leading-relaxed mb-6 px-2">
+                        We sent a confirmation link to <span className="font-bold text-[#3E2723] break-all">{form.email}</span>.
                         Confirm it, then sign in.
                     </p>
-                    <div className="space-y-3">
+                    <div className="space-y-3 sm:pt-2">
                         <Link
                             to="/login"
-                            className="inline-block w-full bg-[#3E2723] text-white py-3.5 rounded-2xl font-bold text-center hover:bg-[#5D4037] transition-all shadow-md active:scale-95"
+                            className="inline-block w-full bg-[#3E2723] text-white py-3.5 sm:py-4 rounded-2xl font-bold text-center hover:bg-[#5D4037] transition-all shadow-md active:scale-95 text-sm sm:text-base"
                         >
                             Go to Sign In
                         </Link>
                         <button
                             onClick={handleResend}
                             disabled={resending}
-                            className="w-full bg-white text-[#3E2723] border-2 border-[#3E2723] py-3.5 rounded-2xl font-bold text-center hover:bg-[#FFF8E1] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="w-full bg-white text-[#3E2723] border-2 border-[#3E2723] py-3.5 sm:py-4 rounded-2xl font-bold text-center hover:bg-[#FFF8E1] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 text-sm sm:text-base shadow-sm"
                         >
-                            {resending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                            {resending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={18} />}
                             {resending ? 'Resending...' : 'Resend Email'}
                         </button>
                     </div>
@@ -147,19 +151,19 @@ const SignUpPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center p-4">
-            <div className="w-full max-w-sm">
+        <div className="min-h-screen bg-[#FFF8E1] flex items-center justify-center p-4 sm:p-6 transition-all duration-500">
+            <div className="w-full max-w-sm sm:max-w-md">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-[#3E2723] rounded-2xl mb-4 shadow-lg">
-                        <Coffee size={32} className="text-[#D4AF37]" />
+                <div className="text-center mb-6 sm:mb-8">
+                    <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#3E2723] rounded-2xl mb-4 shadow-lg hover:rotate-3 transition-transform duration-300">
+                        <Coffee size={28} className="text-[#D4AF37] sm:w-8 sm:h-8" />
                     </div>
-                    <h1 className="text-3xl font-black text-[#3E2723]">Join the Brew</h1>
-                    <p className="text-gray-500 text-sm mt-1">Create your Nescafe IITPKD account</p>
+                    <h1 className="text-2xl sm:text-3xl font-black text-[#3E2723] tracking-tight">Join the Brew</h1>
+                    <p className="text-gray-500 text-xs sm:text-sm mt-1 px-4">Create your Nescafe IITPKD account</p>
                 </div>
 
                 {/* Card */}
-                <div className="bg-white rounded-3xl shadow-xl p-7 space-y-5">
+                <div className="bg-white rounded-3xl shadow-xl p-5 sm:p-7 space-y-4 sm:space-y-5 border border-[#3E2723]/5">
                     {error && (
                         <div className="bg-red-50 border border-red-100 text-red-600 text-sm font-medium p-3 rounded-xl">
                             {error}
@@ -284,15 +288,15 @@ const SignUpPage = () => {
                         {/* Hostel */}
                         <div>
                             <label className="text-xs font-black text-gray-400 uppercase tracking-wider block mb-1.5">Hostel / Block <span className="text-gray-300 normal-case font-medium">(optional)</span></label>
-                            <div className="relative">
-                                <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300" />
+                            <div className="relative group">
+                                <Building2 size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-[#D4AF37] transition-colors" />
                                 <input
                                     type="text"
                                     name="hostel"
                                     value={form.hostel}
                                     onChange={handleChange}
                                     placeholder="e.g. Block A"
-                                    className="w-full pl-10 pr-4 py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all"
+                                    className="w-full pl-10 pr-4 py-3 sm:py-3.5 rounded-2xl border-2 border-gray-100 focus:border-[#D4AF37] outline-none text-sm font-medium transition-all focus:bg-white bg-gray-50/30"
                                 />
                             </div>
                         </div>

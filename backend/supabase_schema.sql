@@ -5,6 +5,8 @@ CREATE TABLE public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT,
     email TEXT,
+    phone TEXT,
+    phone_verified BOOLEAN DEFAULT false,
     role TEXT DEFAULT 'student', -- student, faculty, staff, admin
     hostel TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -14,11 +16,13 @@ CREATE TABLE public.users (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.users (id, name, email, role, hostel)
+  INSERT INTO public.users (id, name, email, phone, phone_verified, role, hostel)
   VALUES (
     new.id, 
     new.raw_user_meta_data->>'name', 
     new.email, 
+    new.raw_user_meta_data->>'phone',
+    COALESCE((new.raw_user_meta_data->>'phone_verified')::boolean, false),
     COALESCE(new.raw_user_meta_data->>'role', 'student'),
     new.raw_user_meta_data->>'hostel'
   );
@@ -29,6 +33,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 1.1 Create Phone OTPs Table
+CREATE TABLE public.phone_otps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    phone TEXT NOT NULL,
+    otp TEXT NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
 -- 2. Create Items Table (Menu)
 CREATE TABLE public.items (

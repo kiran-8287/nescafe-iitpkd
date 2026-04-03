@@ -1,7 +1,7 @@
 import React from 'react';
 import nescafeLogo from '../assets/logos/nescafe-logo.png';
-import { socialLinks, contactInfo } from '../data/mock';
-import { Download, Mail, MapPin, Phone } from 'lucide-react';
+import { socialLinks } from '../data/mock';
+import { Download } from 'lucide-react';
 import menuDownload from '../assets/logos/menu.jpeg';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +19,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#3E2723] text-white pt-8 sm:pt-10 md:pt-16 pb-6 sm:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10 md:gap-12 mb-8 sm:mb-10 md:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 md:gap-12 mb-8 sm:mb-10 md:mb-12">
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-full border-2 border-[#D4AF37] bg-white p-0.5">
@@ -85,23 +85,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-[#D4AF37]">Contact Info</h3>
-            <ul className="space-y-2 sm:space-y-3">
-              <li className="flex items-start space-x-2">
-                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-[#D4AF37] mt-0.5 flex-shrink-0" />
-                <span className="text-[#FFF8E1] text-xs sm:text-sm">{contactInfo.address}</span>
-              </li>
-              <li className="flex items-start space-x-2">
-                <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-[#D4AF37] mt-0.5 flex-shrink-0" />
-                <span className="text-[#FFF8E1] text-xs sm:text-sm">+1 (555) 123-4567</span>
-              </li>
-              <li className="flex items-start space-x-2">
-                <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-[#D4AF37] mt-0.5 flex-shrink-0" />
-                <span className="text-[#FFF8E1] text-xs sm:text-sm">hello@nescaferestaurant.com</span>
-              </li>
-            </ul>
-          </div>
+
 
 
         </div>

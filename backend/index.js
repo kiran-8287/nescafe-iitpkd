@@ -159,6 +159,69 @@ async function calculateOrderAmount(items, orderMode, couponApplied) {
     };
 }
 
+// ============================================================
+// PHONE OTP AUTHENTICATION
+// ============================================================
+
+// 0. Send OTP
+app.post(['/api/auth/send-otp', '/auth/send-otp'], async (req, res) => {
+    const { phone } = req.body;
+    if (!phone || !/^[0-9]{10}$/.test(phone)) {
+        return res.status(400).json({ error: 'Valid 10-digit phone number is required' });
+    }
+
+    try {
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+        const { error } = await supabase
+            .from('phone_otps')
+            .insert({ phone, otp, expires_at: expiresAt });
+
+        if (error) throw error;
+
+        // SIMULATED SMS SENDING
+        console.log(`[SMS SIMULATION] To: +91${phone}, OTP: ${otp}`);
+
+        res.status(200).json({ message: 'OTP sent successfully' });
+    } catch (error) {
+        console.error('SEND OTP ERROR:', error);
+        res.status(500).json({ error: 'Failed to send OTP' });
+    }
+});
+
+// 0.1 Verify OTP
+app.post(['/api/auth/verify-otp', '/auth/verify-otp'], async (req, res) => {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+        return res.status(400).json({ error: 'Phone and OTP are required' });
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('phone_otps')
+            .select('*')
+            .eq('phone', phone)
+            .eq('otp', otp)
+            .gte('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error || !data) {
+            return res.status(400).json({ error: 'Invalid or expired OTP' });
+        }
+
+        // OTP is valid!
+        await supabase.from('phone_otps').delete().eq('id', data.id);
+
+        res.status(200).json({ success: true, message: 'Phone verified successfully' });
+    } catch (error) {
+        console.error('VERIFY OTP ERROR:', error);
+        res.status(500).json({ error: 'Verification failed' });
+    }
+});
+
 // 1. Create Order endpoint
 // 1. Create Order endpoint
 app.post(['/api/create-order', '/create-order'], authenticateUser, async (req, res) => {

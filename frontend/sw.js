@@ -3,19 +3,24 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    return caches.delete(cacheName);
-                })
-            );
-        }).then(() => {
-            return self.registration.unregister();
-        }).then(() => {
-            return self.clients.claim();
-        }).then(() => {
-            console.log('Service Worker killed and caches cleared');
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            if (clientList.length > 0) {
+                let client = clientList[0];
+                for (let i = 0; i < clientList.length; i++) {
+                    if (clientList[i].focused) {
+                        client = clientList[i];
+                    }
+                }
+                return client.focus();
+            }
+            return clients.openWindow('/');
         })
     );
 });
+

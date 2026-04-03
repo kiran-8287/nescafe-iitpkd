@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,6 +24,7 @@ import {
     X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import usePushNotifications from '../hooks/usePushNotifications';
 import OrderCard from './Admin/OrderCard';
 import BatchCard from './Admin/BatchCard';
 import AnalyticsSection from './Admin/AnalyticsSection';
@@ -52,7 +53,9 @@ const AdminDashboard = () => {
     const [menuSearchTerm, setMenuSearchTerm] = useState('');
     const [timeRange, setTimeRange] = useState('today'); // '6h', 'today', '7d', '30d', 'all'
     const [orderSearchQuery, setOrderSearchQuery] = useState('');
+    const { sendNotification } = usePushNotifications();
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const notificationsEnabledRef = useRef(false); // ref mirrors state so realtime closure always reads current value
     const [analytics, setAnalytics] = useState({
         revenue: null,
         topItems: [],
@@ -71,10 +74,17 @@ const AdminDashboard = () => {
         return acc;
     }, {});
 
+    // Keep ref in sync with state so realtime listener never reads a stale closure value
+    useEffect(() => {
+        notificationsEnabledRef.current = notificationsEnabled;
+    }, [notificationsEnabled]);
+
     useEffect(() => {
         // Check for notification permission on mount
         if ('Notification' in window) {
-            setNotificationsEnabled(Notification.permission === 'granted');
+            const granted = Notification.permission === 'granted';
+            setNotificationsEnabled(granted);
+            notificationsEnabledRef.current = granted;
         }
 
         if (activeTab === 'orders') fetchOrders();
@@ -87,12 +97,9 @@ const AdminDashboard = () => {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
                 // console.log('Real-time order change detected:', payload); // Debug only
 
-                // Trigger browser notification for NEW orders
-                if (payload.eventType === 'INSERT' && notificationsEnabled) {
-                    new Notification('☕ New Order Received!', {
-                        body: `Order #${payload.new.id.slice(0, 4)} from ${payload.new.hostel_block || 'Pickup'}`,
-                        icon: '/favicon.ico'
-                    });
+                // Trigger browser notification for NEW orders (use ref to avoid stale closure)
+                if (payload.eventType === 'INSERT' && notificationsEnabledRef.current) {
+                    sendNotification('☕ New Order Received!', `Order #${payload.new.id.slice(0, 4)} from ${payload.new.hostel_block || 'Pickup'}`);
                 }
 
                 // Only re-fetch if we are in "today" or "6h" mode to keep live updates fresh
@@ -279,10 +286,12 @@ const AdminDashboard = () => {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
             setNotificationsEnabled(true);
-            toast.success('Alerts enabled! You will notified of new orders.');
-            new Notification('Nescafe IITPKD', { body: 'Notifications enabled successfully!' });
+            notificationsEnabledRef.current = true;
+            toast.success('Alerts enabled! You will be notified of new orders.');
+            sendNotification('Nescafe IITPKD', 'Notifications enabled successfully!');
         } else {
             setNotificationsEnabled(false);
+            notificationsEnabledRef.current = false;
             toast.error('Notification permission denied.');
         }
     };
@@ -306,16 +315,7 @@ const AdminDashboard = () => {
             // Refresh analytics to reflect the change (especially if marked Delivered/Cancelled)
             fetchAnalytics();
 
-            // WhatsApp Trigger for 'Ready' status
-            if (newStatus === 'ready') {
-                const order = orders.find(o => o.id === orderId);
-                if (order) {
-                    const studentName = order.users?.name || 'Customer';
-                    const message = `Hey ${studentName}! ☕ Your Nescafe order (#${orderId.slice(0, 4)}) is READY for collection. Please come pick it up!`;
-                    navigator.clipboard.writeText(message);
-                    toast('WhatsApp message copied to clipboard!', { icon: '💬' });
-                }
-            }
+
         } catch (error) {
             console.error('Error updating status:', error);
             toast.error('Failed to update status');

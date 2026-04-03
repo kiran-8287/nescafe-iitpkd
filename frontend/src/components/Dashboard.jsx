@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
-import { Coffee, LogOut, User, Building2, Mail, Shield, Lock, ArrowLeft, Phone, BadgeCheck, ChevronRight, Activity, Pencil } from 'lucide-react';
+import { Coffee, LogOut, User, Building2, Mail, Shield, Lock, ArrowLeft, Phone, BadgeCheck, ChevronRight, Activity, Pencil, Bell, BellOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import usePushNotifications from '../hooks/usePushNotifications';
 
 const Dashboard = () => {
     const { user, signOut, isAdmin } = useAuth();
     const navigate = useNavigate();
+    const { permission, requestPermission } = usePushNotifications();
     const [profile, setProfile] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -203,14 +205,20 @@ const Dashboard = () => {
                                     <div className="relative">
                                         <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                         {isEditing ? (
-                                            <input
-                                                type="tel"
-                                                value={formData.phone}
-                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
-                                                placeholder="Mobile Number"
-                                                maxLength={10}
-                                            />
+                                            <div className="relative w-full">
+                                                <input
+                                                    type="tel"
+                                                    value={formData.phone}
+                                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                    disabled={!!profile?.phone}
+                                                    className={`w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all ${profile?.phone ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                    placeholder="Mobile Number"
+                                                    maxLength={10}
+                                                />
+                                                {profile?.phone && (
+                                                    <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400/50" />
+                                                )}
+                                            </div>
                                         ) : (
                                             <div className="w-full bg-transparent pl-12 py-3.5 text-sm font-bold text-[#3E2723]">
                                                 {formData.phone || 'Not Provided'}
@@ -287,6 +295,64 @@ const Dashboard = () => {
                                     <Lock size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300" />
                                 </div>
                             </div>
+                        </div>
+                    </motion.div>
+    
+                    {/* Notification Settings Group */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.25 }}
+                        className="bg-white rounded-[2rem] p-8 shadow-sm border border-[#3E2723]/5"
+                    >
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="w-10 h-10 bg-[#FFF8E1] rounded-xl flex items-center justify-center">
+                                <Bell size={20} className="text-[#D4AF37]" />
+                            </div>
+                            <div>
+                                <h3 className="font-black text-[#3E2723] leading-none mb-1">Notification Settings</h3>
+                                <p className="text-xs text-gray-400 font-medium uppercase tracking-widest">Alerts & Browser Push</p>
+                            </div>
+                        </div>
+    
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-black text-[#3E2723]">Browser Push Notifications</p>
+                                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">
+                                        {permission === 'granted' ? 'Enabled on this browser ✅' : 
+                                         permission === 'denied' ? 'Blocked by browser ❌' : 
+                                         'Not enabled yet 🔔'}
+                                    </p>
+                                </div>
+                                {permission !== 'granted' ? (
+                                    <button
+                                        onClick={async () => {
+                                            const result = await requestPermission();
+                                            if (result === 'granted') {
+                                                toast.success('Push notifications enabled!');
+                                                sendNotification('Nescafe IITPKD 🎉', 'You will now receive alerts for your orders.');
+                                            } else if (result === 'denied') {
+                                                toast.error('Notifications blocked by browser. Please enable them in your browser settings.');
+                                            }
+                                        }}
+                                        className="bg-[#D4AF37] hover:bg-[#B8962E] text-[#3E2723] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-2"
+                                    >
+                                        <Bell size={14} />
+                                        Enable
+                                    </button>
+                                ) : (
+                                    <div className="bg-green-100 text-green-600 p-2 rounded-xl">
+                                        <BadgeCheck size={20} />
+                                    </div>
+                                )}
+                            </div>
+    
+                            {permission === 'denied' && (
+                                <p className="text-[10px] text-red-400 font-medium italic px-2 leading-relaxed">
+                                    * To receive alerts, you need to manually unblock notifications in your browser's site settings.
+                                </p>
+                            )}
                         </div>
                     </motion.div>
 

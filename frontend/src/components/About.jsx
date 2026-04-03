@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Coffee, Heart, Star, Lightbulb, Users, Target, Home, GraduationCap, ArrowLeftRight } from 'lucide-react';
+import { Coffee, Lightbulb, Users, Target, Home, GraduationCap, ArrowLeftRight } from 'lucide-react';
 
 const PANELS = ['cafe.js', 'terminal', 'semester.js'];
 
@@ -10,7 +10,7 @@ const About = () => {
   const cyclePanel = () => setPanelIdx(prev => (prev + 1) % PANELS.length);
 
   const features = [
-    { icon: Lightbulb, text: "Late-night epiphanies happen" },
+    { icon: Lightbulb, text: "Where great ideas find their syntax" },
     { icon: Users, text: "Friendships form over shared struggles" },
     { icon: Target, text: "Deadlines meet their match" },
     { icon: Home, text: "First-years discover their second home" },
@@ -32,11 +32,11 @@ const About = () => {
           </p>
         </div>
 
-        {/* Top Row: Toggling Code Block + Stats */}
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-20 items-stretch">
+        {/* Top Row: Toggling Code Block */}
+        <div className="mb-20">
 
           {/* Left: Toggling Code Block */}
-          <div className="bg-[#1a1a1a] rounded-xl shadow-2xl flex flex-col h-full min-h-[300px] overflow-hidden">
+          <div className="bg-[#1a1a1a] rounded-xl shadow-2xl flex flex-col h-full min-h-[300px] overflow-hidden max-w-3xl mx-auto">
             {/* Title bar with mac dots + swap button */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/10">
               <div className="flex gap-2">
@@ -136,35 +136,7 @@ const About = () => {
             </div>
           </div>
 
-          {/* Right: Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 md:gap-6 h-full">
-            <StatCard
-              code="while(true) { cupsServed++; }"
-              value="200+"
-              label="Cups Served"
-              icon={Coffee}
-            />
-            <StatCard
-              code="Community.size = GROWING"
-              value="100+"
-              label="Happy Regulars"
-              icon={Heart}
-            />
-            <StatCard
-              code="Rating.average = 4.9"
-              value="4.9/5"
-              label="Stars"
-              icon={Star}
-            />
-            <StatCard
-              code="Smiles.generated = ∞"
-              value="Happiness"
-              subValue="Guaranteed"
-              label=""
-              icon={Zap}
-              isSpecial
-            />
-          </div>
+
         </div>
 
         {/* Bottom Row: Text Content (full width) */}
@@ -207,31 +179,6 @@ const About = () => {
   );
 };
 
-const StatCard = ({ code, value, subValue, label, icon: Icon, isSpecial }) => (
-  <div className="bg-[#FFF8E1] p-4 md:p-6 rounded-2xl border border-[#D4AF37]/30 hover:border-[#D4AF37]/60 transition-all hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between h-full min-h-[140px] md:min-h-[160px]">
-    <div className="font-mono text-[9px] md:text-[10px] text-[#8D6E63] bg-[#D4AF37]/10 p-1.5 rounded self-start mb-3 md:mb-4 break-all">
-      {code}
-    </div>
-
-    <div className="flex items-end justify-between">
-      <div className="w-full">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-1">
-          <div className="p-1.5 md:p-2 bg-white rounded-lg shadow-sm text-[#D4AF37] self-start">
-            <Icon size={18} className="md:w-5 md:h-5" strokeWidth={2.5} />
-          </div>
-          {isSpecial ? (
-            <div className="flex flex-col leading-none">
-              <span className="text-lg md:text-xl font-bold text-[#3E2723]">{value}</span>
-              <span className="text-lg md:text-xl font-bold text-[#3E2723]">{subValue}</span>
-            </div>
-          ) : (
-            <span className="text-2xl md:text-3xl font-bold text-[#3E2723]">{value}</span>
-          )}
-        </div>
-        {label && <div className="text-xs md:text-sm font-bold text-[#5D4037] pl-1">{label}</div>}
-      </div>
-    </div>
-  </div>
-);
-
 export default About;
+
+
