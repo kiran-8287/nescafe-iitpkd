@@ -10,20 +10,7 @@ import { useState } from 'react';
 
 const HOSTELS = ["Block A (Boys)", "Block B (Girls)", "Block C (Mixed)", "Faculty Quarters", "Library Reading Room"];
 
-const loadRazorpay = () => {
-    return new Promise((resolve) => {
-        if (window.Razorpay) {
-            resolve(true);
-            return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.body.appendChild(script);
-    });
-};
-
+// Removed Razorpay loader
 const CartDrawer = () => {
     const navigate = useNavigate();
     const {
@@ -44,6 +31,7 @@ const CartDrawer = () => {
 
     const { user, session } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState('cod_upi'); // 'cod_upi' or 'cod_cash'
 
     const handleApplyCoupon = () => {
         if (couponApplied) {
@@ -76,7 +64,6 @@ const CartDrawer = () => {
         const loadingToast = toast.loading("Verifying stock availability...");
 
         // Ensure the JWT is fresh before making payment API calls.
-        // Sessions open for hours can have tokens within minutes of expiry.
         let freshAccessToken = session?.access_token;
         try {
             const expiresAt = session?.expires_at; // unix timestamp
@@ -85,7 +72,6 @@ const CartDrawer = () => {
                 freshAccessToken = refreshed?.session?.access_token || freshAccessToken;
             }
         } catch (refreshErr) {
-            // Non-fatal — proceed with existing token; worst case the API returns 401
             console.warn('Token refresh skipped:', refreshErr.message);
         }
 
@@ -123,19 +109,13 @@ const CartDrawer = () => {
                 return;
             }
 
-            toast.loading("Connecting to secure payment gateway...", { id: loadingToast });
-
-            // 0.5 Load Razorpay Script (Lazy Load)
-            const isLoaded = await loadRazorpay();
-            if (!isLoaded) {
-                throw new Error("Failed to load payment gateway. Please check your internet connection.");
-            }
+            toast.loading("Placing your order...", { id: loadingToast });
 
             const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
             const BACKEND_URL = isProd ? 'https://nescafe-iitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
 
             // 1. Create order on backend (Authorized)
-            const orderResponse = await fetch(`${BACKEND_URL}/api/create-order`, {
+            const orderResponse = await fetch(`${BACKEND_URL}/api/place-order-cod`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -145,7 +125,8 @@ const CartDrawer = () => {
                     items: cartItems,
                     orderMode,
                     couponApplied,
-                    receipt: `receipt_${Date.now()}`
+                    paymentMethod,
+                    hostelDetails
                 })
             });
 
@@ -153,108 +134,30 @@ const CartDrawer = () => {
                 const contentType = orderResponse.headers.get("content-type");
                 if (contentType && contentType.includes("application/json")) {
                     const errorData = await orderResponse.json();
-                    throw new Error(errorData.error || 'Failed to create payment order');
+                    throw new Error(errorData.error || 'Failed to place order');
                 } else {
                     const textError = await orderResponse.text();
                     console.error("Backend returned non-JSON error:", textError);
                     if (orderResponse.status === 404) {
-                        throw new Error("API not found. If recently deployed, please wait a minute or check Vercel Root Directory settings.");
+                        throw new Error("API not found. If recently deployed, please wait a minute.");
                     }
                     throw new Error(`Server error (${orderResponse.status}). Please try again later.`);
                 }
             }
 
-            const razorpayOrder = await orderResponse.json();
-            toast.dismiss(loadingToast);
-
-            // 2. Open Razorpay Checkout
-            const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                amount: razorpayOrder.amount,
-                currency: razorpayOrder.currency,
-                name: "Nescafe IITPKD",
-                description: "Fuel for your brain ☕",
-                order_id: razorpayOrder.id,
-                handler: async function (response) {
-                    const verificationToast = toast.loading("Verifying payment...");
-                    try {
-                        const isProd = window.location.hostname !== 'localhost' && !window.location.hostname.includes('192.168');
-                        const BACKEND_URL = isProd ? 'https://nescafe-iitpkd.vercel.app' : `http://${window.location.hostname}:5000`;
-
-                        // 3. Verify payment on backend (Authorized)
-                        const verifyRes = await fetch(`${BACKEND_URL}/api/verify-payment`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${freshAccessToken}`
-                            },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                order_details: {
-                                    order_mode: orderMode,
-                                    couponApplied: couponApplied,
-                                    hostel_block: orderMode === 'delivery' ? hostelDetails.block : null,
-                                    items: cartItems
-                                }
-                            })
-                        });
-
-                        const result = await verifyRes.json();
-
-                        if (result.status === 'success') {
-                            toast.success("Payment successful! Order placed.", { id: verificationToast });
-                            setCartOpen(false);
-                            clearCart();
-                            navigate('/order-confirmed', {
-                                state: JSON.parse(JSON.stringify({
-                                    orderId: result.orderId,
-                                    orderMode,
-                                    hostelDetails,
-                                    finalTotal: billDetails.finalTotal
-                                }))
-                            });
-                        } else {
-                            throw new Error(result.message || 'Payment verification failed');
-                        }
-                    } catch (err) {
-                        toast.error(err.message || 'Verification failed', { id: verificationToast });
-                    }
-                },
-                prefill: {
-                    name: user.user_metadata?.name || '',
-                    email: user.email || '',
-                    contact: user.user_metadata?.phone || '', // UPI often requires a phone number
-                },
-                config: {
-                    display: {
-                        blocks: {
-                            banks: {
-                                name: 'Pay using UPI',
-                                instruments: [
-                                    {
-                                        method: 'upi'
-                                    }
-                                ],
-                            },
-                        },
-                        sequence: ['block.banks'],
-                        preferences: {
-                            show_default_blocks: true,
-                        },
-                    },
-                },
-                theme: {
-                    color: "#3E2723"
-                }
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', function (response) {
-                toast.error(`Payment failed: ${response.error.description}`);
+            const result = await orderResponse.json();
+            
+            toast.success("Order placed successfully!", { id: loadingToast });
+            setCartOpen(false);
+            clearCart();
+            navigate('/order-confirmed', {
+                state: JSON.parse(JSON.stringify({
+                    orderId: result.orderId,
+                    orderMode,
+                    hostelDetails,
+                    finalTotal: billDetails.finalTotal
+                }))
             });
-            rzp.open();
 
         } catch (error) {
             console.error('Checkout error:', error);
@@ -447,6 +350,37 @@ const CartDrawer = () => {
                                         </AnimatePresence>
                                     </div>
 
+                                    {/* Payment Method Toggle */}
+                                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-white/50 space-y-4">
+                                        <h3 className="text-xs font-black text-[#3E2723] uppercase tracking-wider flex items-center gap-2">
+                                            <ShoppingCart size={14} className="text-[#D4AF37]" /> Payment Method
+                                        </h3>
+                                        <div className="flex p-1 bg-[#FFF8E1] rounded-xl relative">
+                                            <motion.div
+                                                className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm z-0"
+                                                initial={false}
+                                                animate={{
+                                                    left: paymentMethod === 'cod_upi' ? '4px' : '50%',
+                                                    width: 'calc(50% - 4px)'
+                                                }}
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+
+                                            <button
+                                                onClick={() => setPaymentMethod('cod_upi')}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg z-10 text-xs font-bold transition-colors ${paymentMethod === 'cod_upi' ? 'text-[#3E2723]' : 'text-gray-400'}`}
+                                            >
+                                                Pay via UPI (COD)
+                                            </button>
+                                            <button
+                                                onClick={() => setPaymentMethod('cod_cash')}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg z-10 text-xs font-bold transition-colors ${paymentMethod === 'cod_cash' ? 'text-[#3E2723]' : 'text-gray-400'}`}
+                                            >
+                                                Pay via Cash
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     {/* Coupon Section */}
                                     <button
                                         onClick={handleApplyCoupon}
@@ -546,10 +480,7 @@ const CartDrawer = () => {
                                             {isSubmitting ? (
                                                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                             ) : (
-                                                <>
-                                                    {orderMode === 'delivery' ? 'Order Now' : 'Checkout'}
-                                                    <ArrowRight size={20} />
-                                                </>
+                                                <>Place Order <ArrowRight size={20} /></>
                                             )}
                                         </button>
                                     </div>

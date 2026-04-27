@@ -288,6 +288,8 @@ app.post(['/api/auth/verify-otp', '/auth/verify-otp'], async (req, res) => {
 // ════════════════════════════════════════════════════════════
 
 // POST /api/create-order — creates a Razorpay order (does NOT write to our DB yet)
+// POST /api/create-order — creates a Razorpay order (does NOT write to our DB yet)
+/*
 app.post(['/api/create-order', '/create-order'], authenticateUser, orderLimiter, async (req, res) => {
     console.log('CREATE ORDER REQUEST RECEIVED');
     try {
@@ -326,13 +328,14 @@ app.post(['/api/create-order', '/create-order'], authenticateUser, orderLimiter,
         res.status(500).json({ error: error.message, code: 'SERVER_ERROR' });
     }
 });
-
+*/
 
 // ════════════════════════════════════════════════════════════
 // PAYMENT VERIFICATION
 // ════════════════════════════════════════════════════════════
 
 // POST /api/verify-payment — verifies HMAC signature, then atomically creates order in DB
+/*
 app.post(['/api/verify-payment', '/verify-payment'], authenticateUser, async (req, res) => {
     try {
         const {
@@ -424,12 +427,12 @@ app.post(['/api/verify-payment', '/verify-payment'], authenticateUser, async (re
         res.status(500).json({ error: error.message, code: 'SERVER_ERROR' });
     }
 });
-
+*/
 
 // ════════════════════════════════════════════════════════════
 // RAZORPAY WEBHOOK
 // ════════════════════════════════════════════════════════════
-
+/*
 app.post(['/api/razorpay-webhook', '/razorpay-webhook'], async (req, res) => {
     try {
         const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -488,6 +491,92 @@ app.post(['/api/razorpay-webhook', '/razorpay-webhook'], async (req, res) => {
         res.status(500).send('Webhook process failed');
     }
 });
+*/
+
+// ════════════════════════════════════════════════════════════
+// COD (UPI/CASH) ORDER PLACEMENT
+// ════════════════════════════════════════════════════════════
+
+app.post(['/api/place-order-cod', '/place-order-cod'], authenticateUser, orderLimiter, async (req, res) => {
+    try {
+        const { items, orderMode, couponApplied, paymentMethod, hostelDetails } = req.body;
+
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Cart is empty', code: 'EMPTY_CART' });
+        }
+
+        if (!['cod_upi', 'cod_cash'].includes(paymentMethod)) {
+            return res.status(400).json({ error: 'Invalid payment method', code: 'INVALID_PAYMENT_METHOD' });
+        }
+
+        // ── Café open/closed check ────────────────────────────
+        const { data: cafeSetting } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'cafe_open')
+            .single();
+
+        if (cafeSetting?.value !== 'true') {
+            return res.status(503).json({
+                error: 'The café is currently closed. Please try again later.',
+                code: 'CAFE_CLOSED'
+            });
+        }
+
+        // Securely calculate amount on backend
+        const { finalTotal, priceMap, imageMap } = await calculateOrderAmount(items, orderMode, couponApplied);
+
+        const itemsForRPC = items.map(item => ({
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: priceMap[item.id] || 0,
+            variant: item.selectedVariant || 'Standard',
+            customization: item.customization || [],
+            image_url: imageMap[item.id] || ''
+        }));
+
+        const fakeOrderId = `cod_${Date.now()}`;
+        
+        // ── Atomic DB operation ──
+        const { data: rpcResult, error: rpcError } = await supabase.rpc('create_order_atomic', {
+            p_user_id:              req.user.id,
+            p_total_amount:         finalTotal,
+            p_order_mode:           orderMode,
+            p_hostel_block:         orderMode === 'delivery' ? (hostelDetails?.block || null) : null,
+            p_razorpay_order_id:    fakeOrderId,
+            p_razorpay_payment_id:  paymentMethod, // Store payment method here temporarily
+            p_items:                itemsForRPC
+        });
+
+        if (rpcError) throw rpcError;
+
+        if (!rpcResult.success) {
+            const errorMsg = rpcResult.error || '';
+            if (errorMsg.includes('STOCK_FAILURE:')) {
+                const itemName = errorMsg.split('STOCK_FAILURE:')[1];
+                return res.status(409).json({
+                    error: `"${itemName}" just sold out. Please remove it from your cart.`,
+                    code: 'STOCK_FAILURE'
+                });
+            }
+            throw new Error(rpcResult.error);
+        }
+
+        // Fix the payment_status from 'paid' to the actual COD method
+        await supabase
+            .from('orders')
+            .update({ payment_status: paymentMethod })
+            .eq('id', rpcResult.order_id);
+
+        res.status(200).json({ status: 'success', orderId: rpcResult.order_id });
+
+    } catch (error) {
+        console.error('COD ORDER ERROR:', error);
+        res.status(500).json({ error: error.message, code: 'SERVER_ERROR' });
+    }
+});
+
 
 
 // ════════════════════════════════════════════════════════════

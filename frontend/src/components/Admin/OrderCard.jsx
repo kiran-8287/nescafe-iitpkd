@@ -67,8 +67,12 @@ const OrderCard = ({ order, statusConfig, onUpdateStatus }) => {
                     </div>
                     <p className="text-[10px] text-[#D4AF37] font-bold mt-0.5">{new Date(order.created_at).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}</p>
                     <div className="mt-2 flex gap-2">
-                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {order.payment_status || 'unpaid'}
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                            order.payment_status === 'paid' ? 'bg-green-100 text-green-700' :
+                            order.payment_status?.startsWith('cod') ? 'bg-blue-100 text-blue-700' :
+                            'bg-red-100 text-red-700'
+                        }`}>
+                            {order.payment_status === 'cod_upi' ? 'COD (UPI)' : order.payment_status === 'cod_cash' ? 'COD (CASH)' : order.payment_status || 'unpaid'}
                         </span>
                     </div>
                 </div>
