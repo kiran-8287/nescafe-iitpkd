@@ -445,6 +445,36 @@ const AdminDashboard = () => {
         }
     };
 
+    const updateItemPrice = async (itemId, newPrice) => {
+        if (newPrice === '' || isNaN(newPrice)) {
+            toast.error('Please enter a valid price');
+            fetchItems(); // Reset to DB value
+            return;
+        }
+
+        const price = parseFloat(newPrice);
+        if (price < 0) {
+            toast.error('Price cannot be negative');
+            fetchItems();
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('items')
+                .update({ price: price })
+                .eq('id', itemId);
+
+            if (error) throw error;
+            toast.success('Price updated successfully');
+            // No need to fetchItems() as state is already updated locally via onChange
+        } catch (error) {
+            console.error('Error updating price:', error);
+            toast.error('Failed to update price');
+            fetchItems(); // Reset to DB value on error
+        }
+    };
+
 
     const filteredOrders = orderSearchQuery
         ? orders // Show all search results regardless of status tab
@@ -701,7 +731,21 @@ const AdminDashboard = () => {
                                                         </div>
                                                         <h3 className="font-black text-[#3E2723] text-sm truncate mb-2">{item.name}</h3>
                                                         <div className="flex justify-between items-center text-sm">
-                                                            <span className="font-black text-[#3E2723]">₹{item.price}</span>
+                                                            <div className="flex items-center gap-1 group/price relative">
+                                                                <span className="font-black text-[#3E2723]">₹</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={item.price}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        setMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, price: val } : m));
+                                                                    }}
+                                                                    onBlur={(e) => updateItemPrice(item.id, e.target.value)}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
+                                                                    className="w-16 font-black text-[#3E2723] bg-transparent border-b-2 border-transparent focus:border-[#D4AF37] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    title="Click to edit price"
+                                                                />
+                                                            </div>
                                                             <div className="flex items-center gap-2">
                                                                 <span className={`text-[10px] font-black uppercase tracking-wider ${item.is_available ? 'text-green-600' : 'text-red-400'}`}>
                                                                     {item.is_available ? 'ON' : 'OFF'}
