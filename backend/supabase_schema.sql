@@ -164,3 +164,35 @@ CREATE POLICY "Admins can view the admin list" ON public.admins FOR SELECT USING
 CREATE INDEX idx_orders_user_id ON public.orders(user_id);
 CREATE INDEX idx_order_items_order_id ON public.order_items(order_id);
 CREATE INDEX idx_items_category ON public.items(category);
+
+-- 8. Community Gallery Table
+CREATE TABLE public.gallery_images (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL,
+    caption TEXT,
+    status TEXT DEFAULT 'pending', -- pending, approved, rejected
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Gallery RLS
+ALTER TABLE public.gallery_images ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view approved gallery images" 
+ON public.gallery_images FOR SELECT 
+USING (status = 'approved');
+
+CREATE POLICY "Users can upload their own gallery images" 
+ON public.gallery_images FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own gallery images" 
+ON public.gallery_images FOR DELETE 
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can manage all gallery images" 
+ON public.gallery_images FOR ALL 
+USING (public.is_admin());
+
+CREATE INDEX idx_gallery_status ON public.gallery_images(status);
+CREATE INDEX idx_gallery_user_id ON public.gallery_images(user_id);

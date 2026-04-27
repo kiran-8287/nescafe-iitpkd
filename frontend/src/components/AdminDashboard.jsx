@@ -29,6 +29,7 @@ import usePushNotifications from '../hooks/usePushNotifications';
 import OrderCard from './Admin/OrderCard';
 import BatchCard from './Admin/BatchCard';
 import AnalyticsSection from './Admin/AnalyticsSection';
+import GalleryModeration from './Admin/GalleryModeration';
 
 const STATUS_CONFIG = {
     pending: { color: 'bg-amber-100 text-amber-700', icon: Clock, label: 'Pending' },
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
-    const [activeTab, setActiveTab] = useState('orders'); // 'orders', 'menu', or 'analytics'
+    const [activeTab, setActiveTab] = useState('orders'); // 'orders', 'menu', 'analytics', or 'gallery'
     const [menuSearchTerm, setMenuSearchTerm] = useState('');
     const [timeRange, setTimeRange] = useState('today'); // '6h', 'today', '7d', '30d', 'all'
     const [orderSearchQuery, setOrderSearchQuery] = useState('');
@@ -524,6 +525,12 @@ const AdminDashboard = () => {
                             >
                                 Analytics
                             </button>
+                            <button
+                                onClick={() => setActiveTab('gallery')}
+                                className={`px-3 md:px-6 py-2 rounded-xl text-[10px] md:text-sm font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === 'gallery' ? 'bg-[#3E2723] text-white shadow-md' : 'text-gray-400 hover:text-[#3E2723]'}`}
+                            >
+                                Gallery
+                            </button>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -773,7 +780,7 @@ const AdminDashboard = () => {
                             </div>
                         )}
                     </div>
-                ) : (
+                ) : activeTab === 'analytics' ? (
                     /* Analytics Tab Content */
                     <AnalyticsSection
                         analytics={analytics}
@@ -781,6 +788,9 @@ const AdminDashboard = () => {
                         rpcErrors={rpcErrors}
                         onRefresh={fetchAnalytics}
                     />
+                ) : (
+                    /* Gallery Moderation Tab */
+                    <GalleryModeration />
                 )}
             </main>
         </div>

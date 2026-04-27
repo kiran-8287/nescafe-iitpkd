@@ -247,8 +247,18 @@ erDiagram
         timestamp created_at
     }
 
+    GALLERY_IMAGES {
+        uuid id PK
+        uuid user_id FK
+        text image_url
+        text caption
+        text status "pending | approved | rejected"
+        timestamp created_at
+    }
+
     USERS ||--o{ ORDERS : places
     USERS ||--o{ ADMINS : authorized_as
+    USERS ||--o{ GALLERY_IMAGES : shares
     ORDERS ||--|{ ORDER_ITEMS : contains
 ```
 
@@ -267,6 +277,18 @@ The central record of every transaction. Supports both active payment methods (`
 
 **`public.admins`**
 A security-critical lookup table. Users listed here are granted "superuser" permissions across the API and Database. The `is_admin()` SQL function queries this table to authorize destructive mutations or global order visibility.
+
+**`public.gallery_images`**
+Stores community-contributed photos. Features a moderation workflow where images are `pending` by default and only visible to the public once marked as `approved` by an admin.
+
+---
+
+## 4. Legal & Compliance
+
+The platform includes full legal documentation to ensure user data protection and service transparency:
+- **Privacy Policy**: Details data collection (Auth, Order History) and usage.
+- **Terms of Service**: Outlines the rules for ordering, payments, and community contributions.
+- **Data Protection**: All sensitive user data is isolated via Row Level Security (RLS).
 
 ---
 
@@ -326,6 +348,17 @@ This means the application layer never has to reason about concurrency. The data
 **Before:** Short-polling on a timer. High latency (seconds), wasted server resources, poor UX under load.
 
 **After:** Postgres Change Data Capture (CDC) streamed over WebSockets via Supabase Realtime. The admin dashboard receives new order notifications in under 500ms from the moment the transaction commits — with zero polling overhead.
+
+---
+
+### 🖼️ Client-Side Image Optimization
+
+**The problem:** High-resolution phone photos (5MB+) causing slow uploads and massive storage costs.
+
+**The solution:** An asynchronous client-side pipeline that intercepts uploads:
+1. **Resizing:** Scales images to a max width of 1200px while maintaining aspect ratio.
+2. **Conversion:** Transcodes all formats (JPEG, PNG, HEIC) to **WebP** at 80% quality.
+3. **Efficiency:** Reduces typical file size from 5MB to ~300KB before the bytes even leave the user's device.
 
 ---
 

@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowLeft, Images } from 'lucide-react';
+import { X, ArrowLeft, Images, Trash2, Loader2 } from 'lucide-react';
+import { supabase } from '../supabaseClient';
+import { useAuth } from '../context/AuthContext';
+import GalleryUpload from './GalleryUpload';
+import toast from 'react-hot-toast';
 
-const customImages = [
+const mockImages = [
   {
     id: 1,
     src: "https://images.unsplash.com/photo-1579992357154-faf4bde95b3d?auto=format&fit=crop&w=800&q=80",
@@ -31,27 +35,19 @@ const customImages = [
     id: 6,
     src: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=800&q=80",
     caption: "Best coffee break ever"
-  },
-  {
-    id: 7,
-    src: "https://images.unsplash.com/photo-1515823662972-da6a2e4d3002?auto=format&fit=crop&w=800&q=80",
-    caption: "The moment everything clicked"
-  },
-  {
-    id: 8,
-    src: "https://images.unsplash.com/photo-1629991848910-2ab88d9cc52f?auto=format&fit=crop&w=800&q=80",
-    caption: "Celebrating the small wins"
   }
 ];
 
 /* ── Reusable image card ── */
-const ImageCard = ({ image, index, onClick }) => (
+const ImageCard = ({ image, index, onClick, onDelete, currentUserId }) => (
   <div
-    className="break-inside-avoid cursor-pointer group"
-    onClick={() => onClick(image)}
+    className="break-inside-avoid cursor-pointer group mb-4 relative"
     style={{ animation: `galleryFadeIn 0.4s ease-out ${index * 0.06}s both` }}
   >
-    <div className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300">
+    <div 
+      className="relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
+      onClick={() => onClick(image)}
+    >
       <img
         src={image.src}
         alt={image.caption}
@@ -65,39 +61,58 @@ const ImageCard = ({ image, index, onClick }) => (
         </p>
       </div>
     </div>
+
+    {/* Delete Button for Owners */}
+    {currentUserId && image.user_id === currentUserId && (
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          if(window.confirm('Delete this photo from gallery?')) onDelete(image.id);
+        }}
+        className="absolute top-2 right-2 p-2 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-600"
+      >
+        <Trash2 size={14} />
+      </button>
+    )}
   </div>
 );
 
 /* ── Lightbox ── */
 const Lightbox = ({ image, onClose }) => (
   <div
-    className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"
+    className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
     onClick={onClose}
   >
     <button
-      className="absolute top-3 right-3 text-white hover:text-[#D4AF37] transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center z-10"
+      className="absolute top-4 right-4 text-white hover:text-[#D4AF37] transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center z-10 bg-white/10 rounded-full"
       onClick={onClose}
       aria-label="Close"
     >
       <X className="h-7 w-7" />
     </button>
-    <img
-      src={image.src}
-      alt={image.caption}
-      className="max-w-full max-h-[90vh] object-contain rounded-lg"
-      onClick={(e) => e.stopPropagation()}
-    />
-    <p className="absolute bottom-4 left-0 right-0 text-center text-white text-sm px-4">
-      {image.caption}
-    </p>
+    <div className="relative max-w-5xl w-full flex flex-col items-center">
+      <img
+        src={image.src}
+        alt={image.caption}
+        className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <div className="mt-6 text-center max-w-xl">
+        <p className="text-white font-bold text-lg px-4 drop-shadow-md">
+          {image.caption}
+        </p>
+        <p className="text-white/40 text-xs mt-2 font-mono">
+          {image.isMock ? 'System Curated' : `Shared by Community`}
+        </p>
+      </div>
+    </div>
   </div>
 );
 
 /* ── Full Gallery Page (overlay) ── */
-const FullGalleryPage = ({ onClose }) => {
+const FullGalleryPage = ({ images, onClose, onDelete, currentUserId }) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Lock body scroll while open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -110,97 +125,165 @@ const FullGalleryPage = ({ onClose }) => {
         <button
           onClick={onClose}
           className="flex items-center gap-2 text-[#3E2723] hover:text-[#D4AF37] transition-colors font-semibold min-h-[44px]"
-          aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span className="text-sm sm:text-base">Back</span>
+          <span className="text-sm sm:text-base">Back to Home</span>
         </button>
         <div className="flex-1 text-center">
-          <h1 className="font-mono font-bold text-[#3E2723] text-sm sm:text-base md:text-xl">
-            console.log("Campus Life");
+          <h1 className="font-mono font-bold text-[#3E2723] text-sm sm:text-base md:text-xl uppercase tracking-widest">
+            Campus Moments
           </h1>
         </div>
-        <div className="flex items-center gap-1 text-[#8D6E63] text-xs sm:text-sm">
+        <div className="flex items-center gap-1 text-[#8D6E63] text-xs sm:text-sm font-bold bg-white/50 px-3 py-1 rounded-full border border-[#D4AF37]/20">
           <Images className="h-4 w-4" />
-          <span>{customImages.length}</span>
+          <span>{images.length}</span>
         </div>
       </div>
 
       {/* All images — masonry grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
-          {customImages.map((image, index) => (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+          {images.map((image, index) => (
             <ImageCard
               key={image.id}
               image={image}
               index={index}
               onClick={setSelectedImage}
+              onDelete={onDelete}
+              currentUserId={currentUserId}
             />
           ))}
         </div>
       </div>
 
-      {/* Lightbox */}
       {selectedImage && (
         <Lightbox image={selectedImage} onClose={() => setSelectedImage(null)} />
       )}
-
-      <style>{`
-        @keyframes galleryFadeIn {
-          from { opacity: 0; transform: scale(0.96); }
-          to   { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 };
 
 /* ── Main Gallery section ── */
 const Gallery = () => {
+  const { user } = useAuth();
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showFullGallery, setShowFullGallery] = useState(false);
-
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const fetchImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data for the UI
+      const dbImages = data.map(img => ({
+        id: img.id,
+        src: img.image_url,
+        caption: img.caption || 'Campus Life',
+        user_id: img.user_id,
+        isMock: false
+      }));
+
+      // Combine with mock images as fallback/extra content
+      const allImages = [...dbImages, ...mockImages.map(m => ({...m, isMock: true}))];
+      setImages(allImages);
+    } catch (error) {
+      console.error('Error fetching gallery:', error);
+      setImages(mockImages.map(m => ({...m, isMock: true})));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    fetchImages();
+
+    // Subscribe to changes
+    const subscription = supabase
+      .channel('gallery_changes')
+      .on('postgres_changes', { event: '*', table: 'gallery_images' }, fetchImages)
+      .subscribe();
+
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    
+    return () => {
+      window.removeEventListener('resize', onResize);
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
-  // Desktop: show 6 with a teaser
-  const desktopVisibleCount = 6;
-  const desktopImages = customImages.slice(0, desktopVisibleCount);
-  const desktopHiddenCount = customImages.length - desktopVisibleCount;
-  const teaserImage = customImages[desktopVisibleCount];
+  const handleDelete = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('gallery_images')
+        .delete()
+        .eq('id', id);
 
-  // Mobile: 2×2 grid (4 images), 4th cell shows "+X more" overlay
-  const mobileGridImages = customImages.slice(0, 4);
-  const mobileMoreCount = customImages.length - 4;
+      if (error) throw error;
+      toast.success('Photo removed from gallery');
+      fetchImages();
+    } catch (error) {
+      toast.error('Failed to delete photo');
+    }
+  };
+
+  // Display logic
+  const desktopVisibleCount = 6;
+  const desktopImages = images.slice(0, desktopVisibleCount);
+  const desktopHiddenCount = images.length - desktopVisibleCount;
+  const teaserImage = images[desktopVisibleCount];
+
+  const mobileGridImages = images.slice(0, 4);
+  const mobileMoreCount = images.length - 4;
+
+  if (loading) {
+    return (
+      <div className="py-20 bg-[#FFF8E1] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="animate-spin text-[#3E2723]" size={40} />
+        <p className="text-[#3E2723] font-bold animate-pulse">Developing photos...</p>
+      </div>
+    );
+  }
 
   return (
     <>
-      <section id="gallery" className="py-12 md:py-20 bg-[#FFF8E1]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="gallery" className="py-12 md:py-20 bg-[#FFF8E1] relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-[#3E2723]/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Heading */}
-          <div className="text-center mb-6 sm:mb-8 md:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#3E2723] mb-3 sm:mb-4 font-mono">
-              console.log("Campus Life");
+          <div className="text-center mb-8 md:mb-16">
+            <span className="inline-block px-4 py-1.5 bg-[#3E2723]/5 text-[#3E2723] text-xs font-black uppercase tracking-[0.2em] rounded-full mb-4 border border-[#3E2723]/10">
+              Community Gallery
+            </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-[#3E2723] mb-4 sm:mb-6 font-mono tracking-tighter">
+              Campus<span className="text-[#D4AF37]">.moments()</span>
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-[#5D4037] max-w-2xl mx-auto">
-              Take a picture and upload it, we will make it show in the gallery.
+            <p className="text-sm sm:text-base md:text-lg text-[#5D4037]/70 max-w-2xl mx-auto font-medium mb-8">
+              Every cup of coffee tells a story. Share your favorite moments from the Nescafe life and be part of our campus wall of fame.
             </p>
+            <GalleryUpload onUploadSuccess={fetchImages} />
           </div>
 
           {/* ── MOBILE: 2×2 grid ── */}
           <div className="md:hidden">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {mobileGridImages.map((image, index) => {
-                const isLastCell = index === 3;
+                const isLastCell = index === 3 && mobileMoreCount > 0;
                 return (
                   <div
                     key={image.id}
-                    className="relative overflow-hidden rounded-xl aspect-square cursor-pointer group shadow-md"
+                    className="relative overflow-hidden rounded-2xl aspect-[4/5] cursor-pointer group shadow-xl border-4 border-white"
                     onClick={() => isLastCell ? setShowFullGallery(true) : setSelectedImage(image)}
                     style={{ animation: `galleryFadeIn 0.4s ease-out ${index * 0.06}s both` }}
                   >
@@ -208,19 +291,17 @@ const Gallery = () => {
                       src={image.src}
                       alt={image.caption}
                       loading="lazy"
-                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${isLastCell ? 'blur-[2px] scale-110' : ''}`}
+                      className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${isLastCell ? 'blur-[4px] scale-110' : ''}`}
                     />
-                    {/* Caption for normal cells */}
                     {!isLastCell && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#3E2723]/80 to-transparent flex items-end p-2">
-                        <p className="text-white text-[10px] font-semibold leading-tight line-clamp-2">{image.caption}</p>
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#3E2723]/60 via-transparent to-transparent flex items-end p-3">
+                        <p className="text-white text-[10px] font-bold leading-tight line-clamp-2 drop-shadow-md">{image.caption}</p>
                       </div>
                     )}
-                    {/* "+X more" overlay on last cell */}
                     {isLastCell && (
-                      <div className="absolute inset-0 bg-[#3E2723]/70 flex flex-col items-center justify-center gap-1">
+                      <div className="absolute inset-0 bg-[#3E2723]/60 flex flex-col items-center justify-center gap-1 backdrop-blur-[2px]">
                         <span className="text-white text-3xl font-black">+{mobileMoreCount}</span>
-                        <span className="text-[#D4AF37] text-xs font-bold tracking-wide uppercase">more photos</span>
+                        <span className="text-[#D4AF37] text-[10px] font-black tracking-widest uppercase">Photos</span>
                       </div>
                     )}
                   </div>
@@ -228,73 +309,66 @@ const Gallery = () => {
               })}
             </div>
 
-            {/* View All Photos */}
-            <div className="mt-5 text-center">
+            <div className="mt-8 text-center">
               <button
                 onClick={() => setShowFullGallery(true)}
-                className="inline-flex items-center gap-2 bg-[#3E2723] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#5D4037] transition-all duration-300 hover:scale-105 shadow-lg min-h-[48px]"
+                className="bg-white text-[#3E2723] px-8 py-3.5 rounded-2xl font-black text-sm hover:bg-[#FFF8E1] transition-all duration-300 shadow-xl border-2 border-[#3E2723]/5 flex items-center gap-2 mx-auto"
               >
                 <Images className="h-5 w-5" />
-                View All Photos
+                View Full Gallery
               </button>
             </div>
           </div>
 
           {/* ── DESKTOP: masonry ── */}
           <div className="hidden md:block">
-            <div className="columns-2 lg:columns-3 gap-4 space-y-4">
+            <div className="columns-2 lg:columns-3 gap-6">
               {desktopImages.map((image, index) => (
                 <ImageCard
                   key={image.id}
                   image={image}
                   index={index}
                   onClick={setSelectedImage}
+                  onDelete={handleDelete}
+                  currentUserId={user?.id}
                 />
               ))}
             </div>
 
-            {desktopHiddenCount > 0 && teaserImage && (
-              <div className="mt-8 text-center">
-                <div className="relative mb-4 overflow-hidden rounded-xl h-20 mx-auto max-w-xs">
-                  <img
-                    src={teaserImage.src}
-                    alt="More photos"
-                    className="w-full h-full object-cover blur-sm scale-110"
-                  />
-                  <div className="absolute inset-0 bg-[#3E2723]/60 flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">
-                      +{desktopHiddenCount} more photos
-                    </span>
-                  </div>
-                </div>
+            {desktopHiddenCount > 0 && (
+              <div className="mt-12 text-center">
                 <button
                   onClick={() => setShowFullGallery(true)}
-                  className="inline-flex items-center gap-2 bg-[#3E2723] text-white px-8 py-3 rounded-full font-bold text-base hover:bg-[#5D4037] transition-all duration-300 hover:scale-105 shadow-lg min-h-[48px]"
+                  className="inline-flex items-center gap-3 bg-white text-[#3E2723] px-10 py-4 rounded-2xl font-black text-base hover:bg-[#FFF8E1] transition-all duration-300 hover:scale-105 shadow-2xl border-2 border-[#3E2723]/5 group"
                 >
-                  <Images className="h-5 w-5" />
-                  View All Photos
+                  <Images className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                  Explore {images.length} Moments
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Lightbox (main section) */}
         {selectedImage && (
           <Lightbox image={selectedImage} onClose={() => setSelectedImage(null)} />
         )}
 
         <style>{`
           @keyframes galleryFadeIn {
-            from { opacity: 0; transform: scale(0.96); }
-            to   { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
           }
         `}</style>
       </section>
 
       {/* Full gallery overlay */}
       {showFullGallery && (
-        <FullGalleryPage onClose={() => setShowFullGallery(false)} />
+        <FullGalleryPage 
+          images={images} 
+          onClose={() => setShowFullGallery(false)} 
+          onDelete={handleDelete}
+          currentUserId={user?.id}
+        />
       )}
     </>
   );

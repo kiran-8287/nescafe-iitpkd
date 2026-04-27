@@ -14,7 +14,6 @@ const About = React.lazy(() => import("./components/About"));
 const Gallery = React.lazy(() => import("./components/Gallery"));
 const Testimonials = React.lazy(() => import("./components/Testimonials"));
 const Contact = React.lazy(() => import("./components/Contact"));
-const FloatingOrderButton = React.lazy(() => import("./components/FloatingOrderButton"));
 const BottomNav = React.lazy(() => import("./components/BottomNav"));
 const MiniCartBar = React.lazy(() => import("./components/MiniCartBar"));
 const CartDrawer = React.lazy(() => import("./components/CartDrawer"));
@@ -166,7 +165,6 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                     <>
                         <React.Suspense fallback={null}>
                             <Footer />
-                            <FloatingOrderButton />
                             <MiniCartBar />
                             <CartDrawer />
                             <BottomNav activeSection={activeSection} onNavigate={scrollToSection} />
