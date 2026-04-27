@@ -56,19 +56,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph FE ["Frontend Engineering"]
+    subgraph FE ["fa:fa-desktop Frontend Engineering"]
         F1["React 18 + Vite (Sub-second HMR)"]
         F2["Framer Motion (Premium UX)"]
         F3["Lazy / Suspense (Code Splitting)"]
     end
 
-    subgraph BE ["Backend Engineering"]
+    subgraph BE ["fa:fa-server Backend Engineering"]
         B1["Node.js + Express (Vercel Edge)"]
         B2["JWT & CORS (Zero-Trust Auth)"]
         B3["HMAC SHA256 (Data Integrity)"]
     end
 
-    subgraph DB ["Database Engineering"]
+    subgraph DB ["fa:fa-database Database Engineering"]
         D1["PostgreSQL / Supabase (ACID Layer)"]
         D2["Row Level Security (Data Privacy)"]
         D3["Atomic RPC / CDC (Real-time Sync)"]
@@ -77,6 +77,8 @@ flowchart TD
     FE -->|API Requests| BE
     BE -->|SQL Queries| DB
 ```
+
+### ⚡ Engineering Details
 
 | Layer | Key Technologies | Architectural Impact |
 |---|---|---|
@@ -97,13 +99,14 @@ flowchart TD
 The live production flow. A student places an order, the backend re-derives prices independently, and a single atomic RPC call handles both inventory decrement and order creation. The admin is notified in real-time via WebSocket.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'primaryColor': '#D4AF37', 'secondaryColor': '#3E2723' } } }%%
 sequenceDiagram
     autonumber
-    participant U as Customer
-    participant F as Frontend
-    participant B as Backend
-    participant DB as Database
-    participant A as Admin Dashboard
+    participant U as 👤 Customer
+    participant F as ⚡ Frontend
+    participant B as 🧠 Backend
+    participant DB as 🗄️ Database
+    participant A as 🛡️ Admin Dashboard
 
     rect rgb(40, 40, 40)
         Note over U,A: Phase 1 — Order Placement
@@ -135,13 +138,14 @@ sequenceDiagram
 The original payment integration — dormant but preserved. Razorpay generates a signed order, the student authorizes payment on the frontend, and the backend validates the HMAC signature before committing anything to the database.
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'primaryColor': '#D4AF37', 'secondaryColor': '#3E2723' } } }%%
 sequenceDiagram
     autonumber
-    participant U as Customer
-    participant F as Frontend
-    participant B as Backend
-    participant R as Razorpay
-    participant DB as Database
+    participant U as 👤 Customer
+    participant F as ⚡ Frontend
+    participant B as 🧠 Backend
+    participant R as 💳 Razorpay
+    participant DB as 🗄️ Database
 
     rect rgb(40, 40, 40)
         Note over U,DB: Phase 1 — Order Initialization
@@ -246,7 +250,7 @@ The central record of every transaction. Supports both active payment methods (`
 
 ## 4. Security Architecture
 
-> **Defense-in-Depth Strategy:** No single point of trust. Every layer independently enforces its constraints.
+> **🛡️ Defense-in-Depth Strategy:** No single point of trust. Every layer independently enforces its constraints.
 
 ### Row Level Security
 
@@ -285,7 +289,7 @@ stateDiagram-v2
 
 ## 6. Engineering Challenges
 
-### Concurrency Control
+### ⚠️ Concurrency Control
 
 **The problem:** Two students simultaneously purchasing the last unit of an item. A naive implementation would let both succeed, resulting in negative stock.
 
@@ -295,7 +299,7 @@ This means the application layer never has to reason about concurrency. The data
 
 ---
 
-### Real-Time Synchronization
+### ⚡ Real-Time Synchronization
 
 **Before:** Short-polling on a timer. High latency (seconds), wasted server resources, poor UX under load.
 
