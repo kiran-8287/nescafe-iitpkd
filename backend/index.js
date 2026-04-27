@@ -152,7 +152,7 @@ const authenticateAdmin = async (req, res, next) => {
 };
 
 // ── Helper: server-side price calculation ────────────────────
-async function calculateOrderAmount(items, orderMode, couponApplied) {
+async function calculateOrderAmount(items, orderMode) {
     const itemIds = items.map(item => item.id);
     const { data: dbItems, error: dbError } = await supabase
         .from('items')
@@ -173,13 +173,9 @@ async function calculateOrderAmount(items, orderMode, couponApplied) {
         subtotal += (priceMap[item.id] || 0) * item.quantity;
     });
 
-    const deliveryFee = orderMode === 'delivery' ? 10 : 0;
-    const discount = couponApplied ? Math.floor(subtotal * 0.2) : 0;
-    const totalAfterDiscount = subtotal - discount;
-    const taxes = Math.floor(totalAfterDiscount * 0.05);
-    const finalTotal = totalAfterDiscount + taxes + deliveryFee;
+    const finalTotal = subtotal;
 
-    return { finalTotal, subtotal, discount, taxes, deliveryFee, priceMap, imageMap };
+    return { finalTotal, subtotal, priceMap, imageMap };
 }
 
 // ── Health & Root ─────────────────────────────────────────────
@@ -499,7 +495,7 @@ app.post(['/api/razorpay-webhook', '/razorpay-webhook'], async (req, res) => {
 
 app.post(['/api/place-order-cod', '/place-order-cod'], authenticateUser, orderLimiter, async (req, res) => {
     try {
-        const { items, orderMode, couponApplied, paymentMethod, hostelDetails } = req.body;
+        const { items, orderMode, paymentMethod, hostelDetails } = req.body;
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ error: 'Cart is empty', code: 'EMPTY_CART' });
@@ -524,7 +520,7 @@ app.post(['/api/place-order-cod', '/place-order-cod'], authenticateUser, orderLi
         }
 
         // Securely calculate amount on backend
-        const { finalTotal, priceMap, imageMap } = await calculateOrderAmount(items, orderMode, couponApplied);
+        const { finalTotal, priceMap, imageMap } = await calculateOrderAmount(items, orderMode);
 
         const itemsForRPC = items.map(item => ({
             id: item.id,

@@ -97,7 +97,6 @@ export const CartProvider = ({ children }) => {
 
     const [orderMode, setOrderMode] = React.useState('pickup'); // 'pickup' | 'delivery'
     const [hostelDetails, setHostelDetails] = React.useState({ block: '' });
-    const [couponApplied, setCouponApplied] = React.useState(false);
 
     // Sync with localStorage
     useEffect(() => {
@@ -162,21 +161,14 @@ export const CartProvider = ({ children }) => {
     }, [state.items]);
 
     // Calculations based on current cart (Memoized for performance)
-    const { subtotal, deliveryFee, discount, taxes, finalTotal } = React.useMemo(() => {
+    const { subtotal, finalTotal } = React.useMemo(() => {
         const sub = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
-        const dFee = orderMode === 'delivery' ? 10 : 0;
-        const disc = couponApplied ? Math.floor(sub * 0.2) : 0;
-        const tx = Math.floor((sub - disc) * 0.05);
-        const final = sub - disc + tx + dFee;
 
         return {
             subtotal: sub,
-            deliveryFee: dFee,
-            discount: disc,
-            taxes: tx,
-            finalTotal: final
+            finalTotal: sub
         };
-    }, [state.items, orderMode, couponApplied]);
+    }, [state.items, orderMode]);
 
     const value = {
         cartItems: state.items,
@@ -189,15 +181,10 @@ export const CartProvider = ({ children }) => {
         setOrderMode,
         hostelDetails,
         setHostelDetails,
-        couponApplied,
-        setCouponApplied,
 
         // Calculated Bill Details
         billDetails: {
             subtotal,
-            deliveryFee,
-            discount,
-            taxes,
             finalTotal
         },
 
@@ -206,7 +193,6 @@ export const CartProvider = ({ children }) => {
         updateQuantity: (index, quantity) => dispatch({ type: 'UPDATE_QUANTITY', payload: { index, quantity } }),
         clearCart: () => {
             dispatch({ type: 'CLEAR_CART' });
-            setCouponApplied(false);
             setOrderMode('pickup');
             setHostelDetails({ block: '' });
         },

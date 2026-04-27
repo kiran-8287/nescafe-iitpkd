@@ -24,27 +24,14 @@ const CartDrawer = () => {
         setOrderMode,
         hostelDetails,
         setHostelDetails,
-        couponApplied,
-        setCouponApplied,
+        hostelDetails,
+        setHostelDetails,
         billDetails
     } = useCart();
 
     const { user, session } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cod_upi'); // 'cod_upi' or 'cod_cash'
-
-    const handleApplyCoupon = () => {
-        if (couponApplied) {
-            setCouponApplied(false);
-            toast("Coupon removed", { icon: '🏷️' });
-        } else {
-            setCouponApplied(true);
-            toast.success("CAMPUS20 Applied!", {
-                icon: '🎉',
-                style: { background: '#3E2723', color: '#fff' }
-            });
-        }
-    };
 
     const handleCheckout = async () => {
         if (cartItems.length === 0) return;
@@ -124,7 +111,6 @@ const CartDrawer = () => {
                 body: JSON.stringify({
                     items: cartItems,
                     orderMode,
-                    couponApplied,
                     paymentMethod,
                     hostelDetails
                 })
@@ -330,10 +316,6 @@ const CartDrawer = () => {
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[#D4AF37] bg-white p-2 rounded-lg border border-[#D4AF37]/20">
-                                                        <Bike size={12} />
-                                                        <span>₹10 Delivery fee applies to help our students</span>
-                                                    </div>
                                                 </motion.div>
                                             ) : (
                                                 <motion.div
@@ -381,27 +363,7 @@ const CartDrawer = () => {
                                         </div>
                                     </div>
 
-                                    {/* Coupon Section */}
-                                    <button
-                                        onClick={handleApplyCoupon}
-                                        className={`w-full bg-white p-4 rounded-2xl shadow-sm border-2 border-dashed flex items-center justify-between transition-all ${couponApplied ? 'border-green-500 bg-green-50' : 'border-gray-100 hover:border-[#D4AF37]'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-xl ${couponApplied ? 'bg-green-500 text-white' : 'bg-[#FFF8E1] text-[#D4AF37]'}`}>
-                                                {couponApplied ? <Check size={18} /> : <TicketPercent size={18} />}
-                                            </div>
-                                            <div className="text-left">
-                                                <h4 className={`font-black text-xs ${couponApplied ? 'text-green-600' : 'text-[#3E2723]'}`}>
-                                                    {couponApplied ? "CAMPUS20 Applied" : "Apply Coupon"}
-                                                </h4>
-                                                <p className="text-[10px] font-bold text-gray-400">
-                                                    {couponApplied ? `Saved ₹${billDetails.discount}` : "Save 20% on your caffeine"}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {!couponApplied && <ChevronRight size={16} className="text-gray-300" />}
-                                    </button>
+                                    </div>
                                 </>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
@@ -440,32 +402,6 @@ const CartDrawer = () => {
                                         <span>Subtotal</span>
                                         <span>₹{billDetails.subtotal.toFixed(2)}</span>
                                     </div>
-
-                                    {couponApplied && (
-                                        <div className="flex justify-between text-green-500 text-xs font-black uppercase">
-                                            <span className="flex items-center gap-1"><TicketPercent size={12} /> Coupon Savings</span>
-                                            <span>-₹{billDetails.discount.toFixed(2)}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="flex justify-between text-gray-400 text-xs font-black uppercase">
-                                        <span>Taxes (GST 5%)</span>
-                                        <span>₹{billDetails.taxes.toFixed(2)}</span>
-                                    </div>
-
-                                    <AnimatePresence>
-                                        {orderMode === 'delivery' && (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                exit={{ opacity: 0, height: 0 }}
-                                                className="flex justify-between text-gray-400 text-xs font-black uppercase"
-                                            >
-                                                <span className="flex items-center gap-1"><Bike size={12} /> Delivery Fee</span>
-                                                <span>₹{billDetails.deliveryFee.toFixed(2)}</span>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
 
                                     <div className="pt-2 flex justify-between items-center">
                                         <div>
