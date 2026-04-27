@@ -32,16 +32,36 @@ flowchart TD
     end
 
     User -->|Uses| Frontend
-    Frontend -->|Auth / Queries| Supabase
-    Frontend -->|Place Order (COD)| Backend
-    Backend -->|Atomic Transaction| Supabase
-    Supabase -->|Realtime CDC| AdminDashboard
-    Backend -.->|Legacy API| Razorpay
+    Frontend -->|"Auth / Queries"| Supabase
+    Frontend -->|"Place Order (COD)"| Backend
+    Backend -->|"Atomic Transaction"| Supabase
+    Supabase -->|"Realtime CDC"| AdminDashboard
+    Backend -.->|"Legacy API"| Razorpay
 ```
 
 ---
 
 ## Stack Breakdown
+
+```mermaid
+mindmap
+  root((Nescafe Stack))
+    Frontend
+      React 18 + Vite
+      Framer Motion
+      Lucide React
+      Lazy Loading
+    Backend
+      Node.js + Express
+      JWT Auth
+      CORS Security
+      HMAC Verification
+    Database
+      PostgreSQL
+      Row Level Security
+      Real-time CDC
+      Atomic RPC
+```
 
 > [!tip] Frontend Engineering
 - **React 18** with **Vite** for sub-second hot reloads.
@@ -72,6 +92,7 @@ flowchart TD
 ## Active Workflow: Manual COD (UPI/Cash)
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'primaryColor': '#D4AF37', 'secondaryColor': '#3E2723' } } }%%
 sequenceDiagram
     autonumber
     participant U as 👤 Customer
@@ -80,7 +101,7 @@ sequenceDiagram
     participant DB as 🗄️ Database
     participant A as 🛡️ Admin Dashboard
 
-    rect rgb(240, 240, 240)
+    rect rgb(40, 40, 40)
         Note over U,A: Phase 1: Order Placement
         U->>F: Checkout (Select UPI/Cash)
         F->>B: POST /api/place-order-cod
@@ -88,14 +109,14 @@ sequenceDiagram
         B->>DB: Atomic RPC (create_order_atomic)
     end
 
-    rect rgb(255, 255, 255)
+    rect rgb(30, 30, 30)
         Note over U,A: Phase 2: Fulfillment & Real-time
         DB-->>B: Success (Inventory Decremented)
         B-->>F: 200 OK (Show Success Page)
         B->>A: Real-time WebSocket Notification
     end
 
-    rect rgb(240, 240, 240)
+    rect rgb(40, 40, 40)
         Note over U,A: Phase 3: Completion
         A->>U: Deliver/Handover Order
         U->>A: Pay via UPI/Cash
@@ -108,6 +129,7 @@ sequenceDiagram
 ## Legacy Workflow: Automated Razorpay
 
 ```mermaid
+%%{init: { 'theme': 'dark', 'themeVariables': { 'primaryColor': '#D4AF37', 'secondaryColor': '#3E2723' } } }%%
 sequenceDiagram
     autonumber
     participant U as 👤 Customer
@@ -116,7 +138,7 @@ sequenceDiagram
     participant R as 💳 Razorpay
     participant DB as 🗄️ Database
 
-    rect rgb(240, 240, 240)
+    rect rgb(40, 40, 40)
         Note over U,DB: Phase 1: Order Initialization
         F->>B: POST /create-order
         B->>DB: Fetch secure prices
@@ -124,14 +146,14 @@ sequenceDiagram
         R-->>F: order_id
     end
 
-    rect rgb(255, 255, 255)
+    rect rgb(30, 30, 30)
         Note over U,DB: Phase 2: Payment Execution
         F->>U: Show Modal
         U->>R: Authorize
         R-->>F: signature
     end
 
-    rect rgb(240, 240, 240)
+    rect rgb(40, 40, 40)
         Note over U,DB: Phase 3: Verification & Transaction
         F->>B: POST /verify-payment
         B->>B: HMAC Validation
