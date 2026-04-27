@@ -1,34 +1,47 @@
-# Nescafe Online Ordering System - IIT Palakkad
+# Nescafe Online Ordering System
+### IIT Palakkad — Full-Stack Digital Platform
 
-> [!IMPORTANT]
-> A premium, full-stack digital ordering platform designed for the Nescafe outlet at IIT Palakkad. Built with a focus on real-time synchronization, atomic consistency, and a zero-friction user experience.
+> A premium ordering platform built for the Nescafe outlet at IIT Palakkad. Designed around three core principles: **atomic consistency**, **real-time synchronization**, and a **zero-friction user experience**.
 
 ---
 
-# 1. System Architecture
+## Table of Contents
 
-### Architecture Philosophy
-> Decoupled • Serverless • Atomic Consistency • Real-Time Enabled
+1. [System Architecture](#1-system-architecture)
+2. [Order & Payment Lifecycle](#2-order--payment-lifecycle)
+3. [Database Engineering](#3-database-engineering)
+4. [Security Architecture](#4-security-architecture)
+5. [Order State Machine](#5-order-state-machine)
+6. [Engineering Challenges](#6-engineering-challenges)
+7. [Deployment & Domains](#7-deployment--domains)
+
+---
+
+## 1. System Architecture
+
+**Philosophy:** Decoupled · Serverless · Atomic Consistency · Real-Time Enabled
+
+The system separates concerns cleanly across three layers — a React SPA on the frontend, a Node.js/Express API on the backend, and Supabase handling both the database and real-time event streaming. Razorpay is integrated but currently dormant, with COD (UPI/Cash) as the active payment path.
 
 ```mermaid
 flowchart TD
     User((User))
-    
+
     subgraph Frontend_Layer
-        Frontend["Vite +<br/>React SPA"]
+        Frontend["Vite + React SPA"]
     end
 
     subgraph Backend_Layer
-        Backend["Node.js +<br/>Express API"]
+        Backend["Node.js + Express API"]
     end
 
     subgraph Database_Realtime
-        Supabase[("Supabase DB +<br/>Auth")]
-        AdminDashboard["Admin<br/>Command Center"]
+        Supabase[("Supabase DB + Auth")]
+        AdminDashboard["Admin Command Center"]
     end
 
     subgraph Payment_Gateway
-        Razorpay["Razorpay<br/>(Dormant)"]
+        Razorpay["Razorpay (Dormant)"]
     end
 
     User -->|Uses| Frontend
@@ -39,102 +52,99 @@ flowchart TD
     Backend -.->|"Legacy API"| Razorpay
 ```
 
----
-
-## Stack Breakdown
+### Stack Breakdown
 
 ```mermaid
 flowchart TD
-    subgraph FE ["fa:fa-desktop Frontend Engineering"]
-        F1["React 18 + Vite<br/>(Sub-second HMR)"]
-        F2["Framer Motion<br/>(Premium UX)"]
-        F3["Lazy / Suspense<br/>(Code Splitting)"]
+    subgraph FE ["Frontend Engineering"]
+        F1["React 18 + Vite (Sub-second HMR)"]
+        F2["Framer Motion (Premium UX)"]
+        F3["Lazy / Suspense (Code Splitting)"]
     end
 
-    subgraph BE ["fa:fa-server Backend Engineering"]
-        B1["Node.js + Express<br/>(Vercel Edge)"]
-        B2["JWT & CORS<br/>(Zero-Trust Auth)"]
-        B3["HMAC SHA256<br/>(Data Integrity)"]
+    subgraph BE ["Backend Engineering"]
+        B1["Node.js + Express (Vercel Edge)"]
+        B2["JWT & CORS (Zero-Trust Auth)"]
+        B3["HMAC SHA256 (Data Integrity)"]
     end
 
-    subgraph DB ["fa:fa-database Database Engineering"]
-        D1["PostgreSQL / Supabase<br/>(ACID Layer)"]
-        D2["Row Level Security<br/>(Data Privacy)"]
-        D3["Atomic RPC / CDC<br/>(Real-time Sync)"]
+    subgraph DB ["Database Engineering"]
+        D1["PostgreSQL / Supabase (ACID Layer)"]
+        D2["Row Level Security (Data Privacy)"]
+        D3["Atomic RPC / CDC (Real-time Sync)"]
     end
 
     FE -->|API Requests| BE
     BE -->|SQL Queries| DB
 ```
 
-### ⚡ Engineering Details
-
 | Layer | Key Technologies | Architectural Impact |
 |---|---|---|
-| **Frontend** | React 18, Vite, Framer Motion | Ensures 60FPS animations and sub-100ms TTI. |
-| **Backend** | Node.js, Express, Vercel | Scalable serverless functions with JWT protection. |
-| **Database** | PostgreSQL, Supabase, RLS | Guarantees atomic inventory and real-time CDC updates. |
+| **Frontend** | React 18, Vite, Framer Motion | 60FPS animations and sub-100ms TTI |
+| **Backend** | Node.js, Express, Vercel | Scalable serverless functions with JWT protection |
+| **Database** | PostgreSQL, Supabase, RLS | Atomic inventory guarantees and real-time CDC updates |
 
 ---
 
-# 2. Order & Payment Lifecycle
+## 2. Order & Payment Lifecycle
 
-> [!danger] Zero-Trust Principle  
-> The client is never trusted. All price calculations and inventory checks happen server-side during the atomic transaction.
+> **Zero-Trust Principle:** The client is never trusted. All price calculations and inventory checks are performed server-side within the atomic transaction — not derived from anything the browser sends.
 
 ---
 
-## Active Workflow: Manual COD (UPI/Cash)
+### Active Workflow: Manual COD (UPI / Cash)
+
+The live production flow. A student places an order, the backend re-derives prices independently, and a single atomic RPC call handles both inventory decrement and order creation. The admin is notified in real-time via WebSocket.
 
 ```mermaid
-%%{init: { 'theme': 'dark', 'themeVariables': { 'primaryColor': '#D4AF37', 'secondaryColor': '#3E2723' } } }%%
 sequenceDiagram
     autonumber
-    participant U as 👤 Customer
-    participant F as ⚡ Frontend
-    participant B as 🧠 Backend
-    participant DB as 🗄️ Database
-    participant A as 🛡️ Admin Dashboard
+    participant U as Customer
+    participant F as Frontend
+    participant B as Backend
+    participant DB as Database
+    participant A as Admin Dashboard
 
     rect rgb(40, 40, 40)
-        Note over U,A: Phase 1: Order Placement
-        U->>F: Checkout (Select UPI/Cash)
+        Note over U,A: Phase 1 — Order Placement
+        U->>F: Checkout (Select UPI / Cash)
         F->>B: POST /api/place-order-cod
         B->>DB: Server-side Price Re-derivation
         B->>DB: Atomic RPC (create_order_atomic)
     end
 
     rect rgb(30, 30, 30)
-        Note over U,A: Phase 2: Fulfillment & Real-time
+        Note over U,A: Phase 2 — Fulfillment & Real-time Sync
         DB-->>B: Success (Inventory Decremented)
         B-->>F: 200 OK (Show Success Page)
         B->>A: Real-time WebSocket Notification
     end
 
     rect rgb(40, 40, 40)
-        Note over U,A: Phase 3: Completion
-        A->>U: Deliver/Handover Order
-        U->>A: Pay via UPI/Cash
+        Note over U,A: Phase 3 — Completion
+        A->>U: Deliver / Handover Order
+        U->>A: Pay via UPI / Cash
         A->>DB: Mark as "Delivered"
     end
 ```
 
 ---
 
-## Legacy Workflow: Automated Razorpay
+### Legacy Workflow: Automated Razorpay
+
+The original payment integration — dormant but preserved. Razorpay generates a signed order, the student authorizes payment on the frontend, and the backend validates the HMAC signature before committing anything to the database.
 
 ```mermaid
-%%{init: { 'theme': 'dark', 'themeVariables': { 'primaryColor': '#D4AF37', 'secondaryColor': '#3E2723' } } }%%
 sequenceDiagram
     autonumber
-    participant U as 👤 Customer
-    participant F as ⚡ Frontend
-    participant B as 🧠 Backend
-    participant R as 💳 Razorpay
-    participant DB as 🗄️ Database
+    participant U as Customer
+    participant F as Frontend
+    participant B as Backend
+    participant R as Razorpay
+    participant DB as Database
 
     rect rgb(40, 40, 40)
-        Note over U,DB: Phase 1: Order Initialization
+        Note over U,DB: Phase 1 — Order Initialization
         F->>B: POST /create-order
         B->>DB: Fetch secure prices
         B->>R: Generate Order
@@ -142,14 +152,14 @@ sequenceDiagram
     end
 
     rect rgb(30, 30, 30)
-        Note over U,DB: Phase 2: Payment Execution
-        F->>U: Show Modal
-        U->>R: Authorize
-        R-->>F: signature
+        Note over U,DB: Phase 2 — Payment Execution
+        F->>U: Show Payment Modal
+        U->>R: Authorize Payment
+        R-->>F: Signature
     end
 
     rect rgb(40, 40, 40)
-        Note over U,DB: Phase 3: Verification & Transaction
+        Note over U,DB: Phase 3 — Verification & Commit
         F->>B: POST /verify-payment
         B->>B: HMAC Validation
         B->>DB: Atomic Transaction (RPC)
@@ -159,14 +169,13 @@ sequenceDiagram
 
 ---
 
-# 3. Database Engineering
+## 3. Database Engineering
 
-> [!abstract] Design Goals  
-> ACID compliance, inventory integrity, and real-time synchronization.
+> **Design Goals:** ACID compliance, inventory integrity, and real-time synchronization.
 
 ---
 
-## Entity Relationship Diagram
+### Entity Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -225,41 +234,46 @@ erDiagram
 
 ---
 
-## Core Tables
+### Core Tables
 
-#### `public.items`
-- **Availability Toggle**: Instant menu updates.
-- **Stock Tracking**: Indexed quantity fields.
-- **Dynamic Pricing**: Now editable directly by admins.
+**`public.items`**
+Drives the menu. The `is_available` boolean allows instant toggling without deletion. Stock quantities are indexed for fast reads during peak ordering. Prices are now editable directly through the admin dashboard.
 
-#### `public.orders`
-- **Payment Modes**: Supports `cod_upi` and `cod_cash`.
-- **Status Enum**: `pending`, `preparing`, `ready`, `delivered`, `cancelled`.
-- **Foreign Keys**: Linked to `auth.users` for history tracking.
+**`public.orders`**
+The central record of every transaction. Supports both active payment methods (`cod_upi`, `cod_cash`) and the legacy `razorpay` mode. Status flows through a defined enum: `pending → preparing → ready → delivered → cancelled`. Each order is linked to `auth.users` for per-student order history.
 
 ---
 
-# 4. Security Architecture
+## 4. Security Architecture
 
-> [!danger] Defense-in-Depth Strategy
+> **Defense-in-Depth Strategy:** No single point of trust. Every layer independently enforces its constraints.
 
-## Row Level Security Policy
+### Row Level Security
+
+Postgres RLS ensures users can only read and write their own data — enforced at the database level, not the application layer:
+
 ```sql
 USING (auth.uid() = user_id)
 ```
 
-## Protection Layers
-- **Backend Price Re-derivation**: Prevents client-side price manipulation.
-- **JWT Bearer Token Validation**: Ensures only authenticated students can order.
-- **SERVICE_ROLE Isolation**: Critical database operations are shielded from public access.
+### Protection Layers
+
+**Backend Price Re-derivation** — The server independently calculates the total from the database. Whatever the client sends for prices is ignored entirely, making client-side price manipulation structurally impossible.
+
+**JWT Bearer Token Validation** — Every order request requires a valid JWT. Unauthenticated requests are rejected before any business logic executes.
+
+**SERVICE_ROLE Isolation** — Critical database operations (atomic RPCs, admin mutations) use Supabase's service role key, which is never exposed to the public client.
 
 ---
 
-# 5. Order State Machine
+## 5. Order State Machine
+
+Every order moves through a defined, linear lifecycle. There are no backward transitions — once an order progresses, it cannot regress.
+
 ```mermaid
 stateDiagram-v2
     direction LR
-    
+
     [*] --> Pending
     Pending --> Preparing: Admin Acknowledged
     Preparing --> Ready: Kitchen Completed
@@ -269,22 +283,29 @@ stateDiagram-v2
 
 ---
 
-# 6. Engineering Challenges
+## 6. Engineering Challenges
 
 ### Concurrency Control
-> [!danger] Risk  
-> Two users purchasing the last available item simultaneously.
 
-> [!success] Atomic Stored Procedure
-We use a PostgreSQL RPC function to ensure that inventory is only decremented if stock is sufficient, all within a single database transaction.
+**The problem:** Two students simultaneously purchasing the last unit of an item. A naive implementation would let both succeed, resulting in negative stock.
 
-### Real-Time Synchronization
-Before: Polling with high latency and server overhead.  
-After: **Postgres CDC (Change Data Capture)** via WebSockets for <500ms latency on order notifications.
+**The solution:** A PostgreSQL stored procedure (`create_order_atomic`) wraps the stock check and decrement in a single database transaction. If stock is insufficient at the moment of execution, the transaction rolls back entirely — no partial state, no race condition.
+
+This means the application layer never has to reason about concurrency. The database enforces it.
 
 ---
 
-# 7. Deployment & Domains
+### Real-Time Synchronization
+
+**Before:** Short-polling on a timer. High latency (seconds), wasted server resources, poor UX under load.
+
+**After:** Postgres Change Data Capture (CDC) streamed over WebSockets via Supabase Realtime. The admin dashboard receives new order notifications in under 500ms from the moment the transaction commits — with zero polling overhead.
+
+---
+
+## 7. Deployment & Domains
+
+Both the frontend and backend are deployed on Vercel, taking advantage of edge caching for the SPA and serverless function scaling for the API.
 
 | Layer | Production URL |
 |---|---|
@@ -293,6 +314,4 @@ After: **Postgres CDC (Change Data Capture)** via WebSockets for <500ms latency 
 
 ---
 
-## Author
-**Sai Kiran**  
-IIT Palakkad
+**Author:** Sai Kiran — IIT Palakkad
