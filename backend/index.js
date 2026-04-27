@@ -42,7 +42,7 @@ app.use(cors({
             return callback(null, true);
         }
         
-        const allowed = ['https://nescafe-iitpkd.vercel.app', 'https://nescafe.iitpkd.ac.in'].includes(origin);
+        const allowed = ['https://nescafe-iitpkd.vercel.app', 'https://nescafeiitpkd.vercel.app', 'https://nescafe.iitpkd.ac.in'].includes(origin);
         if (allowed) {
             callback(null, true);
         } else {
