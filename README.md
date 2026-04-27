@@ -184,67 +184,89 @@ sequenceDiagram
 ```mermaid
 erDiagram
 
-    PROFILES {
+    USERS {
         uuid id PK
-        varchar full_name
-        varchar email
-        varchar role "admin | customer"
+        text name
+        text email
+        text phone
+        boolean phone_verified
+        text role "student | faculty | staff | admin"
+        text hostel
         timestamp created_at
     }
 
     ITEMS {
-        int id PK
-        varchar name
+        uuid id PK
+        text name
         text description
         decimal price
-        varchar category
-        int stock_quantity
+        text category
+        text image
+        boolean is_veg
+        text badge
         boolean is_available
-        varchar image_url
+        integer stock_quantity
+        timestamp created_at
     }
 
     ORDERS {
-        int id PK
+        uuid id PK
         uuid user_id FK
         decimal total_amount
-        varchar status "pending | preparing | ready | delivered"
-        varchar payment_method "cod_upi | cod_cash | razorpay"
-        varchar order_mode "pickup | delivery"
-        jsonb hostel_details
-        varchar razorpay_order_id
+        text status "preparing | ready | delivered | cancelled"
+        text order_mode "pickup | delivery"
+        text hostel_block
+        text payment_status "pending | paid | failed"
+        text razorpay_order_id
+        text razorpay_payment_id
         timestamp created_at
     }
 
     ORDER_ITEMS {
-        int id PK
-        int order_id FK
-        int item_id FK
-        int quantity
-        decimal price_at_time
-        varchar variant
+        uuid id PK
+        uuid order_id FK
+        text item_id
+        text name
+        integer quantity
+        decimal price
+        text variant
         jsonb customization
     }
 
-    SETTINGS {
-        varchar key PK
-        varchar value
-        timestamp updated_at
+    ADMINS {
+        uuid id PK
+        uuid user_id FK
+        timestamp created_at
     }
 
-    PROFILES ||--o{ ORDERS : places
+    PHONE_OTPS {
+        uuid id PK
+        text phone
+        text otp
+        timestamp expires_at
+        timestamp created_at
+    }
+
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ ADMINS : authorized_as
     ORDERS ||--|{ ORDER_ITEMS : contains
-    ITEMS ||--o{ ORDER_ITEMS : ordered_in
 ```
 
 ---
 
 ### Core Tables
 
+**`public.users`**
+The central identity table, extending Supabase Auth. It stores student/staff metadata including `hostel` and `phone` details. It is protected by strict RLS policies to ensure privacy.
+
 **`public.items`**
 Drives the menu. The `is_available` boolean allows instant toggling without deletion. Stock quantities are indexed for fast reads during peak ordering. Prices are now editable directly through the admin dashboard.
 
 **`public.orders`**
 The central record of every transaction. Supports both active payment methods (`cod_upi`, `cod_cash`) and the legacy `razorpay` mode. Status flows through a defined enum: `pending → preparing → ready → delivered → cancelled`. Each order is linked to `auth.users` for per-student order history.
+
+**`public.admins`**
+A security-critical lookup table. Users listed here are granted "superuser" permissions across the API and Database. The `is_admin()` SQL function queries this table to authorize destructive mutations or global order visibility.
 
 ---
 
