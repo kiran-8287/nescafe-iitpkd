@@ -23,29 +23,62 @@ const Menu = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [flyingItems, setFlyingItems] = useState([]);
+  const [preparingCount, setPreparingCount] = useState(0);
+  const [isCafeOpen, setIsCafeOpen] = useState(true);
 
   const categoryContainerRef = useRef(null);
   const categories = ['Tea and Coffee', 'Cold Beverages', 'Maggie', 'Sandwich'];
 
   useEffect(() => {
-    fetchItems();
-
     // Real-time subscription: auto-refresh when admin toggles availability
-    const subscription = supabase
+    const itemsSub = supabase
       .channel('menu-items-live')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'items' }, () => {
         fetchItems();
       })
       .subscribe();
 
-    // Polling fallback: Every 30 seconds in case WebSockets are blocked by carrier
-    const pollInterval = setInterval(fetchItems, 30000);
+    // Café Status Subscription
+    const settingsSub = supabase
+      .channel('settings-live')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, (payload) => {
+        if (payload.new.key === 'cafe_open') setIsCafeOpen(payload.new.value === 'true');
+      })
+      .subscribe();
+
+    // Fetch initial state
+    fetchItems();
+    checkCafeStatus();
+    fetchPreparingCount();
+
+    // Polling fallback: Every 30 seconds
+    const pollInterval = setInterval(() => {
+      fetchItems();
+      fetchPreparingCount();
+      checkCafeStatus();
+    }, 30000);
 
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(itemsSub);
+      supabase.removeChannel(settingsSub);
       clearInterval(pollInterval);
     };
   }, []);
+
+
+
+  const checkCafeStatus = async () => {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'cafe_open').maybeSingle();
+    if (data) setIsCafeOpen(data.value === 'true');
+  };
+
+  const fetchPreparingCount = async () => {
+    const { count } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'preparing');
+    setPreparingCount(count || 0);
+  };
 
   const fetchItems = async () => {
     try {
@@ -256,7 +289,45 @@ const Menu = () => {
         ))}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {!isCafeOpen && (
+        <div className="fixed inset-0 z-[100] bg-[#3E2723]/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center">
+            <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="max-w-sm"
+            >
+                <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                    <Clock size={40} className="text-[#D4AF37]" />
+                    <motion.div 
+                        animate={{ opacity: [1, 0.4, 1] }} 
+                        transition={{ repeat: Infinity, duration: 2 }}
+                        className="absolute inset-0 rounded-full border-2 border-[#D4AF37]"
+                    />
+                </div>
+                <h2 className="text-4xl font-black text-white mb-4 font-serif">We're Closed.</h2>
+                <p className="text-white/60 mb-8 font-medium">The café is currently closed for a break or at capacity. We'll be back brewing shortly!</p>
+                <button 
+                   onClick={() => navigate('/dashboard')}
+                   className="w-full bg-[#D4AF37] text-[#3E2723] py-4 rounded-2xl font-black shadow-xl"
+                >
+                    Back to Safety
+                </button>
+            </motion.div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        {preparingCount > 15 && (
+            <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold px-4 py-3 rounded-2xl text-center mb-8 flex items-center justify-center gap-2 shadow-sm"
+            >
+                <Flame size={14} className="text-amber-600 animate-pulse" />
+                <span>Peak hour — {preparingCount} orders in queue. Expect ~{Math.ceil(preparingCount * 3)} min wait.</span>
+            </motion.div>
+        )}
+
         <div className="text-center mb-8">
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-[#3E2723] mb-3">
             Choose Your Vibes

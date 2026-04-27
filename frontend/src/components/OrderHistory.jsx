@@ -110,7 +110,8 @@ const OrderHistory = () => {
                 price: item.price,
                 selectedVariant: item.variant,
                 customization: item.customization || [],
-                quantity: item.quantity
+                quantity: item.quantity,
+                image: item.image_url // Added for cart thumbnail compatibility
             });
         });
 

@@ -75,6 +75,20 @@ const CartDrawer = () => {
         setIsSubmitting(true);
         const loadingToast = toast.loading("Verifying stock availability...");
 
+        // Ensure the JWT is fresh before making payment API calls.
+        // Sessions open for hours can have tokens within minutes of expiry.
+        let freshAccessToken = session?.access_token;
+        try {
+            const expiresAt = session?.expires_at; // unix timestamp
+            if (expiresAt && (expiresAt - Math.floor(Date.now() / 1000)) < 300) {
+                const { data: refreshed } = await supabase.auth.refreshSession();
+                freshAccessToken = refreshed?.session?.access_token || freshAccessToken;
+            }
+        } catch (refreshErr) {
+            // Non-fatal — proceed with existing token; worst case the API returns 401
+            console.warn('Token refresh skipped:', refreshErr.message);
+        }
+
         try {
             // 0. Pre-checkout stock validation
             const itemIds = [...new Set(cartItems.map(item => item.id))];
@@ -125,7 +139,7 @@ const CartDrawer = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.access_token}`
+                    'Authorization': `Bearer ${freshAccessToken}`
                 },
                 body: JSON.stringify({
                     items: cartItems,
@@ -155,7 +169,7 @@ const CartDrawer = () => {
 
             // 2. Open Razorpay Checkout
             const options = {
-                key: 'rzp_test_SJXFLQKiQL5sor', // Public Key ID
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: razorpayOrder.amount,
                 currency: razorpayOrder.currency,
                 name: "Nescafe IITPKD",
@@ -172,7 +186,7 @@ const CartDrawer = () => {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${session?.access_token}`
+                                'Authorization': `Bearer ${freshAccessToken}`
                             },
                             body: JSON.stringify({
                                 razorpay_order_id: response.razorpay_order_id,

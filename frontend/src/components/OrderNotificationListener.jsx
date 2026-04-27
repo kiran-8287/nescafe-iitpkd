@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,9 +11,14 @@ const OrderNotificationListener = () => {
     const [deliveredOrder, setDeliveredOrder] = useState(null);
     const { permission, requestPermission, sendNotification } = usePushNotifications();
 
-    // Keep a ref of shown order IDs so we don't re-show on re-renders
-    const shownReadyIds = useRef(new Set());
-    const shownDeliveredIds = useRef(new Set());
+    // Use sessionStorage so dismissed banners don't reappear after navigation/remount.
+    // useRef resets on every remount; sessionStorage persists for the browser session.
+    const getShownIds = (key) => new Set(JSON.parse(sessionStorage.getItem(key) || '[]'));
+    const addShownId = (key, id) => {
+        const set = getShownIds(key);
+        set.add(id);
+        sessionStorage.setItem(key, JSON.stringify([...set]));
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -31,8 +36,8 @@ const OrderNotificationListener = () => {
 
                 if (error || !data) return;
 
-                if (!shownReadyIds.current.has(data.id)) {
-                    shownReadyIds.current.add(data.id);
+                if (!getShownIds('shownReadyIds').has(data.id)) {
+                    addShownId('shownReadyIds', data.id);
                     setReadyOrder(data);
                     playNotificationSound();
                     sendNotification(
@@ -59,10 +64,10 @@ const OrderNotificationListener = () => {
 
                 // Order became READY
                 if (newOrder.status === 'ready' && oldOrder.status !== 'ready') {
-                    if (!shownReadyIds.current.has(newOrder.id)) {
-                        shownReadyIds.current.add(newOrder.id);
+                    if (!getShownIds('shownReadyIds').has(newOrder.id)) {
+                        addShownId('shownReadyIds', newOrder.id);
                         setReadyOrder(newOrder);
-                        setDeliveredOrder(null); // clear any prior delivered banner
+                        setDeliveredOrder(null);
                         playNotificationSound();
                         sendNotification(
                             '☕ Your order is ready!',
@@ -75,9 +80,9 @@ const OrderNotificationListener = () => {
 
                 // Order DELIVERED
                 if (newOrder.status === 'delivered' && oldOrder.status !== 'delivered') {
-                    if (!shownDeliveredIds.current.has(newOrder.id)) {
-                        shownDeliveredIds.current.add(newOrder.id);
-                        setReadyOrder(null); // dismiss the "ready" banner if still showing
+                    if (!getShownIds('shownDeliveredIds').has(newOrder.id)) {
+                        addShownId('shownDeliveredIds', newOrder.id);
+                        setReadyOrder(null);
                         setDeliveredOrder(newOrder);
                         playNotificationSound();
                         sendNotification(
@@ -86,7 +91,6 @@ const OrderNotificationListener = () => {
                             '/favicon.ico',
                             `order-delivered-${newOrder.id}`
                         );
-                        // Auto-dismiss delivered banner after 8 seconds
                         setTimeout(() => setDeliveredOrder(null), 8000);
                     }
                 }

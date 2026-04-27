@@ -210,8 +210,7 @@ const Dashboard = () => {
                                                     type="tel"
                                                     value={formData.phone}
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    disabled={!!profile?.phone}
-                                                    className={`w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all ${profile?.phone ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                    className="w-full bg-gray-50/50 border border-gray-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold text-[#3E2723] focus:bg-white focus:border-[#D4AF37] focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
                                                     placeholder="Mobile Number"
                                                     maxLength={10}
                                                 />

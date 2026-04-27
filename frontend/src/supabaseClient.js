@@ -31,7 +31,4 @@ if (!IS_LOCAL && supabase.realtime) {
     supabase.realtime.url = REALTIME_URL;
 }
 
-// Expose for console testing
-if (typeof window !== 'undefined') {
-    window.supabase = supabase;
-}
+// Note: window.supabase removed — never expose authenticated clients globally.

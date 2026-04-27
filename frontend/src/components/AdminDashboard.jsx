@@ -21,7 +21,8 @@ import {
     Bell,
     BellOff,
     ExternalLink,
-    X
+    X,
+    XCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import usePushNotifications from '../hooks/usePushNotifications';
@@ -40,7 +41,8 @@ const STATUS_CONFIG = {
 const STATS_CARDS = [
     { key: 'total', label: 'Total Orders', icon: ShoppingBag, color: 'text-gray-600', bg: 'bg-gray-100' },
     { key: 'preparing', label: 'Preparing', icon: ChefHat, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { key: 'ready', label: 'Ready', icon: Package, color: 'text-purple-600', bg: 'bg-purple-50' }
+    { key: 'ready', label: 'Ready', icon: Package, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { key: 'cancelled', label: 'Cancelled', icon: XCircle, color: 'text-red-500', bg: 'bg-red-50' },
 ];
 
 const AdminDashboard = () => {
@@ -53,6 +55,7 @@ const AdminDashboard = () => {
     const [menuSearchTerm, setMenuSearchTerm] = useState('');
     const [timeRange, setTimeRange] = useState('today'); // '6h', 'today', '7d', '30d', 'all'
     const [orderSearchQuery, setOrderSearchQuery] = useState('');
+    const [cafeOpen, setCafeOpen] = useState(true);
     const { sendNotification } = usePushNotifications();
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const notificationsEnabledRef = useRef(false); // ref mirrors state so realtime closure always reads current value
@@ -63,6 +66,8 @@ const AdminDashboard = () => {
     });
     const [orderViewMode, setOrderViewMode] = useState('individual'); // 'individual' or 'batches'
     const [rpcErrors, setRpcErrors] = useState(null);
+    // Track whether analytics was ever fetched so we don't refetch on every tab switch
+    const analyticsLoadedRef = useRef(false);
 
     const groupedDeliveryBatches = orders.reduce((acc, order) => {
         if (order.order_mode === 'delivery' && order.status !== 'delivered' && order.status !== 'cancelled') {
@@ -89,28 +94,73 @@ const AdminDashboard = () => {
 
         if (activeTab === 'orders') fetchOrders();
         if (activeTab === 'menu') fetchItems();
-        if (activeTab === 'analytics') fetchAnalytics();
+        if (activeTab === 'analytics' && !analyticsLoadedRef.current) {
+            fetchAnalytics();
+            analyticsLoadedRef.current = true;
+        }
 
-        // Real-time subscription for orders
+        // Real-time subscription for orders — incremental updates, no full refetch
         const ordersSubscription = supabase
             .channel('orders-channel')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
-                // console.log('Real-time order change detected:', payload); // Debug only
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async (payload) => {
 
-                // Trigger browser notification for NEW orders (use ref to avoid stale closure)
-                if (payload.eventType === 'INSERT' && notificationsEnabledRef.current) {
-                    sendNotification('☕ New Order Received!', `Order #${payload.new.id.slice(0, 4)} from ${payload.new.hostel_block || 'Pickup'}`);
+                if (payload.eventType === 'INSERT') {
+                    // New order: fetch just this one order with its joins
+                    const { data: newOrder } = await supabase
+                        .from('orders')
+                        .select('*, users!orders_user_id_fkey (name, email), order_items (*)')
+                        .eq('id', payload.new.id)
+                        .single();
+
+                    if (newOrder) {
+                        setOrders(prev => {
+                            // Deduplicate: don't add if it already exists from a recent fetch
+                            if (prev.some(o => o.id === newOrder.id)) return prev;
+                            return [newOrder, ...prev];
+                        });
+                    }
+
+                    // Notify staff of new order (use ref to avoid stale closure)
+                    if (notificationsEnabledRef.current) {
+                        sendNotification(
+                            '☕ New Order Received!',
+                            `Order #${payload.new.id.slice(0, 4)} from ${payload.new.hostel_block || 'Pickup'}`
+                        );
+                    }
                 }
 
-                // Only re-fetch if we are in "today" or "6h" mode to keep live updates fresh
-                if (timeRange === 'today' || timeRange === '6h') {
-                    fetchOrders();
+                if (payload.eventType === 'UPDATE') {
+                    // Status change: patch only the affected order in local state — no DB call needed
+                    setOrders(prev => prev.map(o =>
+                        o.id === payload.new.id ? { ...o, ...payload.new } : o
+                    ));
                 }
+
+                if (payload.eventType === 'DELETE') {
+                    setOrders(prev => prev.filter(o => o.id !== payload.old.id));
+                }
+
+                // Refresh analytics counts when on analytics tab
                 if (activeTab === 'analytics') fetchAnalytics();
             })
-            .subscribe((status) => {
-                // console.log('Orders subscription status:', status); // Debug only
-            });
+            .subscribe();
+
+        // ── Real-time subscription for settings (Café Status) ──
+        const settingsSubscription = supabase
+            .channel('settings-channel')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, (payload) => {
+                if (payload.new.key === 'cafe_open') {
+                    setCafeOpen(payload.new.value === 'true');
+                }
+            })
+            .subscribe();
+
+        // Fetch initial café status
+        const fetchSettings = async () => {
+            const { data } = await supabase.from('settings').select('*').eq('key', 'cafe_open').maybeSingle();
+            if (data) setCafeOpen(data.value === 'true');
+        };
+        fetchSettings();
 
         // Real-time subscription for items
         const itemsSubscription = supabase
@@ -132,6 +182,7 @@ const AdminDashboard = () => {
         return () => {
             supabase.removeChannel(ordersSubscription);
             supabase.removeChannel(itemsSubscription);
+            supabase.removeChannel(settingsSubscription);
             clearInterval(pollInterval);
         };
     }, [timeRange, activeTab]); // Refresh when time range or tab changes
@@ -311,16 +362,29 @@ const AdminDashboard = () => {
 
             if (error) throw error;
             toast.success(`Order marked as ${newStatus}`);
-
-            // Refresh analytics to reflect the change (especially if marked Delivered/Cancelled)
-            fetchAnalytics();
-
-
         } catch (error) {
             console.error('Error updating status:', error);
             toast.error('Failed to update status');
             // Revert on error by restoring old orders
             setOrders(oldOrders);
+        }
+    };
+
+    const toggleCafeStatus = async () => {
+        const loadingToast = toast.loading(`${cafeOpen ? 'Closing' : 'Opening'} café...`);
+        try {
+            const newVal = !cafeOpen ? 'true' : 'false';
+            const { error } = await supabase
+                .from('settings')
+                .update({ value: newVal })
+                .eq('key', 'cafe_open');
+
+            if (error) throw error;
+            setCafeOpen(!cafeOpen);
+            toast.success(`Café is now ${!cafeOpen ? 'OPEN' : 'CLOSED'}`, { id: loadingToast });
+        } catch (error) {
+            console.error('Error toggling café status:', error);
+            toast.error('Failed to change café status', { id: loadingToast });
         }
     };
 
@@ -388,13 +452,12 @@ const AdminDashboard = () => {
             ? orders
             : orders.filter(o => o.status === filterStatus));
 
-    const getStats = () => {
-        return {
-            total: orders.length,
-            preparing: orders.filter(o => o.status === 'preparing').length,
-            ready: orders.filter(o => o.status === 'ready').length
-        };
-    };
+    const getStats = () => ({
+        total: orders.length,
+        preparing: orders.filter(o => o.status === 'preparing').length,
+        ready: orders.filter(o => o.status === 'ready').length,
+        cancelled: orders.filter(o => o.status === 'cancelled').length,
+    });
 
     const stats = getStats();
 
@@ -433,13 +496,27 @@ const AdminDashboard = () => {
                             </button>
                         </div>
 
-                        <button
-                            onClick={requestNotificationPermission}
-                            className={`p-2.5 rounded-2xl border flex items-center justify-center transition-all ${notificationsEnabled ? 'border-green-100 bg-green-50 text-green-600' : 'border-gray-100 bg-white text-gray-400 hover:text-[#3E2723]'} shadow-sm flex-shrink-0`}
-                            title={notificationsEnabled ? 'Notifications Enabled' : 'Enable New Order Alerts'}
-                        >
-                            {notificationsEnabled ? <Bell size={18} /> : <BellOff size={18} />}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={toggleCafeStatus}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm border ${
+                                    cafeOpen 
+                                    ? 'bg-green-50 border-green-100 text-green-700 hover:bg-green-100' 
+                                    : 'bg-red-50 border-red-100 text-red-700 hover:bg-red-100'
+                                }`}
+                            >
+                                <div className={`w-2 h-2 rounded-full ${cafeOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                Café: {cafeOpen ? 'Open' : 'Closed'}
+                            </button>
+
+                            <button
+                                onClick={requestNotificationPermission}
+                                className={`p-2.5 rounded-2xl border flex items-center justify-center transition-all ${notificationsEnabled ? 'border-green-100 bg-green-50 text-green-600' : 'border-gray-100 bg-white text-gray-400 hover:text-[#3E2723]'} shadow-sm flex-shrink-0`}
+                                title={notificationsEnabled ? 'Notifications Enabled' : 'Enable New Order Alerts'}
+                            >
+                                {notificationsEnabled ? <Bell size={18} /> : <BellOff size={18} />}
+                            </button>
+                        </div>
                     </div>
                 </div>
 

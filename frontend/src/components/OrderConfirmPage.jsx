@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, MapPin, Clock } from 'lucide-react';
+import { Check, ArrowRight, MapPin, Clock, Users } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../supabaseClient';
@@ -13,71 +13,12 @@ const OrderConfirmPage = () => {
     const location = useLocation();
     const [order, setOrder] = React.useState(null);
     const [loading, setLoading] = React.useState(true);
+    const [queueInfo, setQueueInfo] = React.useState(null);
 
-    // Get State from navigation
     const { orderId, orderMode: initialMode, hostelDetails: initialHostel } = location.state || {};
 
-    useEffect(() => {
-        // Clear cart on mount
-        clearCart();
-
-        if (orderId) {
-            fetchOrder();
-            // Subscribe to status changes
-            const subscription = supabase
-                .channel(`order-${orderId}`)
-                .on('postgres_changes', {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'orders',
-                    filter: `id=eq.${orderId}`
-                }, (payload) => {
-                    setOrder(payload.new);
-                    toast.success(`Order Status: ${payload.new.status.toUpperCase()}!`, { icon: '☕' });
-                })
-                .subscribe();
-
-            // Polling fallback: Every 15 seconds
-            const pollInterval = setInterval(fetchOrder, 15000);
-
-            return () => {
-                supabase.removeChannel(subscription);
-                clearInterval(pollInterval);
-            };
-        }
-
-        // Trigger Confetti
-        const duration = 2000;
-        const end = Date.now() + duration;
-
-        const frame = () => {
-            confetti({
-                particleCount: 2,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: ['#3E2723', '#D4AF37', '#FFF8E1']
-            });
-            confetti({
-                particleCount: 2,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: ['#3E2723', '#D4AF37', '#FFF8E1']
-            });
-
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        };
-        frame();
-
-        // Haptic
-        if (navigator.vibrate) try { navigator.vibrate([10, 50, 10]); } catch (e) { }
-
-    }, [orderId]);
-
     const fetchOrder = async () => {
+        if (!orderId) return;
         try {
             const { data, error } = await supabase
                 .from('orders')
@@ -93,9 +34,96 @@ const OrderConfirmPage = () => {
         }
     };
 
+    const fetchQueuePosition = async () => {
+        if (!orderId) return;
+        try {
+            const { data } = await supabase.rpc('get_queue_position', { p_order_id: orderId });
+            if (data) setQueueInfo(data);
+        } catch (e) {
+            // Non-fatal — queue position is nice-to-have
+            console.warn('Queue position fetch failed:', e);
+        }
+    };
+
+    useEffect(() => {
+        clearCart();
+
+        if (!orderId) {
+            setLoading(false);
+            return;
+        }
+
+        fetchOrder();
+        fetchQueuePosition();
+
+        // Subscribe to order status changes
+        const subscription = supabase
+            .channel(`order-${orderId}`)
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'orders',
+                filter: `id=eq.${orderId}`
+            }, (payload) => {
+                setOrder(payload.new);
+                toast.success(`Order Status: ${payload.new.status.toUpperCase()}!`, { icon: '☕' });
+                // Clear queue position once ready — no longer relevant
+                if (payload.new.status !== 'preparing') {
+                    setQueueInfo(null);
+                } else {
+                    // Refresh position whenever status updates while still preparing
+                    fetchQueuePosition();
+                }
+            })
+            .subscribe();
+
+        // Polling fallback: every 15 seconds
+        const pollInterval = setInterval(() => {
+            fetchOrder();
+            if (order?.status === 'preparing') fetchQueuePosition();
+        }, 15000);
+
+        // Confetti
+        const duration = 2000;
+        const end = Date.now() + duration;
+        const frame = () => {
+            confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#3E2723', '#D4AF37', '#FFF8E1'] });
+            confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#3E2723', '#D4AF37', '#FFF8E1'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        };
+        frame();
+
+        if (navigator.vibrate) try { navigator.vibrate([10, 50, 10]); } catch (e) { }
+
+        return () => {
+            supabase.removeChannel(subscription);
+            clearInterval(pollInterval);
+        };
+    }, [orderId]);
+
+    // Derived wait time: prefer live queue estimate, fall back to mode-based hint
+    const waitTimeLabel = queueInfo
+        ? `~${Math.ceil(queueInfo.estimated_wait_seconds / 60)} min`
+        : (initialMode === 'delivery' ? '~20 min' : '~10 min');
+
     return (
         <div className="min-h-screen bg-[#3E2723] text-[#FAF6F1] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden font-sans">
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#5D4037 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+            {/* Missing state warning */}
+            {!orderId && !loading && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-amber-50 border border-amber-300 text-amber-900 rounded-2xl p-6 max-w-sm mb-8 z-10 relative"
+                >
+                    <p className="font-bold mb-2">Something went wrong during checkout.</p>
+                    <p className="text-sm">If you were charged, your order will appear in Order History within a few minutes. If it doesn't appear, please contact the café staff.</p>
+                    <Link to="/orders" className="mt-4 inline-block bg-amber-500 text-white px-6 py-2 rounded-xl font-bold text-sm">
+                        View Order History
+                    </Link>
+                </motion.div>
+            )}
 
             <div className="relative mb-8 z-10">
                 <motion.div
@@ -156,35 +184,53 @@ const OrderConfirmPage = () => {
                 transition={{ delay: 0.7 }}
                 className="bg-white/10 backdrop-blur-md rounded-2xl p-6 w-full max-w-sm mb-8 border border-white/10"
             >
+                {/* Order ID */}
                 <div className="flex justify-between mb-4 pb-4 border-b border-white/10">
                     <span className="text-white/60 text-sm font-bold uppercase tracking-wider">Order ID</span>
                     <span className="font-mono font-black text-[#D4AF37]">#{orderId?.slice(0, 8).toUpperCase() || 'N/A'}</span>
                 </div>
 
+                {/* Status */}
                 <div className="flex justify-between mb-4 pb-4 border-b border-white/10">
                     <span className="text-white/60 text-sm font-bold uppercase tracking-wider">Status</span>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${order?.status === 'ready' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]' :
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        order?.status === 'ready' ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]' :
                         order?.status === 'delivered' ? 'bg-green-500 text-white' :
-                            'bg-blue-500 text-white animate-pulse'
-                        }`}>
+                        'bg-blue-500 text-white animate-pulse'
+                    }`}>
                         {order?.status || 'Processing'}
                     </span>
                 </div>
 
                 <div className="flex flex-col gap-4">
+                    {/* Live Queue Position — only show while preparing */}
+                    {queueInfo && order?.status === 'preparing' && (
+                        <div className="flex justify-between items-center pb-4 border-b border-white/10">
+                            <span className="text-white/60 text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                                <Users size={16} /> Queue Position
+                            </span>
+                            <div className="text-right">
+                                <span className="font-black text-[#D4AF37] text-lg">#{queueInfo.position}</span>
+                                <p className="text-white/40 text-[10px] font-bold uppercase tracking-wider">in queue</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Estimated Wait Time */}
                     <div className="flex justify-between items-center">
-                        <span className="text-white/60 text-sm font-bold flex items-center gap-2 uppercase tracking-wider"><Clock size={16} /> Est. Time</span>
-                        <span className="font-black text-[#D4AF37]">
-                            {initialMode === 'delivery' ? '~20-30 mins' : '~10-15 mins'}
+                        <span className="text-white/60 text-sm font-bold flex items-center gap-2 uppercase tracking-wider">
+                            <Clock size={16} /> Est. Wait
                         </span>
+                        <span className="font-black text-[#D4AF37]">{waitTimeLabel}</span>
                     </div>
 
+                    {/* Delivery destination */}
                     {initialMode === 'delivery' && initialHostel && (
-                        <div className="flex justify-between items-start text-left">
-                            <span className="text-white/60 text-sm font-bold flex items-center gap-2 shrink-0 uppercase tracking-wider"><MapPin size={16} /> Delivering To</span>
-                            <span className="font-black text-white text-right text-sm">
-                                {initialHostel.block}
+                        <div className="flex justify-between items-start text-left border-t border-white/10 pt-4">
+                            <span className="text-white/60 text-sm font-bold flex items-center gap-2 shrink-0 uppercase tracking-wider">
+                                <MapPin size={16} /> Delivering To
                             </span>
+                            <span className="font-black text-white text-right text-sm">{initialHostel.block}</span>
                         </div>
                     )}
                 </div>

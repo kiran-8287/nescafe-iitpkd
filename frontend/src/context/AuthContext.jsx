@@ -18,14 +18,10 @@ export const AuthProvider = ({ children }) => {
     const [profile, setProfile] = useState(null);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-    // Initialize isAdmin from localStorage if available to prevent flickering
-    const [isAdmin, setIsAdmin] = useState(() => {
-        try {
-            return localStorage.getItem('nescafe_is_admin') === 'true';
-        } catch {
-            return false;
-        }
-    });
+    // Always start false — set only after DB confirms admin status.
+    // Do NOT read from localStorage here — that's a privilege escalation vector.
+    // The DB check is fast (<500ms) and localStorage still caches for future sessions.
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         let mounted = true;
