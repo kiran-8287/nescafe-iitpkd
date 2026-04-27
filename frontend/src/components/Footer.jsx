@@ -95,10 +95,16 @@ const Footer = () => {
            // Made with a bit of code and a lots of ☕.
           </p>
           <div className="flex space-x-4 sm:space-x-6 text-xs sm:text-sm">
-            <button className="text-[#FFF8E1] hover:text-[#D4AF37] transition-colors">
+            <button 
+              onClick={() => navigate('/privacy')}
+              className="text-[#FFF8E1] hover:text-[#D4AF37] transition-colors"
+            >
               Privacy Policy
             </button>
-            <button className="text-[#FFF8E1] hover:text-[#D4AF37] transition-colors">
+            <button 
+              onClick={() => navigate('/terms')}
+              className="text-[#FFF8E1] hover:text-[#D4AF37] transition-colors"
+            >
               Terms of Service
             </button>
           </div>

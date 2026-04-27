@@ -28,6 +28,8 @@ import Dashboard from "./components/Dashboard";
 import VerifyEmail from "./components/VerifyEmail";
 const OrderHistory = React.lazy(() => import("./components/OrderHistory"));
 const AdminDashboard = React.lazy(() => import("./components/AdminDashboard"));
+const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
+const TermsOfService = React.lazy(() => import("./components/TermsOfService"));
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
@@ -155,6 +157,8 @@ const AppContent = ({ isLoading, setIsLoading }) => {
                                 <AdminDashboard />
                             </ProtectedRoute>
                         } />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/terms" element={<TermsOfService />} />
                     </Routes>
                 </React.Suspense>
 

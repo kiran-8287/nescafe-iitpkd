@@ -314,6 +314,13 @@ const SignUpPage = () => {
                         </button>
                     </form>
 
+                    <p className="text-[10px] sm:text-xs text-gray-400 text-center px-2">
+                        By creating an account, you agree to our{' '}
+                        <Link to="/terms" className="text-[#3E2723] font-bold hover:underline">Terms of Service</Link>
+                        {' '}and{' '}
+                        <Link to="/privacy" className="text-[#3E2723] font-bold hover:underline">Privacy Policy</Link>.
+                    </p>
+
                     <p className="text-center text-sm text-gray-400">
                         Already have an account?{' '}
                         <Link to="/login" className="font-bold text-[#3E2723] hover:text-[#D4AF37] transition-colors">
