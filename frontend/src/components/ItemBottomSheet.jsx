@@ -83,7 +83,7 @@ const DetailContent = ({
     </div>
 );
 
-const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
+const ItemBottomSheet = ({ item, isOpen, onClose, isCafeOpen = true, allItems = [] }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { addItem, cartItems } = useCart();
@@ -164,6 +164,14 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
     };
 
     const handleAddToCart = (e, targetItem, targetQty = 1, isUpsell = false) => {
+        if (!isCafeOpen) {
+            toast.error("Café is closed. Please order between 9:30 AM - 11:00 PM!", {
+                icon: '🌙',
+                style: { borderRadius: '16px', background: '#3E2723', color: '#fff' }
+            });
+            return;
+        }
+
         if (!user) {
             toast((t) => (
                 <div className="flex flex-col gap-3 p-1 font-sans">
@@ -313,12 +321,12 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                 {/* Add to cart */}
                                 <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
                                     <button
-                                        onClick={(e) => remainingStock > 0 && handleAddToCart(e, item, qty)}
-                                        disabled={remainingStock <= 0}
-                                        className={`w-full h-12 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all ${remainingStock > 0 ? 'bg-[#3E2723] text-white hover:bg-[#5D4037]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                        onClick={(e) => remainingStock > 0 && isCafeOpen && handleAddToCart(e, item, qty)}
+                                        disabled={remainingStock <= 0 || !isCafeOpen}
+                                        className={`w-full h-12 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all ${remainingStock > 0 && isCafeOpen ? 'bg-[#3E2723] text-white hover:bg-[#5D4037]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                     >
                                         <ShoppingCart size={17} />
-                                        {remainingStock > 0 ? `Add to Cart · ₹${calculatePrice()}` : 'Out of Stock'}
+                                        {!isCafeOpen ? 'Café Closed' : remainingStock > 0 ? `Add to Cart · ₹${calculatePrice()}` : 'Out of Stock'}
                                     </button>
                                 </div>
                             </div>
@@ -396,11 +404,11 @@ const ItemBottomSheet = ({ item, isOpen, onClose, allItems = [] }) => {
                                     </button>
                                 </div>
                                 <button
-                                    onClick={(e) => remainingStock > 0 && handleAddToCart(e, item, qty)}
-                                    disabled={remainingStock <= 0}
-                                    className={`flex-1 h-[52px] rounded-2xl font-bold text-base flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all ${remainingStock > 0 ? 'bg-[#3E2723] text-white hover:bg-[#5D4037]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+                                    onClick={(e) => remainingStock > 0 && isCafeOpen && handleAddToCart(e, item, qty)}
+                                    disabled={remainingStock <= 0 || !isCafeOpen}
+                                    className={`flex-1 h-[52px] rounded-2xl font-bold text-base flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-all ${remainingStock > 0 && isCafeOpen ? 'bg-[#3E2723] text-white hover:bg-[#5D4037]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                                     <ShoppingCart size={20} />
-                                    {remainingStock > 0 ? `Add to Cart · ₹${calculatePrice()}` : 'Out of Stock'}
+                                    {!isCafeOpen ? 'Café Closed' : remainingStock > 0 ? `Add to Cart · ₹${calculatePrice()}` : 'Out of Stock'}
                                 </button>
                             </div>
                         </div>

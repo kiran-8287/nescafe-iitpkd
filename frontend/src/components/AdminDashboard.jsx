@@ -377,8 +377,7 @@ const AdminDashboard = () => {
             const newVal = !cafeOpen ? 'true' : 'false';
             const { error } = await supabase
                 .from('settings')
-                .update({ value: newVal })
-                .eq('key', 'cafe_open');
+                .upsert({ key: 'cafe_open', value: newVal }, { onConflict: 'key' });
 
             if (error) throw error;
             setCafeOpen(!cafeOpen);
@@ -502,7 +501,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-8 pt-24 md:pt-28 font-sans">
-            <header className="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <header className="max-w-6xl mx-auto mb-8 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-[#3E2723]">Nescafe Command Center</h1>
                     <div className="flex items-center gap-1.5 md:gap-4 overflow-x-auto py-1 scrollbar-hide">
@@ -557,7 +556,7 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
                     {activeTab === 'orders' ? (
                         <>
                             {/* Search Bar */}
@@ -574,7 +573,7 @@ const AdminDashboard = () => {
                                             if (e.target.value === '') fetchOrders();
                                         }}
                                         onKeyDown={(e) => e.key === 'Enter' && fetchOrders()}
-                                        className="pl-9 pr-10 py-2.5 w-full md:w-64 rounded-xl border border-gray-100 shadow-sm text-xs font-bold text-[#3E2723] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all placeholder:text-gray-300"
+                                        className="pl-9 pr-10 py-2.5 w-full sm:w-48 xl:w-64 rounded-xl border border-gray-100 shadow-sm text-xs font-bold text-[#3E2723] focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:border-transparent transition-all placeholder:text-gray-300"
                                     />
                                     {orderSearchQuery && (
                                         <button
@@ -609,7 +608,7 @@ const AdminDashboard = () => {
 
                             {/* Grouping Status and View Mode to stack vertically */}
                             <div className="flex flex-col gap-2">
-                                <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto gap-1">
+                                <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto gap-1 scrollbar-hide">
                                     {['all', 'preparing', 'ready', 'delivered'].map((status) => (
                                         <button
                                             key={status}
@@ -656,7 +655,7 @@ const AdminDashboard = () => {
 
             {/* Stats Overview Bar */}
             {activeTab === 'orders' && (
-                <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     {STATS_CARDS.map((card) => (
                         <div key={card.key} className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
                             <div className={`p-3 rounded-2xl ${card.bg} ${card.color}`}>

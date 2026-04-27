@@ -31,6 +31,7 @@ const FullMenu = ({ onBack }) => {
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [flyingItems, setFlyingItems] = useState([]);
+    const [isCafeOpen, setIsCafeOpen] = useState(true);
 
     const categoryContainerRef = useRef(null);
     const categories = ['Tea and Coffee', 'Cold Beverages', 'Maggie', 'Sandwich'];
@@ -46,11 +47,30 @@ const FullMenu = ({ onBack }) => {
             })
             .subscribe();
 
+        // Café Status Subscription
+        const settingsSub = supabase
+            .channel('fullmenu-settings-live')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, (payload) => {
+                if (payload.new.key === 'cafe_open') setIsCafeOpen(payload.new.value === 'true');
+            })
+            .subscribe();
+
+        // Initial fetch
+        const checkCafeStatus = async () => {
+            const { data } = await supabase.from('settings').select('value').eq('key', 'cafe_open').maybeSingle();
+            if (data) setIsCafeOpen(data.value === 'true');
+        };
+        checkCafeStatus();
+
         // Polling fallback: Every 30 seconds in case WebSockets are blocked by carrier
-        const pollInterval = setInterval(fetchItems, 30000);
+        const pollInterval = setInterval(() => {
+            fetchItems();
+            checkCafeStatus();
+        }, 30000);
 
         return () => {
             supabase.removeChannel(subscription);
+            supabase.removeChannel(settingsSub);
             clearInterval(pollInterval);
         };
     }, []);
@@ -157,6 +177,14 @@ const FullMenu = ({ onBack }) => {
 
     const handleUpdateQty = (e, item, newQty) => {
         e.stopPropagation();
+
+        if (!isCafeOpen) {
+            toast.error("Café is closed. Please order between 9:30 AM - 11:00 PM!", {
+                icon: '🌙',
+                style: { borderRadius: '16px', background: '#3E2723', color: '#fff' }
+            });
+            return;
+        }
 
         if (!user) {
             // ... (toast logic omitted for brevity in target matching, but I must preserve it)
@@ -323,7 +351,17 @@ const FullMenu = ({ onBack }) => {
                                                 return (
                                                     <div
                                                         key={item.id}
-                                                        onClick={() => { setSelectedItem(item); setIsSheetOpen(true); }}
+                                                        onClick={() => { 
+                                                            if (!isCafeOpen) {
+                                                                toast.error("Café is closed. Please order between 9:30 AM - 11:00 PM!", {
+                                                                    icon: '🌙',
+                                                                    style: { borderRadius: '16px', background: '#3E2723', color: '#fff' }
+                                                                });
+                                                                return;
+                                                            }
+                                                            setSelectedItem(item); 
+                                                            setIsSheetOpen(true); 
+                                                        }}
                                                         className="bg-white rounded-3xl p-3 sm:p-4 flex gap-4 shadow-sm hover:shadow-xl transition-all border border-gray-50 group relative cursor-pointer active:scale-[0.98] font-sans"
                                                     >
                                                         <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden flex-shrink-0">
@@ -383,7 +421,7 @@ const FullMenu = ({ onBack }) => {
                 item={selectedItem}
                 isOpen={isSheetOpen}
                 onClose={() => setIsSheetOpen(false)}
-                allItems={menuItems}
+                isCafeOpen={isCafeOpen}
             />
             <style>
                 {`

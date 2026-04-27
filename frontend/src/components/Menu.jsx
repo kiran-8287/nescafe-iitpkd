@@ -205,6 +205,14 @@ const Menu = () => {
       return;
     }
 
+    if (!isCafeOpen) {
+      toast.error("Café is closed. Please order between 9:30 AM - 11:00 PM!", {
+        icon: '🌙',
+        style: { borderRadius: '16px', background: '#3E2723', color: '#fff' }
+      });
+      return;
+    }
+
     const isFirstItem = cartItems.length === 0;
     const currentQtyInCart = getItemQuantity(item.id);
 
@@ -231,6 +239,14 @@ const Menu = () => {
 
   const handleUpdateQty = (e, item, newQty) => {
     e.stopPropagation();
+
+    if (!isCafeOpen) {
+      toast.error("Café is closed. Please order between 9:30 AM - 11:00 PM!", {
+        icon: '🌙',
+        style: { borderRadius: '16px', background: '#3E2723', color: '#fff' }
+      });
+      return;
+    }
 
     if (!user) {
       handleAddToCart(e, item);
@@ -289,32 +305,7 @@ const Menu = () => {
         ))}
       </AnimatePresence>
 
-      {!isCafeOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#3E2723]/95 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center">
-            <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="max-w-sm"
-            >
-                <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-8 relative">
-                    <Clock size={40} className="text-[#D4AF37]" />
-                    <motion.div 
-                        animate={{ opacity: [1, 0.4, 1] }} 
-                        transition={{ repeat: Infinity, duration: 2 }}
-                        className="absolute inset-0 rounded-full border-2 border-[#D4AF37]"
-                    />
-                </div>
-                <h2 className="text-4xl font-black text-white mb-4 font-serif">We're Closed.</h2>
-                <p className="text-white/60 mb-8 font-medium">The café is currently closed for a break or at capacity. We'll be back brewing shortly!</p>
-                <button 
-                   onClick={() => navigate('/dashboard')}
-                   className="w-full bg-[#D4AF37] text-[#3E2723] py-4 rounded-2xl font-black shadow-xl"
-                >
-                    Back to Safety
-                </button>
-            </motion.div>
-        </div>
-      )}
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         {preparingCount > 15 && (
@@ -383,7 +374,17 @@ const Menu = () => {
                   return (
                     <div
                       key={item.id}
-                      onClick={() => { setSelectedItem(item); setIsSheetOpen(true); }}
+                      onClick={() => { 
+                        if (!isCafeOpen) {
+                          toast.error("Café is closed. Please order between 9:30 AM - 11:00 PM!", {
+                            icon: '🌙',
+                            style: { borderRadius: '16px', background: '#3E2723', color: '#fff' }
+                          });
+                          return;
+                        }
+                        setSelectedItem(item); 
+                        setIsSheetOpen(true); 
+                      }}
                       className="bg-white rounded-3xl p-3 sm:p-4 flex gap-4 shadow-sm hover:shadow-xl transition-all border border-gray-50 group relative cursor-pointer active:scale-[0.98] font-sans"
                     >
                       <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden flex-shrink-0">
@@ -457,7 +458,7 @@ const Menu = () => {
         item={selectedItem}
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
-        allItems={menuItems}
+        isCafeOpen={isCafeOpen}
       />
 
       <style jsx>{`
