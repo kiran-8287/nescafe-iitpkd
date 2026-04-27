@@ -24,8 +24,6 @@ const CartDrawer = () => {
         setOrderMode,
         hostelDetails,
         setHostelDetails,
-        hostelDetails,
-        setHostelDetails,
         billDetails
     } = useCart();
 
@@ -363,7 +361,6 @@ const CartDrawer = () => {
                                         </div>
                                     </div>
 
-                                    </div>
                                 </>
                             ) : (
                                 <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
