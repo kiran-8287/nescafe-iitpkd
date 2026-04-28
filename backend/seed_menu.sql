@@ -262,7 +262,7 @@ INSERT INTO public.items (name, price, category, description, image, is_veg, is_
    70.00, 'Maggie',
    'Gourmet Maggi with olives, herbs, and premium cheese.',
    'https://www.maggi.in/sites/default/files/styles/home_stage_1500_700/public/srh_recipes/f6d480af28b14b4226639ef9a4042835.jpg?h=152e3acd&itok=ILEBJxJN',
-   true, true, 100),
+   true, true, 100);
 
 -- ============================================================
 -- SANDWICH
@@ -271,49 +271,49 @@ INSERT INTO public.items (name, price, category, description, image, is_veg, is_
   ('Veg Grill',
    40.00, 'Sandwich',
    'Grilled sandwich packed with fresh seasonal vegetables.',
-   'https://images.unsplash.com/photo-1554520735-0a6b8b6ce8b7?auto=format&fit=crop&q=80&w=400',
+   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5mxPW-2W_xvjQBjAAn4Go4OGQVlTpCAU4nA&s',
    true, true, 100),
 
-  ('Peanut Butter',
+  ('Peanut Butter Sandwich',
    40.00, 'Sandwich',
    'Classic creamy peanut butter spread on toasted bread.',
-   'https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&q=80&w=400',
+   'https://forktospoon.com/wp-content/uploads/2018/02/Air-Fryer-Peanut-Butter-Jelly-Sandwich-1.png',
    true, true, 100),
 
   ('Bread Butter/Jam',
    40.00, 'Sandwich',
    'Simplicity at its best — butter and fruit jam.',
-   'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&q=80&w=400',
+   'https://thevillagedehradun.com/wp-content/uploads/2024/10/toast-sandwich-with-strawberry-jam-isolated-on-a-transparent-background-png.png',
    true, true, 100),
 
-  ('Bread Omelette',
+  ('Bread Omlte',
    45.00, 'Sandwich',
    'Classic street-style omelette tucked between bread.',
-   'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=400',
+   'https://images.slurrp.com/prod/recipe_images/indian-healthy-recipes/bread-omelet-sandwich-recipe-1620905002_L6T6Q0SQSYEYNRQWCK3W.webp?impolicy=slurrp-20210601&width=1200&height=675',
    false, true, 100),
 
   ('Plain Cheese',
    60.00, 'Sandwich',
    'Melted cheese between two slices of golden toast.',
-   'https://images.unsplash.com/photo-1528736235302-52922df5c122?auto=format&fit=crop&q=80&w=400',
+   'https://i.ytimg.com/vi/LV80k0Bvmq4/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDsGoRGwFzbO69hipCDpOTrR5PWKQ',
    true, true, 100),
 
   ('Chilli Cheese',
    65.00, 'Sandwich',
    'Spicy green chilies and melted cheese combo.',
-   'https://images.unsplash.com/photo-1528736235302-52922df5c122?auto=format&fit=crop&q=80&w=400',
+   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRRNGKtT_jGVJr70KLgKQ_EUgO-VMJRxIL2eA&s',
    true, true, 100),
 
-  ('Corn Cheese',
+  ('Corn Cheese Sandwich',
    65.00, 'Sandwich',
    'Sweet corn kernels mixed with creamy melted cheese.',
-   'https://images.unsplash.com/photo-1554520735-0a6b8b6ce8b7?auto=format&fit=crop&q=80&w=400',
+   'https://static.toiimg.com/thumb/57853896.cms?imgsize=1542881&width=800&height=800',
    true, true, 100),
 
-  ('Nutella Chocolate',
+  ('Nuttella Sandwich',
    70.00, 'Sandwich',
    'Indulgent Nutella spread for the sweet lovers.',
-   'https://images.unsplash.com/photo-1549366021-9f761d040a94?auto=format&fit=crop&q=80&w=400',
+   'https://assets.epicurious.com/photos/5b8863a51c53e84aa2655f56/1:1/w_2560%2Cc_limit/Nutella-Grilled-Cheese-29302018.jpg',
    true, true, 100);
 
 -- ============================================================
