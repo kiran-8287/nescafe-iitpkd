@@ -369,7 +369,7 @@ const Menu = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredItems.map((item) => {
+                {(debouncedSearch === '' ? filteredItems.slice(0, 4) : filteredItems).map((item) => {
                   const qty = getItemQuantity(item.id);
                   return (
                     <div
@@ -441,6 +441,20 @@ const Menu = () => {
                   );
                 })}
               </div>
+
+              {debouncedSearch === '' && filteredItems.length > 4 && (
+                <div className="mt-12 text-center">
+                  <button
+                    onClick={() => {
+                      navigate('/menu');
+                      window.scrollTo(0, 0);
+                    }}
+                    className="bg-white border-2 border-[#3E2723] text-[#3E2723] px-8 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-[#3E2723] hover:text-white transition-all shadow-md active:scale-95"
+                  >
+                    View Full {activeCategory} Menu
+                  </button>
+                </div>
+              )}
 
               {filteredItems.length === 0 && (
                 <div className="text-center py-20 bg-white rounded-[40px] border-2 border-dashed border-gray-100">
