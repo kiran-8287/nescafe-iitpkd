@@ -451,7 +451,7 @@ const Menu = () => {
                     }}
                     className="bg-white border-2 border-[#3E2723] text-[#3E2723] px-8 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-[#3E2723] hover:text-white transition-all shadow-md active:scale-95"
                   >
-                    View Full {activeCategory} Menu
+                    View Full Menu
                   </button>
                 </div>
               )}

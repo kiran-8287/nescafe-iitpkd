@@ -5,37 +5,20 @@ import { useAuth } from '../context/AuthContext';
 import GalleryUpload from './GalleryUpload';
 import toast from 'react-hot-toast';
 
+import { galleryImages as curatedImages, menuItems } from '../data/mock';
+
 const mockImages = [
-  {
-    id: 1,
-    src: "https://images.unsplash.com/photo-1579992357154-faf4bde95b3d?auto=format&fit=crop&w=800&q=80",
-    caption: "When the code finally compiles 🎉"
-  },
-  {
-    id: 2,
-    src: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80",
-    caption: "3 AM and still going strong"
-  },
-  {
-    id: 3,
-    src: "https://images.unsplash.com/photo-1684006997322-6a5128f44816?auto=format&fit=crop&w=800&q=80",
-    caption: "That feeling when exams are over"
-  },
-  {
-    id: 4,
-    src: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=800&q=80",
-    caption: "Random Tuesday, regular magic"
-  },
-  {
-    id: 5,
-    src: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80",
-    caption: "Found my study buddy for life here"
-  },
-  {
-    id: 6,
-    src: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=800&q=80",
-    caption: "Best coffee break ever"
-  }
+  ...curatedImages.map(img => ({
+    id: img.id,
+    src: img.src,
+    caption: img.alt || "Campus Life"
+  })),
+  // Supplementing with menu item images to reach the requested 10-15 count
+  ...menuItems.slice(0, 7).map(item => ({
+    id: `supplement-${item.id}`,
+    src: item.image,
+    caption: item.name
+  }))
 ];
 
 /* ── Reusable image card ── */
